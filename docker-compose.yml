@@ -44,6 +44,7 @@ services:
       - HEALTH_CHECK_SECONDS
       - CROP_SAVER_LIGHTNING_IMMUNITY
       - VERBOSE_LOGGING
+      - LOCK_PLAYER_CHESTS
     depends_on:
       steam-auth:
         condition: service_healthy

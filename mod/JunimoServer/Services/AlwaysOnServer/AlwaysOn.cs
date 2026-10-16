@@ -193,11 +193,22 @@ public class AlwaysOnServer : ModService
         Helper.Events.Input.ButtonPressed += OnButtonPressed;
         Helper.Events.Display.Rendered += OnRendered;
         Helper.Events.Specialized.UnvalidatedUpdateTicked += OnUnvalidatedUpdateTick;
+        Helper.Events.GameLoop.DayStarted += OnDayStarted;
         Helper.Events.GameLoop.DayEnding += OnDayEnd;
         Helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
         Helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
         Helper.Events.Multiplayer.PeerDisconnected += OnPeerDisconnected;
         Helper.Events.World.ObjectListChanged += OnObjectListChanged;
+    }
+
+    private void OnDayStarted(object sender, DayStartedEventArgs e)
+    {
+        if (!IsAutomating)
+        {
+            return;
+        }
+
+        HandleMailbox();
     }
 
     private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e)
@@ -1412,29 +1423,58 @@ public class AlwaysOnServer : ModService
         // mailbox, which replaces activeClickableMenu. If a ReadyCheckDialog is
         // live (e.g. HandleAutoSleep just fired), replacing it wedges the day
         // transition — see AlwaysOnUtil.IsReadyCheckActive for the full rationale.
-        // Skipping is safe: mail persists across days, no downstream logic gates
-        // on "mail was collected this day", and OnTimeChanged(620) tomorrow is
-        // the retry. If that day is also blocked, we defer again.
         if (AlwaysOnUtil.IsReadyCheckActive())
         {
             return;
         }
 
-        // Nothing to collect — don't open the "mailbox is empty" dialog. It
-        // briefly steals activeClickableMenu for no benefit and widens the race
-        // window if a ReadyCheckDialog shows up a tick later.
-        if (Game1.mailbox.Count == 0)
+        var player = Game1.player;
+        if (player == null)
         {
             return;
         }
 
-        // Checking mails once more closes the last one
-        int mailboxCount = Game1.mailbox.Count + 1;
+        var playerMailbox = player.mailbox;
+        var hasPlayerMail = playerMailbox != null && playerMailbox.Count > 0;
+        var hasLegacyMail = Game1.mailbox != null && Game1.mailbox.Count > 0;
 
-        // Check all mails
-        for (int i = 0; i < mailboxCount; i++)
+        if (!hasPlayerMail && !hasLegacyMail)
         {
-            Helper.Reflection.GetMethod(Game1.currentLocation, "mailbox").Invoke();
+            return;
+        }
+
+        // Directly process unread mail in Game1.player.mailbox (#347).
+        // On a headless server, invoking GameLocation.mailbox() opens LetterViewerMenu
+        // which cannot be clicked, leaving progression letters (e.g. mine level 5 guild unlock)
+        // stuck in the host's mailbox and blocking all farmhands under FarmhouseStack.
+        if (hasPlayerMail)
+        {
+            var processed = 0;
+            while (playerMailbox.Count > 0)
+            {
+                var mailKey = playerMailbox[0];
+                playerMailbox.RemoveAt(0);
+
+                if (!player.mailReceived.Contains(mailKey))
+                {
+                    player.mailReceived.Add(mailKey);
+                }
+
+                processed++;
+            }
+
+            if (processed > 0)
+            {
+                Monitor.Log(
+                    $"Host automatically processed {processed} unread letter(s) from mailbox (#347).",
+                    LogLevel.Info
+                );
+            }
+        }
+
+        if (hasLegacyMail)
+        {
+            Game1.mailbox.Clear();
         }
     }
 

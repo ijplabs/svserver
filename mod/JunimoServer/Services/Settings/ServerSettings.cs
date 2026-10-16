@@ -61,6 +61,12 @@ public class ServerRuntimeSettings
     public bool AllowIpConnections { get; set; } = false;
 
     /// <summary>
+    /// Whether players' chests and host cabin inventory are locked to offline owners.
+    /// Default: true (set to false to allow farmhands to open host chests, #340).
+    /// </summary>
+    public bool LockPlayerChests { get; set; } = true;
+
+    /// <summary>
     /// Whether players may move their cabin out to a real farm position via the
     /// !cabin chat command (and send it back with '!cabin reset'), regardless of
     /// cabin strategy. Default: true

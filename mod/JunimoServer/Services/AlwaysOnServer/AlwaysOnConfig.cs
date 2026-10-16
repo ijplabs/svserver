@@ -13,6 +13,7 @@ public class AlwaysOnConfig
             FarmCaveChoiceIsMushrooms = settings.MushroomCave,
             IsCommunityCenterRun = !settings.BuyJoja,
             ShouldCreatePet = settings.PetBreed is >= 0 and <= 9,
+            LockPlayerChests = settings.LockPlayerChests,
         };
     }
 

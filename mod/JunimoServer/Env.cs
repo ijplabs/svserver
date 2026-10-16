@@ -24,6 +24,11 @@ internal class Env
         true
     );
 
+    /// <summary>
+    /// When set, overrides ServerSettings.Server.LockPlayerChests (#340).
+    /// </summary>
+    public static readonly bool? LockPlayerChests = ParseNullableBool("LOCK_PLAYER_CHESTS");
+
     public static readonly int HealthCheckSeconds = ParseInt("HEALTH_CHECK_SECONDS", 300);
 
     /// <summary>

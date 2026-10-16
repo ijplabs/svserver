@@ -69,6 +69,11 @@ public class ServerSettingsLoader
     public bool AllowIpConnections => _settings.Server.AllowIpConnections;
 
     /// <summary>
+    /// Whether players' chests and host cabin inventory are locked to offline owners (#340).
+    /// </summary>
+    public bool LockPlayerChests => Env.LockPlayerChests ?? _settings.Server.LockPlayerChests;
+
+    /// <summary>
     /// Whether players may relocate their cabin via the !cabin command
     /// (see <see cref="ServerRuntimeSettings.AllowCabinRelocation"/>).
     /// </summary>
