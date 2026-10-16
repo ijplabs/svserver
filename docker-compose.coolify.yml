@@ -58,8 +58,7 @@ services:
       - VERBOSE_LOGGING=${VERBOSE_LOGGING:-false}
       - ENABLE_MOD_INCOMPATIBLE_OPTIMIZATIONS=${ENABLE_MOD_INCOMPATIBLE_OPTIMIZATIONS:-true}
     depends_on:
-      steam-auth:
-        condition: service_healthy
+      - steam-auth
 
   # Steam authentication and depot download sidecar
   steam-auth:
@@ -82,6 +81,12 @@ services:
       - STEAM_REFRESH_TOKEN=${STEAM_REFRESH_TOKEN}
       - STEAM_KEEP_LANGUAGES=${STEAM_KEEP_LANGUAGES:-}
       - VALIDATE_ON_BOOT=${VALIDATE_ON_BOOT:-true}
+    healthcheck:
+      test: ["CMD", "dotnet", "SteamService.dll", "healthcheck"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 300s
 
   # Discord Bot (Optional - starts automatically if DISCORD_BOT_TOKEN is set)
   discord-bot:
