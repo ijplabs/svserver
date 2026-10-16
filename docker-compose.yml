@@ -4,7 +4,7 @@
 services:
   # Main game server
   server:
-    image: sdvd/server:${IMAGE_VERSION:-latest}
+    image: sdvd/server:${IMAGE_VERSION:-preview}
     container_name: sdvd-server
     stdin_open: true
     tty: true
@@ -51,7 +51,7 @@ services:
     restart: unless-stopped
 
   steam-auth:
-    image: sdvd/steam-service:${IMAGE_VERSION:-latest}
+    image: sdvd/steam-service:${IMAGE_VERSION:-preview}
     container_name: sdvd-steam-auth
     stdin_open: true
     tty: true
@@ -73,7 +73,7 @@ services:
 
   # Discord bot for server status display and chat relay
   discord-bot:
-    image: sdvd/discord-bot:${IMAGE_VERSION:-latest}
+    image: sdvd/discord-bot:${IMAGE_VERSION:-preview}
     container_name: sdvd-discord-bot
     environment:
       - API_URL=http://server:${API_PORT:-8080}

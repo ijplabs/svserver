@@ -12,7 +12,7 @@
 services:
   # Main game server container
   server:
-    image: sdvd/server:${IMAGE_VERSION:-latest}
+    image: sdvd/server:${IMAGE_VERSION:-preview}
     container_name: sdvd-server
     restart: unless-stopped
     stdin_open: true
@@ -63,7 +63,7 @@ services:
 
   # Steam authentication and depot download sidecar
   steam-auth:
-    image: sdvd/steam-service:${IMAGE_VERSION:-latest}
+    image: sdvd/steam-service:${IMAGE_VERSION:-preview}
     container_name: sdvd-steam-auth
     restart: unless-stopped
     stdin_open: true
@@ -85,7 +85,7 @@ services:
 
   # Discord Bot (Optional - starts automatically if DISCORD_BOT_TOKEN is set)
   discord-bot:
-    image: sdvd/discord-bot:${IMAGE_VERSION:-latest}
+    image: sdvd/discord-bot:${IMAGE_VERSION:-preview}
     container_name: sdvd-discord-bot
     restart: on-failure
     environment:
