@@ -51,6 +51,12 @@ public class AlwaysOnServer : ModService
     // The last activity that held the pause off, so each one is logged once, not per tick.
     private HostActivity _lastHoldOff;
 
+    // Wall-clock start of a pending locationRequest while the server is empty.
+    // If a farmhand disconnects mid-warp, the location request can hang indefinitely,
+    // holding off auto-pause permanently (#685).
+    private DateTime? _emptyPendingWarpStartTime;
+    private static readonly TimeSpan StuckWarpTimeout = TimeSpan.FromSeconds(15);
+
     private readonly LobbyService _lobbyService;
     private readonly SaveImportService _saveImportService;
 
@@ -1048,6 +1054,7 @@ public class AlwaysOnServer : ModService
         {
             SetPaused(false, "players present");
             _emptyPastCutoffSince = null;
+            _emptyPendingWarpStartTime = null;
             return;
         }
 
@@ -1077,6 +1084,27 @@ public class AlwaysOnServer : ModService
         else
         {
             _emptyPastCutoffSince = null;
+        }
+
+        // If a warp request is pending while no real players are connected, monitor for hang.
+        // Disconnecting farmhands can leave Game1.locationRequest dangling indefinitely,
+        // which prevents auto-pause from ever engaging (#685).
+        if (Game1.locationRequest != null)
+        {
+            _emptyPendingWarpStartTime ??= DateTime.UtcNow;
+            if (DateTime.UtcNow - _emptyPendingWarpStartTime > StuckWarpTimeout)
+            {
+                Monitor.Log(
+                    $"Pending warp to '{Game1.locationRequest.Name}' timed out after {StuckWarpTimeout.TotalSeconds:0}s with 0 players connected. Clearing stuck locationRequest to allow auto-pause.",
+                    LogLevel.Warn
+                );
+                Game1.locationRequest = null;
+                _emptyPendingWarpStartTime = null;
+            }
+        }
+        else
+        {
+            _emptyPendingWarpStartTime = null;
         }
 
         // Anything still in flight needs the unpaused loop to finish (the pause gates

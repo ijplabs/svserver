@@ -71,6 +71,12 @@ public class GalaxyAuthService : ModService
     private static bool _lobbyCreationAttempted;
 
     /// <summary>
+    /// Earliest wall-clock time a failed Steam lobby creation may be retried (#695).
+    /// </summary>
+    private static DateTime _nextSteamLobbyCreationAttemptUtc = DateTime.MinValue;
+    private static readonly TimeSpan SteamLobbyRetryCooldown = TimeSpan.FromSeconds(15);
+
+    /// <summary>
     /// Bumped on every Steam-session invalidation. A Task.Run captures it at its
     /// game-thread spawn site and commits its lobby result only if the value still
     /// matches — so a task from a torn-down session can't overwrite fresh state.
@@ -313,6 +319,7 @@ public class GalaxyAuthService : ModService
         _steamSessionGeneration++;
         _steamLobbyId = 0;
         _lobbyCreationAttempted = false;
+        _nextSteamLobbyCreationAttemptUtc = DateTime.MinValue;
         _lastSteamLobbyPrivacy = null;
         _pendingGalaxyLobbyUpdate = false;
         _steamLobbyPublished = false;
@@ -809,6 +816,12 @@ public class GalaxyAuthService : ModService
                 // self-limits — once the mirror is non-null this branch stops firing (no per-tick work).
                 SetInviteCodeFromLiveLobby();
             }
+
+            if (_steamLobbyId == 0 && !_lobbyCreationAttempted && SteamGameServerService.IsInitialized)
+            {
+                CreateSteamLobbyViaHttpAsync();
+            }
+
             _galaxyLobbyState = GalaxyLobbyState.Connected;
             return;
         }
@@ -986,6 +999,11 @@ public class GalaxyAuthService : ModService
             return;
         }
 
+        if (DateTime.UtcNow < _nextSteamLobbyCreationAttemptUtc)
+        {
+            return;
+        }
+
         if (!SteamGameServerService.IsInitialized)
         {
             _monitor.Log("Cannot create Steam lobby: GameServer not initialized", LogLevel.Warn);
@@ -1068,8 +1086,10 @@ public class GalaxyAuthService : ModService
                     }
                     else
                     {
+                        _lobbyCreationAttempted = false;
+                        _nextSteamLobbyCreationAttemptUtc = DateTime.UtcNow + SteamLobbyRetryCooldown;
                         _monitor.Log(
-                            $"Failed to parse Steam lobby ID: {result.lobby_id}",
+                            $"Failed to parse Steam lobby ID: {result.lobby_id}. Will retry after cooldown.",
                             LogLevel.Error
                         );
                         Diagnostics.ModEventLog.Emit(
@@ -1080,7 +1100,9 @@ public class GalaxyAuthService : ModService
                 }
                 else
                 {
-                    _monitor.Log("Failed to create Steam lobby: empty response", LogLevel.Error);
+                    _lobbyCreationAttempted = false;
+                    _nextSteamLobbyCreationAttemptUtc = DateTime.UtcNow + SteamLobbyRetryCooldown;
+                    _monitor.Log("Failed to create Steam lobby: empty response. Will retry after cooldown.", LogLevel.Error);
                     Diagnostics.ModEventLog.Emit(
                         "auth_steam_lobby_create_failed",
                         new { reason = "empty_response" }
@@ -1089,8 +1111,10 @@ public class GalaxyAuthService : ModService
             }
             catch (Exception ex)
             {
+                _lobbyCreationAttempted = false;
+                _nextSteamLobbyCreationAttemptUtc = DateTime.UtcNow + SteamLobbyRetryCooldown;
                 _monitor.Log(
-                    $"Failed to create Steam lobby via HTTP: {ex.Message}",
+                    $"Failed to create Steam lobby via HTTP: {ex.Message}. Resetting flag for retry after cooldown.",
                     LogLevel.Error
                 );
                 _monitor.Log(ex.ToString(), LogLevel.Debug);
