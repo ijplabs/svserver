@@ -21,7 +21,7 @@ services:
       # noVNC Web UI (can be routed to a domain in Coolify UI)
       - "${VNC_PORT:-5800}:5800"
       # HTTP REST API & WebSocket (can be routed to a domain in Coolify UI)
-      - "${API_PORT:-8080}:8080"
+      - "${API_PORT:-28080}:8080"
       # Steam multiplayer relay network (UDP - required for player connections)
       - "${GAME_PORT:-24642}:24642/udp"
       # Steam query port (UDP)
