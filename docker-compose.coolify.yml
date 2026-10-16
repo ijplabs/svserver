@@ -1,0 +1,109 @@
+# ============================================================================
+# JunimoServer - Docker Compose Configuration for Coolify
+# ============================================================================
+# Optimized for deployment on Coolify (https://coolify.io).
+# Features:
+# - Self-healing multi-container setup (server + steam-auth + optional discord-bot)
+# - Persistent named volumes for saves, Steam session tokens, and settings
+# - Direct UDP port exposure for Stardew Valley Steam Datagram Relay (SDR)
+# - Compatible with Coolify's built-in Traefik/Caddy reverse proxy
+# ============================================================================
+
+services:
+  # Main game server container
+  server:
+    image: sdvd/server:${IMAGE_VERSION:-latest}
+    container_name: sdvd-server
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      # noVNC Web UI (can be routed to a domain in Coolify UI)
+      - "${VNC_PORT:-5800}:5800"
+      # HTTP REST API & WebSocket (can be routed to a domain in Coolify UI)
+      - "${API_PORT:-8080}:8080"
+      # Steam multiplayer relay network (UDP - required for player connections)
+      - "${GAME_PORT:-24642}:24642/udp"
+      # Steam query port (UDP)
+      - "${QUERY_PORT:-27015}:27015/udp"
+    volumes:
+      - game-data:/data/game
+      - saves:/config/xdg/config/StardewValley
+      - server-settings:/data/settings
+      - diagnostics:/data/diagnostics
+    environment:
+      - SDVD_COMPOSE_REV=4
+      - STEAM_AUTH_URL=http://steam-auth:${STEAM_AUTH_PORT:-3001}
+      - SETTINGS_PATH=/data/settings/server-settings.json
+      - USER_ID=${USER_ID:-1000}
+      - GROUP_ID=${GROUP_ID:-1000}
+      # Security & Web Access
+      - VNC_PASSWORD=${VNC_PASSWORD}
+      - API_KEY=${API_KEY}
+      - API_ENABLED=${API_ENABLED:-true}
+      - API_PORT=8080
+      - SERVER_PASSWORD=${SERVER_PASSWORD}
+      - MAX_LOGIN_ATTEMPTS=${MAX_LOGIN_ATTEMPTS:-3}
+      - AUTH_TIMEOUT_SECONDS=${AUTH_TIMEOUT_SECONDS:-120}
+      - ALLOW_INSECURE_SETUP=${ALLOW_INSECURE_SETUP:-false}
+      # Server Customization & Gameplay
+      - SERVER_NAME=${SERVER_NAME:-Junimo Dedicated Farm}
+      - SERVER_TPS=${SERVER_TPS:-60}
+      - SERVER_FPS=${SERVER_FPS:-0}
+      - AUTO_SLEEP_GRACE_SECONDS=${AUTO_SLEEP_GRACE_SECONDS:-300}
+      - SDVD_TPS_AGNOSTIC_PACING=${SDVD_TPS_AGNOSTIC_PACING:-true}
+      - CROP_SAVER_LIGHTNING_IMMUNITY=${CROP_SAVER_LIGHTNING_IMMUNITY:-true}
+      - LOCK_PLAYER_CHESTS=${LOCK_PLAYER_CHESTS:-true}
+      - HEALTH_CHECK_SECONDS=${HEALTH_CHECK_SECONDS:-300}
+      - VERBOSE_LOGGING=${VERBOSE_LOGGING:-false}
+      - ENABLE_MOD_INCOMPATIBLE_OPTIMIZATIONS=${ENABLE_MOD_INCOMPATIBLE_OPTIMIZATIONS:-true}
+    depends_on:
+      steam-auth:
+        condition: service_healthy
+
+  # Steam authentication and depot download sidecar
+  steam-auth:
+    image: sdvd/steam-service:${IMAGE_VERSION:-latest}
+    container_name: sdvd-steam-auth
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    expose:
+      - "${STEAM_AUTH_PORT:-3001}"
+    volumes:
+      - steam-session:/data/steam-session
+      - game-data:/data/game
+    environment:
+      - PORT=${STEAM_AUTH_PORT:-3001}
+      - USER_ID=${USER_ID:-1000}
+      - GROUP_ID=${GROUP_ID:-1000}
+      - STEAM_USERNAME=${STEAM_USERNAME}
+      - STEAM_PASSWORD=${STEAM_PASSWORD}
+      - STEAM_REFRESH_TOKEN=${STEAM_REFRESH_TOKEN}
+      - STEAM_KEEP_LANGUAGES=${STEAM_KEEP_LANGUAGES:-}
+      - VALIDATE_ON_BOOT=${VALIDATE_ON_BOOT:-true}
+
+  # Discord Bot (Optional - starts automatically if DISCORD_BOT_TOKEN is set)
+  discord-bot:
+    image: sdvd/discord-bot:${IMAGE_VERSION:-latest}
+    container_name: sdvd-discord-bot
+    restart: on-failure
+    environment:
+      - API_URL=http://server:8080
+      - API_KEY=${API_KEY}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN:-}
+      - DISCORD_CHAT_CHANNEL=${DISCORD_CHAT_CHANNEL:-}
+      - STATUS_DASHBOARD_CHANNEL=${STATUS_DASHBOARD_CHANNEL:-}
+      - STATUS_DASHBOARD_REFRESH_RATE=${STATUS_DASHBOARD_REFRESH_RATE:-30}
+    volumes:
+      - discord-bot-data:/data
+    depends_on:
+      - server
+
+volumes:
+  steam-session:
+  game-data:
+  saves:
+  server-settings:
+  diagnostics:
+  discord-bot-data:
