@@ -242,6 +242,14 @@ internal class ModEntry : Mod
         foreach (var serviceType in serviceTypes)
         {
             services.AddSingleton(serviceType);
+
+            foreach (var iface in serviceType.GetInterfaces())
+            {
+                if (iface != typeof(IDisposable) && iface != typeof(IModService))
+                {
+                    services.AddSingleton(iface, sp => sp.GetRequiredService(serviceType));
+                }
+            }
         }
     }
 
