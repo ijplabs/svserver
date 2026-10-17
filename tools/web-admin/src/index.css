@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    color-scheme: dark;
+    color-scheme: light;
 
     /* Stardew Simulation Gaming Tokens (Impeccable Style) */
-    --color-surface-bg: #090d16;
-    --color-surface-card: #111a2e;
-    --color-surface-inset: #0a0f1d;
-    --color-border-subtle: #1e2a42;
+    --color-surface-bg: #f1f5f9;
+    --color-surface-card: #ffffff;
+    --color-surface-inset: #f8fafc;
+    --color-border-subtle: #e2e8f0;
     --color-border-brass: #d97706;
     --color-border-timber: #56160c;
 
@@ -19,9 +21,17 @@
     --color-valley-berry: #f43f5e;
   }
 
+  :root.dark,
+  .dark {
+    color-scheme: dark;
+    --color-surface-bg: #090d16;
+    --color-surface-card: #111a2e;
+    --color-surface-inset: #0a0f1d;
+    --color-border-subtle: #1e2a42;
+  }
+
   body {
     background-color: var(--color-surface-bg);
-    color: #e2e8f0;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
@@ -100,6 +110,12 @@
 
 /* Stardew Gaming Cockpit Card & Panel Frames */
 .card-cozy {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+:where(.dark, .dark *) .card-cozy {
   background-color: #111a2e;
   border: 1px solid #1e2a42;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
