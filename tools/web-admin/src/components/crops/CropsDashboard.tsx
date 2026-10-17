@@ -189,8 +189,8 @@ export const CropsDashboard: React.FC = () => {
             onClick={() => setSelectedFilter('all')}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer whitespace-nowrap ${
               selectedFilter === 'all'
-                ? 'bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950'
-                : 'bg-slate-100 dark:bg-[#0a0f1d] text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-[#1e2a42]'
+                ? 'bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950 font-bold shadow-xs'
+                : 'bg-slate-100 dark:bg-[#0a0f1d] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#162035] dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42]'
             }`}
           >
             All ({allCrops.length})
@@ -200,8 +200,8 @@ export const CropsDashboard: React.FC = () => {
             onClick={() => setSelectedFilter('ready')}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer whitespace-nowrap flex items-center space-x-1 ${
               selectedFilter === 'ready'
-                ? 'bg-emerald-600 text-white'
-                : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/50'
+                ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 dark:hover:text-emerald-200 border border-emerald-200 dark:border-emerald-800/50'
             }`}
           >
             <Sparkles className="w-3 h-3 mr-1" />
@@ -212,8 +212,8 @@ export const CropsDashboard: React.FC = () => {
             onClick={() => setSelectedFilter('unwatered')}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer whitespace-nowrap flex items-center space-x-1 ${
               selectedFilter === 'unwatered'
-                ? 'bg-amber-600 text-white'
-                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/50'
+                ? 'bg-amber-600 text-white font-bold shadow-xs'
+                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 dark:hover:text-amber-200 border border-amber-200 dark:border-amber-800/50'
             }`}
           >
             <Droplets className="w-3 h-3 mr-1" />
@@ -224,8 +224,8 @@ export const CropsDashboard: React.FC = () => {
             onClick={() => setSelectedFilter('growing')}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer whitespace-nowrap ${
               selectedFilter === 'growing'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/50'
+                ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 dark:hover:text-indigo-200 border border-indigo-200 dark:border-indigo-800/50'
             }`}
           >
             Growing

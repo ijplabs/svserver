@@ -111,7 +111,7 @@ export const FarmerProfileCard: React.FC = () => {
 
           {/* Currencies & Balances */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="px-4 py-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40 rounded-xl flex items-center gap-2.5">
+            <div className="px-4 py-2.5 bg-amber-50 dark:bg-[#151c2d] border border-amber-200/70 dark:border-amber-500/30 rounded-xl flex items-center gap-2.5 shadow-2xs">
               <Coins className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               <div>
                 <div className="text-[10px] text-amber-700/80 dark:text-amber-400/80 font-medium">Saldo Dompet</div>
@@ -121,7 +121,7 @@ export const FarmerProfileCard: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-4 py-2.5 bg-purple-50 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-900/40 rounded-xl flex items-center gap-2.5">
+            <div className="px-4 py-2.5 bg-purple-50 dark:bg-[#1c162e] border border-purple-200/70 dark:border-purple-500/30 rounded-xl flex items-center gap-2.5 shadow-2xs">
               <Gem className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               <div>
                 <div className="text-[10px] text-purple-700/80 dark:text-purple-400/80 font-medium">Qi Gems</div>
@@ -131,7 +131,7 @@ export const FarmerProfileCard: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-4 py-2.5 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/40 rounded-xl flex items-center gap-2.5">
+            <div className="px-4 py-2.5 bg-indigo-50 dark:bg-[#161b2e] border border-indigo-200/70 dark:border-indigo-500/30 rounded-xl flex items-center gap-2.5 shadow-2xs">
               <Award className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <div>
                 <div className="text-[10px] text-indigo-700/80 dark:text-indigo-400/80 font-medium">Club Coins</div>
@@ -144,7 +144,7 @@ export const FarmerProfileCard: React.FC = () => {
             <button
               onClick={fetchProfile}
               disabled={isLoading}
-              className="p-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              className="p-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-amber-300 rounded-xl border border-slate-200 dark:border-[#1e2a42] hover:bg-slate-50 dark:hover:bg-[#162035] transition-colors cursor-pointer"
               title="Perbarui data karakter"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -206,34 +206,40 @@ export const FarmerProfileCard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {Object.entries(profile.skills).map(([skillName, skillData]) => (
-              <div
-                key={skillName}
-                className="p-3.5 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200/70 dark:border-[#1e2a42] rounded-xl space-y-2 shadow-2xs"
-              >
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {skillName === 'Farming' ? 'Pertanian (Farming)' :
-                     skillName === 'Fishing' ? 'Memancing (Fishing)' :
-                     skillName === 'Foraging' ? 'Perambanan (Foraging)' :
-                     skillName === 'Mining' ? 'Pertambangan (Mining)' :
-                     skillName === 'Combat' ? 'Pertarungan (Combat)' : 'Keberuntungan (Luck)'}
-                  </span>
-                  <span className="px-2 py-0.5 font-bold rounded bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                    Lv. {skillData.level}
-                  </span>
+            {Object.entries(profile.skills).map(([skillName, skillData]) => {
+              const s = skillName.toLowerCase();
+              const label =
+                s === 'farming' ? 'Pertanian (Farming)' :
+                s === 'fishing' ? 'Memancing (Fishing)' :
+                s === 'foraging' ? 'Perambanan (Foraging)' :
+                s === 'mining' ? 'Pertambangan (Mining)' :
+                s === 'combat' ? 'Pertarungan (Combat)' : 'Keberuntungan (Luck)';
+
+              return (
+                <div
+                  key={skillName}
+                  className="p-3.5 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200/70 dark:border-[#1e2a42] hover:border-amber-500/40 rounded-xl space-y-2 shadow-2xs transition-colors"
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {label}
+                    </span>
+                    <span className="px-2 py-0.5 font-bold rounded bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
+                      Lv. {skillData.level}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-[#162035] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-amber-500 h-full rounded-full"
+                      style={{ width: `${Math.min(100, (skillData.level / 10) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono text-right">
+                    {skillData.experience.toLocaleString('id-ID')} XP
+                  </div>
                 </div>
-                <div className="w-full bg-slate-200 dark:bg-[#162035] h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-amber-500 h-full rounded-full"
-                    style={{ width: `${Math.min(100, (skillData.level / 10) * 100)}%` }}
-                  />
-                </div>
-                <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono text-right">
-                  {skillData.experience.toLocaleString('id-ID')} XP
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

@@ -161,15 +161,15 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
                         w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold
                         transition-all cursor-pointer group relative
                         ${isActive
-                          ? 'bg-amber-50 dark:bg-gradient-to-r dark:from-amber-500/20 dark:via-amber-500/10 dark:to-transparent text-amber-800 dark:text-amber-200 border-l-4 border-amber-500 dark:border-amber-400 shadow-2xs font-bold'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-[#141e33]'
+                          ? 'bg-amber-100 text-amber-950 border-l-4 border-amber-600 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-400 dark:hover:bg-amber-500/20 font-bold shadow-2xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-amber-300 hover:bg-slate-100 dark:hover:bg-[#141e33]'
                         }
                         ${isCollapsed ? 'justify-center px-0' : ''}
                       `}
                       title={isCollapsed ? item.label : undefined}
                     >
                       <Icon className={`w-4 h-4 shrink-0 transition-transform ${
-                        isActive ? 'text-amber-600 dark:text-amber-400 scale-110' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                        isActive ? 'text-amber-700 dark:text-amber-400 scale-110' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-amber-300'
                       }`} />
 
                       {!isCollapsed && (

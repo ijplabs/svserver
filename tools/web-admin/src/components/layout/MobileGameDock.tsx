@@ -33,8 +33,8 @@ export const MobileGameDock: React.FC<MobileGameDockProps> = ({
           onClick={() => onSelectTab(isAdmin ? 'overview' : 'character')}
           className={`flex flex-col items-center justify-center py-1 transition-all ${
             (isAdmin && activeTab === 'overview') || (!isAdmin && activeTab === 'character')
-              ? 'text-amber-600 dark:text-amber-400 font-bold scale-105'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              ? 'text-amber-600 dark:text-amber-300 font-bold scale-105'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           }`}
         >
           {isAdmin ? <LayoutDashboard className="w-5 h-5" /> : <User className="w-5 h-5" />}
@@ -46,7 +46,7 @@ export const MobileGameDock: React.FC<MobileGameDockProps> = ({
           type="button"
           onClick={() => onSelectTab('map')}
           className={`flex flex-col items-center justify-center py-1 transition-all ${
-            activeTab === 'map' ? 'text-amber-600 dark:text-amber-400 font-bold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            activeTab === 'map' ? 'text-amber-600 dark:text-amber-300 font-bold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           }`}
         >
           <Compass className="w-5 h-5" />
@@ -58,7 +58,7 @@ export const MobileGameDock: React.FC<MobileGameDockProps> = ({
           type="button"
           onClick={() => onSelectTab('crops')}
           className={`flex flex-col items-center justify-center py-1 transition-all ${
-            activeTab === 'crops' ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            activeTab === 'crops' ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           }`}
         >
           <Sprout className="w-5 h-5" />
@@ -70,7 +70,7 @@ export const MobileGameDock: React.FC<MobileGameDockProps> = ({
           type="button"
           onClick={() => onSelectTab('chat')}
           className={`flex flex-col items-center justify-center py-1 transition-all ${
-            activeTab === 'chat' ? 'text-amber-600 dark:text-amber-400 font-bold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            activeTab === 'chat' ? 'text-amber-600 dark:text-amber-300 font-bold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
           }`}
         >
           <MessageSquare className="w-5 h-5" />
@@ -81,7 +81,7 @@ export const MobileGameDock: React.FC<MobileGameDockProps> = ({
         <button
           type="button"
           onClick={onOpenMenu}
-          className="flex flex-col items-center justify-center py-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+          className="flex flex-col items-center justify-center py-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
         >
           <Menu className="w-5 h-5" />
           <span className="text-[10px] mt-0.5 tracking-tight">Menu</span>

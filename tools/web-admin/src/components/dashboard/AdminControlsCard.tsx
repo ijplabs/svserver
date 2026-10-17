@@ -176,7 +176,7 @@ export const AdminControlsCard: React.FC = () => {
                   type="button"
                   disabled={isProcessing}
                   onClick={() => handlePause('Kamar Mandi')}
-                  className="py-1 px-1 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] text-slate-600 dark:text-slate-400 rounded text-center truncate cursor-pointer"
+                  className="py-1 px-1 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-amber-50 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] text-slate-600 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 dark:hover:border-amber-500/40 rounded text-center truncate cursor-pointer transition-colors"
                   title="Pause: Kamar Mandi"
                 >
                   Toilet Break
@@ -185,7 +185,7 @@ export const AdminControlsCard: React.FC = () => {
                   type="button"
                   disabled={isProcessing}
                   onClick={() => handlePause('Makan / Minum')}
-                  className="py-1 px-1 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] text-slate-600 dark:text-slate-400 rounded text-center truncate cursor-pointer"
+                  className="py-1 px-1 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-amber-50 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] text-slate-600 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 dark:hover:border-amber-500/40 rounded text-center truncate cursor-pointer transition-colors"
                   title="Pause: Makan / Minum"
                 >
                   Meal Break
@@ -205,7 +205,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(600)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               06:00 (Dawn)
             </button>
@@ -213,7 +213,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(1200)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               12:00 (Noon)
             </button>
@@ -221,7 +221,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(1800)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               18:00 (Dusk)
             </button>
@@ -229,7 +229,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(2200)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               22:00 (Night)
             </button>
@@ -247,7 +247,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(0.5)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               0.5x
             </button>
@@ -255,7 +255,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(1.0)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               1.0x
             </button>
@@ -263,7 +263,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(2.0)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               2.0x
             </button>
@@ -271,7 +271,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(5.0)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-amber-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-amber-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               5.0x
             </button>
@@ -289,7 +289,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleRendering(0)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-emerald-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-emerald-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
               title="0 FPS: Minimum CPU usage"
             >
               0 FPS (Headless)
@@ -298,7 +298,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleRendering(60)}
-              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-emerald-300 border border-slate-200 dark:border-[#1e2a42] dark:hover:border-emerald-500/40 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
               title="60 FPS: Smooth VNC screen"
             >
               60 FPS (Active)
