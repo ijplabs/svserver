@@ -12,8 +12,8 @@ RUN npm install
 # Copy application source
 COPY . .
 
-# Support build-time API URL configuration
-ARG VITE_API_URL
+# Support build-time API URL configuration with production fallback
+ARG VITE_API_URL=https://stardew-api.ijplabs.dev
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build production assets

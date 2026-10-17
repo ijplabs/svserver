@@ -1,7 +1,32 @@
 import { LoginRequest, RegisterRequest, WebSessionInfo, AuthMeResponse } from '../types/auth';
 import { ServerStatus, PlayersResponse, FarmCropsSnapshot, CabinsResponse } from '../types/farm';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+export function getApiBase(): string {
+  // 1. Explicit build-time or runtime environment
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    // 2. Local storage override (for testing or manual configuration)
+    const customApi = localStorage.getItem('sv_api_url');
+    if (customApi && customApi.trim() !== '') {
+      return customApi.trim().replace(/\/+$/, '');
+    }
+
+    // 3. Auto-detection for ijplabs.dev domain
+    // When accessing through svmonitor.ijplabs.dev, route directly to live backend stardew-api.ijplabs.dev
+    const host = window.location.hostname;
+    if (host.endsWith('ijplabs.dev')) {
+      return 'https://stardew-api.ijplabs.dev';
+    }
+  }
+
+  return '';
+}
+
+export const API_BASE = getApiBase();
 
 function getToken(): string | null {
   return localStorage.getItem('sv_auth_token');
@@ -27,7 +52,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const url = `${API_BASE}${path}`;
+  const base = getApiBase();
+  const url = `${base}${path}`;
   const res = await fetch(url, {
     ...options,
     headers,
