@@ -87,7 +87,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100/60 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-amber-500 selection:text-white transition-colors">
+    <div className="h-screen h-dvh flex flex-col overflow-hidden bg-slate-100/70 dark:bg-[#080d19] text-slate-900 dark:text-slate-100 selection:bg-amber-500 selection:text-white transition-colors">
       {/* 1. TOP SIMULATION HUD */}
       <GameTopHud 
         isRightTickerOpen={isRightTickerOpen}
@@ -98,7 +98,7 @@ export const App: React.FC = () => {
       />
 
       {/* 2. MAIN COCKPIT BODY (Left Sidebar + Center Canvas + Right Telemetry) */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden p-3 sm:p-4 lg:p-5 gap-4 lg:gap-5 min-h-0">
         {/* LEFT GAMING DOCK / SIDEBAR */}
         <GameSidebar 
           activeTab={activeTab}
@@ -108,7 +108,7 @@ export const App: React.FC = () => {
         />
 
         {/* CENTER VIEWPORT / ACTIVE GAME STAGE */}
-        <main className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6 pb-24 lg:pb-8">
+        <main className="flex-1 overflow-y-auto space-y-6 pb-20 lg:pb-6 min-w-0 pr-0.5">
           {/* Tab: Server Overview & Automation Controls (Admin Only) */}
           {activeTab === 'overview' && isAdmin && (
             <div className="space-y-6 max-w-7xl mx-auto">

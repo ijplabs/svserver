@@ -145,7 +145,7 @@ export const GameTopHud: React.FC<GameTopHudProps> = ({
   const isAdmin = user?.role === 'ADMIN' || isSuperadmin;
 
   return (
-    <header className="h-16 bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#1e2a42] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-40 text-slate-800 dark:text-slate-200 transition-colors">
+    <header className="h-16 shrink-0 bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-md border-b border-slate-200 dark:border-[#1e2a42] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-40 text-slate-800 dark:text-slate-200 transition-colors">
       {/* LEFT: Game Farm Crest & Status */}
       <div className="flex items-center space-x-3">
         <button

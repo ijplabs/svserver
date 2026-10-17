@@ -17,7 +17,8 @@ import {
   LogOut,
   ShieldCheck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 interface GameSidebarProps {
@@ -101,26 +102,36 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
 
       {/* Main Sidebar Element */}
       <aside className={`
-        fixed lg:sticky top-0 lg:top-16 z-50 lg:z-30 h-screen lg:h-[calc(100vh-4rem)]
-        bg-white dark:bg-[#0c1220] border-r border-slate-200 dark:border-[#1e2a42] text-slate-700 dark:text-slate-300 flex flex-col justify-between
-        transition-all duration-200 select-none
-        ${isCollapsed ? 'w-18' : 'w-64'}
+        fixed inset-y-0 left-0 z-50 h-full w-64
+        lg:static lg:h-full lg:z-auto
+        bg-white dark:bg-[#0c1220] border-r lg:border border-slate-200 dark:border-[#1e2a42] text-slate-700 dark:text-slate-300 flex flex-col justify-between
+        lg:rounded-2xl shadow-xl lg:shadow-xs
+        transition-all duration-200 select-none shrink-0 overflow-hidden
+        ${isCollapsed ? 'lg:w-18' : 'lg:w-64'}
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* TOP: Header (Mobile only) or Collapse Toggle */}
-        <div className="p-3 border-b border-slate-200 dark:border-[#1e2a42] flex items-center justify-between">
+        <div className={`p-3 border-b border-slate-200 dark:border-[#1e2a42] flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           {!isCollapsed && (
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 px-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 px-2 truncate">
               Menu Kendali Game
             </span>
           )}
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 ml-auto cursor-pointer"
+            className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             title={isCollapsed ? 'Perlebar Sidebar' : 'Persempit Sidebar (Icon Only)'}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            title="Tutup Menu"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
