@@ -10,6 +10,9 @@ import { PlayersCard } from './components/players/PlayersCard';
 import { BackupManagerCard } from './components/backups/BackupManagerCard';
 import { EconomyCard } from './components/economy/EconomyCard';
 import { AutomationStatusCard } from './components/automation/AutomationStatusCard';
+import { ChatRelayCard } from './components/chat/ChatRelayCard';
+import { ConsoleTerminalCard } from './components/console/ConsoleTerminalCard';
+import { LivestockDashboard } from './components/livestock/LivestockDashboard';
 import { Loader2 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -71,14 +74,35 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 3: Persistent Backups Management */}
+        {/* Tab 3: Livestock & Farm Animals */}
+        {activeTab === 'animals' && (
+          <div className="space-y-6">
+            <LivestockDashboard />
+          </div>
+        )}
+
+        {/* Tab 4: Live 2-Way Chat Relay */}
+        {activeTab === 'chat' && (
+          <div className="space-y-6">
+            <ChatRelayCard />
+          </div>
+        )}
+
+        {/* Tab 5: Interactive SMAPI Console (Superadmin) */}
+        {activeTab === 'console' && isSuperadmin && (
+          <div className="space-y-6">
+            <ConsoleTerminalCard />
+          </div>
+        )}
+
+        {/* Tab 6: Persistent Backups Management */}
         {activeTab === 'backups' && (
           <div className="space-y-6">
             <BackupManagerCard />
           </div>
         )}
 
-        {/* Tab 4: Village Banking & Economy */}
+        {/* Tab 7: Village Banking & Economy */}
         {activeTab === 'economy' && (
           <div className="space-y-6">
             <EconomyCard />

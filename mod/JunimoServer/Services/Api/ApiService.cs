@@ -2394,6 +2394,12 @@ public partial class ApiService : ModService
                             afkWatchdog = _afkWatchdogService?.GetStatus()
                         });
                         break;
+                    case "/api/chat/history":
+                        await WriteJsonAsync(response, GetChatHistory());
+                        break;
+                    case "/api/farm/animals":
+                        await WriteJsonAsync(response, await HandleGetFarmAnimalsAsync());
+                        break;
                     default:
                         await WriteNotFoundAsync(response, path);
                         break;
@@ -2453,6 +2459,12 @@ public partial class ApiService : ModService
                             response.StatusCode = 500;
                             await WriteJsonAsync(response, new { error = "Backup creation failed or no active save loaded" });
                         }
+                        break;
+                    case "/api/chat/send":
+                        await HandlePostChatSendAsync(request, response);
+                        break;
+                    case "/api/console/execute":
+                        await HandlePostConsoleExecuteAsync(request, response);
                         break;
                     default:
                         await WriteNotFoundAsync(response, path);
@@ -2589,8 +2601,10 @@ public partial class ApiService : ModService
     /// <summary>
     /// Broadcasts a chat message to all connected WebSocket clients.
     /// </summary>
-    public void BroadcastChatMessage(string playerName, string message)
+    public void BroadcastChatMessage(string playerName, string message, string source = "in-game")
     {
+        AddChatMessage(playerName, message, source);
+
         var wsMessage = new WebSocketMessage
         {
             Type = "chat",
@@ -5640,6 +5654,305 @@ public partial class ApiService : ModService
     <script src=""https://cdn.jsdelivr.net/npm/@scalar/api-reference""></script>
 </body>
 </html>";
+    }
+
+    #endregion
+
+    #region Phase 8 Operations & Chat Relay
+
+    public class ChatHistoryEntry
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public string Author { get; set; } = "";
+        public string Message { get; set; } = "";
+        public string Source { get; set; } = "in-game";
+        public string TimestampUtc { get; set; } = DateTime.UtcNow.ToString("o");
+    }
+
+    private static readonly List<ChatHistoryEntry> _chatHistory = new();
+    private static readonly object _chatHistoryLock = new();
+
+    public static void AddChatMessage(string author, string message, string source = "in-game")
+    {
+        lock (_chatHistoryLock)
+        {
+            _chatHistory.Add(new ChatHistoryEntry
+            {
+                Author = author,
+                Message = message,
+                Source = source,
+                TimestampUtc = DateTime.UtcNow.ToString("o")
+            });
+            if (_chatHistory.Count > 100)
+            {
+                _chatHistory.RemoveAt(0);
+            }
+        }
+    }
+
+    public static List<ChatHistoryEntry> GetChatHistory()
+    {
+        lock (_chatHistoryLock)
+        {
+            return _chatHistory.ToList();
+        }
+    }
+
+    private async Task<(bool Authenticated, long FarmerId, string Username, string Role)?> GetUserFromRequestAsync(HttpListenerRequest request)
+    {
+        string? token = null;
+        var authHeader = request.Headers["Authorization"];
+        if (authHeader?.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            token = authHeader.Substring(7).Trim();
+        }
+        else if (!string.IsNullOrEmpty(request.Headers["X-API-Key"]))
+        {
+            token = request.Headers["X-API-Key"]?.Trim();
+        }
+        else if (!string.IsNullOrEmpty(request.QueryString["token"]))
+        {
+            token = request.QueryString["token"]?.Trim();
+        }
+        else if (!string.IsNullOrEmpty(request.QueryString["key"]))
+        {
+            token = request.QueryString["key"]?.Trim();
+        }
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return null;
+        }
+
+        if (token == Env.ApiKey)
+        {
+            return (true, 0, Env.AdminUsername, "SUPERADMIN");
+        }
+
+        if (_accountLinkingService != null)
+        {
+            var session = await _accountLinkingService.ValidateSessionAsync(token);
+            if (session != null)
+            {
+                return (true, session.FarmerId, session.Username, session.Role);
+            }
+        }
+
+        return null;
+    }
+
+    public class FarmAnimalInfo
+    {
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "";
+        public int Age { get; set; }
+        public int Friendship { get; set; }
+        public int Hearts => Friendship / 200;
+        public bool WasPet { get; set; }
+        public bool WasFed { get; set; }
+        public string? CurrentProduce { get; set; }
+        public string Location { get; set; } = "";
+        public string HomeBuilding { get; set; } = "";
+    }
+
+    private async Task<List<FarmAnimalInfo>> HandleGetFarmAnimalsAsync()
+    {
+        var list = new List<FarmAnimalInfo>();
+        if (!Game1.hasLoadedGame)
+        {
+            return list;
+        }
+
+        await GameThreadDispatcher.EnqueueAsync(() =>
+        {
+            try
+            {
+                var farm = Game1.getFarm();
+                if (farm == null) return;
+
+                foreach (var animal in farm.animals.Values)
+                {
+                    if (animal == null) continue;
+                    list.Add(new FarmAnimalInfo
+                    {
+                        Name = animal.Name,
+                        Type = animal.type.Value,
+                        Age = animal.age.Value,
+                        Friendship = animal.friendshipTowardFarmer.Value,
+                        WasPet = animal.wasPet.Value,
+                        WasFed = animal.fullness.Value > 0,
+                        CurrentProduce = !string.IsNullOrEmpty(animal.currentProduce.Value) ? animal.currentProduce.Value : null,
+                        Location = "Farm",
+                        HomeBuilding = animal.home?.buildingType.Value ?? "Barn/Coop"
+                    });
+                }
+
+                foreach (var building in farm.buildings)
+                {
+                    if (building.GetIndoors() is AnimalHouse animalHouse)
+                    {
+                        foreach (var animal in animalHouse.animals.Values)
+                        {
+                            if (animal == null) continue;
+                            list.Add(new FarmAnimalInfo
+                            {
+                                Name = animal.Name,
+                                Type = animal.type.Value,
+                                Age = animal.age.Value,
+                                Friendship = animal.friendshipTowardFarmer.Value,
+                                WasPet = animal.wasPet.Value,
+                                WasFed = animal.fullness.Value > 0,
+                                CurrentProduce = !string.IsNullOrEmpty(animal.currentProduce.Value) ? animal.currentProduce.Value : null,
+                                Location = building.GetIndoors().NameOrUniqueName,
+                                HomeBuilding = building.buildingType.Value
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[API] Error reading farm animals: {ex.Message}", LogLevel.Error);
+            }
+        });
+
+        return list;
+    }
+
+    private async Task HandlePostChatSendAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null)
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        string message = "";
+        string? queryMsg = request.QueryString["message"];
+        if (!string.IsNullOrEmpty(queryMsg))
+        {
+            message = queryMsg.Trim();
+        }
+        else
+        {
+            using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+            var bodyText = await reader.ReadToEndAsync();
+            if (!string.IsNullOrWhiteSpace(bodyText))
+            {
+                try
+                {
+                    var jObj = JObject.Parse(bodyText);
+                    message = jObj["message"]?.ToString()?.Trim() ?? "";
+                }
+                catch { }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            response.StatusCode = 400;
+            await WriteJsonAsync(response, new { error = "Parameter 'message' cannot be empty" });
+            return;
+        }
+
+        string author = user.Value.Username;
+        BroadcastChatMessage(author, message, "web");
+
+        await RunOnGameThreadAsync(() =>
+        {
+            OnExternalChatMessage?.Invoke(author, message);
+        });
+
+        await WriteJsonAsync(response, new
+        {
+            success = true,
+            author = author,
+            message = message,
+            timestamp = DateTime.UtcNow.ToString("o")
+        });
+    }
+
+    private async Task HandlePostConsoleExecuteAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null)
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        if (user.Value.Role != "SUPERADMIN")
+        {
+            response.StatusCode = 403;
+            await WriteJsonAsync(response, new { error = "Superadmin role required to execute console commands." });
+            return;
+        }
+
+        string commandText = "";
+        string? queryCmd = request.QueryString["command"];
+        if (!string.IsNullOrEmpty(queryCmd))
+        {
+            commandText = queryCmd.Trim();
+        }
+        else
+        {
+            using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+            var bodyText = await reader.ReadToEndAsync();
+            if (!string.IsNullOrWhiteSpace(bodyText))
+            {
+                try
+                {
+                    var jObj = JObject.Parse(bodyText);
+                    commandText = jObj["command"]?.ToString()?.Trim() ?? "";
+                }
+                catch { }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(commandText))
+        {
+            response.StatusCode = 400;
+            await WriteJsonAsync(response, new { error = "Parameter 'command' cannot be empty" });
+            return;
+        }
+
+        var parts = commandText.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var cmd = parts[0];
+        var args = parts.Skip(1).ToArray();
+
+        bool executed = false;
+        string output = "";
+
+        await GameThreadDispatcher.EnqueueAsync(() =>
+        {
+            try
+            {
+                if (cmd.StartsWith("!"))
+                {
+                    OnExternalChatMessage?.Invoke(user.Value.Username, commandText);
+                    executed = true;
+                    output = $"Broadcasted chat command '{commandText}'";
+                }
+                else
+                {
+                    executed = Helper.ConsoleCommands.Trigger(cmd, args);
+                    output = executed ? $"Triggered SMAPI command '{cmd}'" : $"Command '{cmd}' not found in SMAPI catalog.";
+                }
+            }
+            catch (Exception ex)
+            {
+                output = $"Execution error: {ex.Message}";
+            }
+        });
+
+        await WriteJsonAsync(response, new
+        {
+            success = executed,
+            command = commandText,
+            output = output,
+            timestamp = DateTime.UtcNow.ToString("o")
+        });
     }
 
     #endregion

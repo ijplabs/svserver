@@ -137,4 +137,22 @@ export const api = {
   automation: {
     getStatus: () => request<AutomationStatus>('/api/automation/status'),
   },
+  chat: {
+    getHistory: () => request<import('../types/chat').ChatHistoryEntry[]>('/api/chat/history'),
+    sendMessage: (message: string) =>
+      request<import('../types/chat').ChatSendResponse>('/api/chat/send', {
+        method: 'POST',
+        body: JSON.stringify({ message }),
+      }),
+  },
+  animals: {
+    getAnimals: () => request<import('../types/animals').FarmAnimalInfo[]>('/api/farm/animals'),
+  },
+  console: {
+    execute: (command: string) =>
+      request<import('../types/console').ConsoleExecuteResponse>('/api/console/execute', {
+        method: 'POST',
+        body: JSON.stringify({ command }),
+      }),
+  },
 };
