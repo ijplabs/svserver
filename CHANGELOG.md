@@ -1,5 +1,60 @@
 # Changelog
 
+## [v1.2.0-stabilized] (2026-10-17)
+
+### Highlights
+Rilis produksi jangka panjang pertama untuk fork dedicated server Stardew Valley 1.6 (JunimoServer) oleh IJPLabs. Rilis ini menggabungkan stabilitas container, arsitektur multi-user Web Admin, integrasi Stardew Valley Expanded (SVE), otomasi gameplay, telemetri real-time, peta interaktif, dan jembatan komunitas Discord.
+
+### Features by Phase
+* **Phase 1 (Upstream Stabilization):**
+  - Fix bug auto-pause warp hang (#685).
+  - Implementasi retry logic Steam lobby connection (#695).
+  - Penanganan otomatis surat host (#347) dan konfigurasi proteksi peti pemain (#340).
+  - Deployment Coolify PaaS via docker-compose modern.
+
+* **Phase 2 (Backend C# Engine & Redis Integration):**
+  - Penautan akun in-game via `!webpass` dengan token OTP 6 digit.
+  - Keamanan kredensial berbasis PBKDF2 (SHA-256) dan Bearer token authentication.
+  - Telemetri Redis 7 untuk status tanaman real-time dengan in-memory fallback.
+  - Support CORS preflight (`OPTIONS`) untuk semua API routes.
+
+* **Phase 3 & 4 (Modern Web Admin Frontend & Multi-User Portal):**
+  - Dashboard web responsif berbasis React 19, Tailwind CSS v4, dan Lucide React (Zero Emoji Policy).
+  - Role-Based Access Control (RBAC): Superadmin kontrol vs Farmer Character Portal.
+  - Container multi-stage build Nginx dengan dynamic resolver dan dual-listen port (80 & 3000).
+
+* **Phase 5 (Automation, Backup & Server Economy):**
+  - Sistem pemungutan suara tidur (`!votesleep` / `!vs`) berbasis kuorum pemain aktif.
+  - Watchdog AFK cerdas (`AfkWatchdogService`) dengan peringatan dini dan kick pemain pasif pada malam hari.
+  - Engine backup otomatis (`BackupService`) dengan kompresi ZIP berkala dan retensi 30 snapshot.
+  - Bank desa dan transfer uang antar pemain (`!pay <nama> <jumlah>`).
+
+* **Phase 6 (Stardew Valley Expanded Integration):**
+  - Auto-downloader bundle SVE via direct URL (`SVE_BUNDLE_URL`) dengan persistensi volume `custom-mods`.
+  - Ekstraksi otomatis multi-format (`.zip` dan `.tar.gz`) saat boot container.
+  - Konfigurasi alokasi RAM 4096M dan script validasi otomatis manifest mod (`validate_sve.py`).
+
+* **Phase 7 (Web Admin Operations Suite):**
+  - Tab Manajemen Cadangan Save dengan fitur download langsung `.zip` arsip dan penghapusan snapshot.
+  - Dasbor Bank Desa dan Ekonomi dengan transfer saldo via UI web.
+  - Panel Telemetri Otomasi untuk memantau status pemungutan suara tidur dan watchdog AFK.
+
+* **Phase 8 (Live Chat Relay, Interactive SMAPI Console & Livestock Telemetry):**
+  - Komunikasi obrolan 2-arah antara Discord/Web Admin dan in-game chat (`/api/chat/history`, `/api/chat/send`).
+  - Terminal konsol SMAPI interaktif web untuk eksekusi perintah server dari jarak jauh.
+  - Telemetri kondisi hewan ternak kebun (`/api/farm/animals`): jenis, kebahagiaan, pertemanan, dan status produksi.
+
+* **Phase 9 (Interactive Valley Map, Sysadmin User Approval & Farmer Portal):**
+  - Peta grafis interaktif Lembah Stardew & Kebun (`/api/map/tracking`) dengan penanda posisi pemain real-time.
+  - Persetujuan instan pemain tertahan di lobby (`/api/admin/pending-players`, `/api/admin/approve-player`).
+  - Manajemen akun web manual (`/api/admin/users`) dan lembar karakter pribadi petani (`/api/farmer/me`).
+
+* **Phase 10 (Discord Bot Bridge & Automated Webhook Notifications Suite):**
+  - Pengiriman notifikasi otomatis Discord Webhook: Server Online, Player Join/Leave, Backup Created, dan Laporan Cuaca/Tanaman jam 06:00 pagi.
+  - Perintah interaktif Discord Bot baru: `!weather`, `!crops`, dan `!backups`.
+  - Endpoint REST API baru `GET /weather` dan `GET /farm/weather`.
+  - Penegakan ketat Zero Emoji Policy di seluruh ekosistem notifikasi.
+
 ## [1.4.1](https://github.com/stardew-valley-dedicated-server/server/compare/sdvd-server-v1.4.0...sdvd-server-v1.4.1) (2026-01-17)
 
 
