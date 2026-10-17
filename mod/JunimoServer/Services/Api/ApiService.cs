@@ -17,6 +17,8 @@ using JunimoServer.Services.GameCreator;
 using JunimoServer.Services.GameManager;
 using JunimoServer.Services.GameThread;
 using JunimoServer.Services.PasswordProtection;
+using System.IO;
+using JunimoServer.Services.Lobby;
 using JunimoServer.Services.PersistentOption;
 using JunimoServer.Services.Roles;
 using JunimoServer.Services.ServerOptim;
@@ -1329,6 +1331,7 @@ public partial class ApiService : ModService
     private readonly HostAutomation.SleepVoteService? _sleepVoteService;
     private readonly HostAutomation.AfkWatchdogService? _afkWatchdogService;
     private readonly ModManagement.ModEnforcementService? _modEnforcementService;
+    private readonly ModManagement.ModDistributionService? _modDistributionService;
 
     public ApiService(
         IModHelper helper,
@@ -1348,7 +1351,8 @@ public partial class ApiService : ModService
         Economy.BankService? bankService = null,
         HostAutomation.SleepVoteService? sleepVoteService = null,
         HostAutomation.AfkWatchdogService? afkWatchdogService = null,
-        ModManagement.ModEnforcementService? modEnforcementService = null
+        ModManagement.ModEnforcementService? modEnforcementService = null,
+        ModManagement.ModDistributionService? modDistributionService = null
     )
         : base(helper, monitor)
     {
@@ -1368,6 +1372,7 @@ public partial class ApiService : ModService
         _sleepVoteService = sleepVoteService;
         _afkWatchdogService = afkWatchdogService;
         _modEnforcementService = modEnforcementService;
+        _modDistributionService = modDistributionService;
         _instance = this;
     }
 
@@ -2384,7 +2389,7 @@ public partial class ApiService : ModService
                 return;
             }
 
-            if (!_publicEndpoints.Contains((method, path)) && !await ValidateAuthAsync(request))
+            if (!_publicEndpoints.Contains((method, path)) && !IsPublicSyncPath(path) && !await ValidateAuthAsync(request))
             {
                 await WriteUnauthorizedAsync(response);
                 return;
@@ -2406,6 +2411,13 @@ public partial class ApiService : ModService
             // Route request
             if (method == "GET")
             {
+                if (path.StartsWith("/api/mods/sync/download/"))
+                {
+                    var folderName = Uri.UnescapeDataString(path.Substring("/api/mods/sync/download/".Length));
+                    await HandleGetModZipDownloadAsync(request, response, folderName);
+                    return;
+                }
+
                 switch (path)
                 {
                     case "/status":
@@ -2489,6 +2501,18 @@ public partial class ApiService : ModService
                             rejections = _modEnforcementService?.GetRecentRejections() ?? new List<ModManagement.ModRejectionLog>(),
                             connectedPeers = _modEnforcementService?.GetConnectedPeerAudits() ?? new List<ModManagement.PeerAuditInfo>()
                         });
+                        break;
+                    case "/api/mods/sync/manifest":
+                        await WriteJsonAsync(response, _modDistributionService?.GetSyncManifest() ?? new ModManagement.SyncManifestResponse());
+                        break;
+                    case "/api/mods/sync/bundle":
+                        await HandleGetModBundleZipAsync(response);
+                        break;
+                    case "/api/mods/sync/client-mod":
+                        await HandleGetClientModZipAsync(response);
+                        break;
+                    case "/api/mods/sync/download":
+                        await HandleGetModZipDownloadAsync(request, response);
                         break;
                     case "/api/backup/download":
                         var downloadFile = request.QueryString["file"];
@@ -5917,11 +5941,11 @@ public partial class ApiService : ModService
             Day = Game1.dayOfMonth,
             Season = Game1.currentSeason ?? "spring",
             Year = Game1.year,
-            IsRaining = Game1.isRainingHere(),
-            IsLightning = Game1.isLightningHere(),
-            IsSnowing = Game1.isSnowingHere(),
-            IsDebris = Game1.isDebrisWeatherHere(),
-            IsFestival = Utility.isFestivalDay(Game1.dayOfMonth, Game1.currentSeason)
+            IsRaining = Game1.isRaining,
+            IsLightning = Game1.isLightning,
+            IsSnowing = Game1.isSnowing,
+            IsDebris = Game1.isDebrisWeather,
+            IsFestival = Utility.isFestivalDay(Game1.dayOfMonth, Game1.season)
         };
     }
 
@@ -5929,23 +5953,23 @@ public partial class ApiService : ModService
     {
         try
         {
-            if (Utility.isFestivalDay(Game1.dayOfMonth, Game1.currentSeason))
+            if (Utility.isFestivalDay(Game1.dayOfMonth, Game1.season))
             {
                 return "Festival";
             }
-            if (Game1.isLightningHere())
+            if (Game1.isLightning)
             {
                 return "Thunderstorm";
             }
-            if (Game1.isRainingHere())
+            if (Game1.isRaining)
             {
                 return "Rain";
             }
-            if (Game1.isSnowingHere())
+            if (Game1.isSnowing)
             {
                 return "Snow";
             }
-            if (Game1.isDebrisWeatherHere())
+            if (Game1.isDebrisWeather)
             {
                 return "Windy";
             }
@@ -6161,7 +6185,7 @@ public partial class ApiService : ModService
             return list;
         }
 
-        await GameThreadDispatcher.EnqueueAsync(() =>
+        await RunOnGameThreadAsync(() =>
         {
             try
             {
@@ -6322,7 +6346,7 @@ public partial class ApiService : ModService
         bool executed = false;
         string output = "";
 
-        await GameThreadDispatcher.EnqueueAsync(() =>
+        await RunOnGameThreadAsync(() =>
         {
             try
             {
@@ -6334,8 +6358,9 @@ public partial class ApiService : ModService
                 }
                 else
                 {
-                    executed = Helper.ConsoleCommands.Trigger(cmd, args);
-                    output = executed ? $"Triggered SMAPI command '{cmd}'" : $"Command '{cmd}' not found in SMAPI catalog.";
+                    OnExternalChatMessage?.Invoke(user.Value.Username, commandText);
+                    executed = true;
+                    output = $"Broadcasted command '{commandText}' to server chat";
                 }
             }
             catch (Exception ex)
@@ -6419,6 +6444,93 @@ public partial class ApiService : ModService
         });
     }
 
+    private static bool IsPublicSyncPath(string path)
+    {
+        return path == "/api/mods/sync/manifest"
+            || path == "/api/mods/sync/bundle"
+            || path == "/api/mods/sync/client-mod"
+            || path.StartsWith("/api/mods/sync/download");
+    }
+
+    private async Task HandleGetModBundleZipAsync(HttpListenerResponse response)
+    {
+        if (_modDistributionService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Mod distribution service is not active." });
+            return;
+        }
+
+        var zipBytes = _modDistributionService.GetBundleZip();
+        if (zipBytes == null || zipBytes.Length == 0)
+        {
+            response.StatusCode = 404;
+            await WriteJsonAsync(response, new { error = "No client-compatible mods found to package." });
+            return;
+        }
+
+        response.ContentType = "application/zip";
+        response.Headers["Content-Disposition"] = "attachment; filename=\"stardew-server-mods.zip\"";
+        response.ContentLength64 = zipBytes.Length;
+        await response.OutputStream.WriteAsync(zipBytes, 0, zipBytes.Length);
+    }
+
+    private async Task HandleGetModZipDownloadAsync(HttpListenerRequest request, HttpListenerResponse response, string? folderParam = null)
+    {
+        if (_modDistributionService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Mod distribution service is not active." });
+            return;
+        }
+
+        string? folder = folderParam ?? request.QueryString["folder"];
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            response.StatusCode = 400;
+            await WriteJsonAsync(response, new { error = "Parameter 'folder' is required." });
+            return;
+        }
+
+        var zipBytes = _modDistributionService.GetModZip(folder);
+        if (zipBytes == null || zipBytes.Length == 0)
+        {
+            response.StatusCode = 404;
+            await WriteJsonAsync(response, new { error = $"Mod package '{folder}' not found." });
+            return;
+        }
+
+        response.ContentType = "application/zip";
+        response.Headers["Content-Disposition"] = $"attachment; filename=\"{folder}.zip\"";
+        response.ContentLength64 = zipBytes.Length;
+        await response.OutputStream.WriteAsync(zipBytes, 0, zipBytes.Length);
+    }
+
+    private async Task HandleGetClientModZipAsync(HttpListenerResponse response)
+    {
+        var searchPaths = new[]
+        {
+            Path.Combine(Helper.DirectoryPath, "JunimoClientSync.zip"),
+            Path.Combine(Path.GetDirectoryName(Helper.DirectoryPath) ?? "", "JunimoClientSync.zip"),
+            Path.Combine(Directory.GetCurrentDirectory(), "mods", "JunimoClientSync.zip"),
+            Path.Combine(Directory.GetCurrentDirectory(), "JunimoClientSync.zip")
+        };
+
+        string? foundPath = searchPaths.FirstOrDefault(File.Exists);
+        if (foundPath != null)
+        {
+            var bytes = await File.ReadAllBytesAsync(foundPath);
+            response.ContentType = "application/zip";
+            response.Headers["Content-Disposition"] = "attachment; filename=\"JunimoClientSync.zip\"";
+            response.ContentLength64 = bytes.Length;
+            await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+            return;
+        }
+
+        response.StatusCode = 404;
+        await WriteJsonAsync(response, new { error = "Client sync mod package (JunimoClientSync.zip) not found." });
+    }
+
     private async Task HandleGetFarmerProfileAsync(HttpListenerRequest request, HttpListenerResponse response)
     {
         var user = await GetUserFromRequestAsync(request);
@@ -6460,10 +6572,10 @@ public partial class ApiService : ModService
                     Name = target.Name,
                     FarmName = target.farmName.Value,
                     FavoriteThing = target.favoriteThing.Value,
-                    IsMale = target.isMale.Value,
+                    IsMale = target.IsMale,
                     Money = target.Money,
-                    ClubCoins = target.clubCoins.Value,
-                    QiGems = target.qiGems.Value,
+                    ClubCoins = target.clubCoins,
+                    QiGems = target.QiGems,
                     Health = target.health,
                     MaxHealth = target.maxHealth,
                     Stamina = (float)Math.Round(target.Stamina, 1),
@@ -6613,7 +6725,7 @@ public partial class ApiService : ModService
 
                         if (b.GetIndoors() is AnimalHouse ah)
                         {
-                            animalCount = ah.animals.Count;
+                            animalCount = ah.animals.Length;
                         }
 
                         mapData.Buildings.Add(new FarmBuildingPin

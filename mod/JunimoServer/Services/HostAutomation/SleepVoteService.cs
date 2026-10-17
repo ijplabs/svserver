@@ -273,15 +273,15 @@ public class SleepVoteService : ModService
         int required = 0;
         if (Game1.hasLoadedGame)
         {
-            var eligible = GetEligiblePlayers();
+            var eligible = GetEligibleFarmers();
             eligibleCount = eligible.Count;
-            required = CalculateRequiredVotes(eligibleCount);
+            required = GetRequiredVotes();
         }
 
         return new
         {
             enabled = Env.SleepVoteEnabled,
-            thresholdPercent = Env.SleepVotePercent,
+            thresholdPercent = Env.SleepVoteThresholdPercent,
             activeVotes = _voters.Count,
             requiredVotes = required,
             eligiblePlayers = eligibleCount,

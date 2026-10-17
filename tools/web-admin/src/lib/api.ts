@@ -194,5 +194,20 @@ export const api = {
           method: 'POST',
         }
       ),
+    getSyncManifest: () =>
+      request<{
+        serverVersion: string;
+        modCount: number;
+        totalSizeBytes: number;
+        mods: Array<{
+          uniqueId: string;
+          name: string;
+          version: string;
+          author: string;
+          folderName: string;
+          sizeBytes: number;
+          downloadUrl: string;
+        }>;
+      }>('/api/mods/sync/manifest'),
   },
 };

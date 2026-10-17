@@ -10,7 +10,11 @@ import {
   RefreshCw,
   AlertTriangle,
   Users,
-  Layers
+  Layers,
+  Download,
+  Laptop,
+  HardDriveDownload,
+  FileCode
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import type {
@@ -32,7 +36,8 @@ export const ModManagementCard: React.FC = () => {
   });
   const [rejections, setRejections] = useState<ModRejectionLog[]>([]);
   const [connectedPeers, setConnectedPeers] = useState<ConnectedPeerAudit[]>([]);
-  const [activeSubTab, setActiveSubTab] = useState<'required' | 'blacklisted' | 'server' | 'audit'>('required');
+  const [syncManifest, setSyncManifest] = useState<any>(null);
+  const [activeSubTab, setActiveSubTab] = useState<'required' | 'blacklisted' | 'server' | 'audit' | 'distribution'>('required');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // New Required Mod Form State
@@ -48,14 +53,16 @@ export const ModManagementCard: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [policyRes, installedRes] = await Promise.all([
+      const [policyRes, installedRes, manifestRes] = await Promise.all([
         api.mods.getPolicy(),
-        api.mods.getInstalled()
+        api.mods.getInstalled(),
+        api.mods.getSyncManifest().catch(() => null)
       ]);
       setPolicy(policyRes.policy);
       setRejections(policyRes.rejections || []);
       setConnectedPeers(policyRes.connectedPeers || []);
       setInstalledMods(installedRes || []);
+      setSyncManifest(manifestRes);
     } catch (err: any) {
       setMessage({ text: err.message || 'Gagal memuat data kebijakan mod', type: 'error' });
     } finally {
@@ -341,6 +348,18 @@ export const ModManagementCard: React.FC = () => {
         >
           <Users className="w-4 h-4" />
           Audit & Log Penolakan
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('distribution')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+            activeSubTab === 'distribution'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+          }`}
+        >
+          <Download className="w-4 h-4" />
+          Distribusi Klien (EZ Setup)
         </button>
       </div>
 
@@ -637,6 +656,160 @@ export const ModManagementCard: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sub-tab 5: Distribusi Klien & In-Game Lobby Sync */}
+      {activeSubTab === 'distribution' && (
+        <div className="space-y-6">
+          {/* Header Info Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-slate-100">
+                    Sistem Distribusi Mod Terpusat & In-Game Lobby Sync
+                  </h3>
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    EZ Setup Klien
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 max-w-3xl">
+                  Pemain tidak perlu lagi mengunduh mod manual dari NexusMods. Cukup pasang mod klien kecil
+                  <code className="mx-1 px-1.5 py-0.5 bg-slate-950 text-indigo-300 rounded border border-slate-800">
+                    JunimoClientSync
+                  </code>
+                  atau jalankan script otomatis. Di layar Title dan Lobby Co-op Stardew Valley, tombol
+                  <span className="text-slate-200 font-semibold mx-1">"Sync Server Mods"</span>
+                  akan muncul otomatis untuk mengunduh dan menyinkronkan seluruh mod langsung dari server host.
+                </p>
+              </div>
+            </div>
+
+            {/* 3 Download Action Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              {/* Card 1: Mod Klien JunimoClientSync */}
+              <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-indigo-400">
+                    <Laptop className="w-5 h-5" />
+                    <h4 className="text-sm font-semibold text-slate-200">Mod Klien SMAPI</h4>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Paket mod klien berukuran sangat kecil (~22 KB). Menambahkan tombol sinkronisasi langsung di Lobby Co-op & Title Menu Stardew Valley.
+                  </p>
+                  <p className="text-xs font-mono text-slate-500">Target: Folder Mods Klien</p>
+                </div>
+
+                <a
+                  href="/JunimoClientSync.zip"
+                  download="JunimoClientSync.zip"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  Unduh JunimoClientSync (.zip)
+                </a>
+              </div>
+
+              {/* Card 2: 1-Click EZ Setup Batch Script */}
+              <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <FileCode className="w-5 h-5" />
+                    <h4 className="text-sm font-semibold text-slate-200">Script 1-Klik (Windows)</h4>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Script otomatis untuk teman yang belum paham cara pasang mod. Klik 2x file .bat ini untuk otomatis mendeteksi folder Steam dan memasang mod sync.
+                  </p>
+                  <p className="text-xs font-mono text-slate-500">Eksekusi: sync-mods.bat</p>
+                </div>
+
+                <a
+                  href="/sync-mods.bat"
+                  download="sync-mods.bat"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  Unduh sync-mods.bat
+                </a>
+              </div>
+
+              {/* Card 3: Full Server Modpack */}
+              <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-cyan-400">
+                    <HardDriveDownload className="w-5 h-5" />
+                    <h4 className="text-sm font-semibold text-slate-200">Paket Lengkap Modpack</h4>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Paket zip utuh berisi seluruh folder mod yang aktif di server (SVE, Content Patcher, dsb) untuk pemain yang ingin ekstraksi manual secara offline.
+                  </p>
+                  <p className="text-xs font-mono text-slate-500">Ukuran: Sesuai total folder mod server</p>
+                </div>
+
+                <a
+                  href="https://stardew-api.ijplabs.dev/api/mods/sync/bundle"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition"
+                >
+                  <Download className="w-4 h-4" />
+                  Unduh Modpack Server (.zip)
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Sync Manifest Preview */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-100">
+                  Mod yang Tersedia untuk Sinkronisasi Klien
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Daftar mod pada folder server yang akan otomatis diunduh oleh klien saat menekan tombol sync di game.
+                </p>
+              </div>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                {syncManifest?.mods?.length || 0} mod terdistribusi
+              </span>
+            </div>
+
+            {syncManifest?.mods?.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {syncManifest.mods.map((mod: any) => (
+                  <div
+                    key={mod.uniqueId}
+                    className="p-4 bg-slate-950/50 border border-slate-800 rounded-xl space-y-2 hover:border-slate-700 transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <h4 className="text-sm font-semibold text-slate-200">{mod.name}</h4>
+                        <p className="text-xs font-mono text-slate-400">{mod.uniqueId}</p>
+                      </div>
+                      <span className="px-2 py-0.5 text-xs font-mono rounded bg-slate-800 text-indigo-400 border border-slate-700">
+                        v{mod.version}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                      <span>Folder: <code className="text-slate-400 font-mono">{mod.folderName}</code></span>
+                      <span>{(mod.sizeBytes / 1024 / 1024).toFixed(2)} MB</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-6 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-center space-y-1">
+                <p className="text-xs text-slate-400">
+                  Mod server yang kompatibel dengan klien belum terdeteksi di folder /data/Mods.
+                </p>
+                <p className="text-xs text-slate-500">
+                  Setelah mod seperti StardewValleyExpanded dimasukkan ke folder Mods server, daftar akan otomatis muncul di sini.
+                </p>
               </div>
             )}
           </div>

@@ -145,7 +145,7 @@ public class BackupService : ModService
                 FileName = fileName,
                 SizeBytes = fileInfo.Length,
                 CreatedAtUtc = fileInfo.CreationTimeUtc,
-                Season = dateNow.Season,
+                Season = dateNow.Season.ToString().ToLowerInvariant(),
                 Day = dateNow.Day,
                 Year = dateNow.Year
             };

@@ -208,23 +208,23 @@ public class WebhookNotificationService : ModService
     {
         try
         {
-            if (Utility.isFestivalDay(Game1.dayOfMonth, Game1.currentSeason))
+            if (Utility.isFestivalDay(Game1.dayOfMonth, Game1.season))
             {
                 return "Festival";
             }
-            if (Game1.isLightningHere())
+            if (Game1.isLightning)
             {
                 return "Thunderstorm";
             }
-            if (Game1.isRainingHere())
+            if (Game1.isRaining)
             {
                 return "Rain";
             }
-            if (Game1.isSnowingHere())
+            if (Game1.isSnowing)
             {
                 return "Snow";
             }
-            if (Game1.isDebrisWeatherHere())
+            if (Game1.isDebrisWeather)
             {
                 return "Windy";
             }

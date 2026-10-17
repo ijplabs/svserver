@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyName>JunimoClientSync</AssemblyName>
+        <RootNamespace>JunimoClientSync</RootNamespace>
+        <Version>1.0.0</Version>
+        <TargetFramework>net6.0</TargetFramework>
+        <EnableModDeploy>false</EnableModDeploy>
+        <EnableModZip>false</EnableModZip>
+        <Nullable>annotations</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+</Project>
