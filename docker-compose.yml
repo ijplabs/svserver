@@ -144,8 +144,9 @@ services:
     restart: unless-stopped
     expose:
       - "80"
+      - "3000"
     ports:
-      - "${WEB_ADMIN_PORT:-3000}:80"
+      - "${WEB_ADMIN_PORT:-3000}:3000"
     environment:
       - VITE_API_URL=${VITE_API_URL:-}
     depends_on:
