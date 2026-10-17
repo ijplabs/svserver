@@ -63,6 +63,21 @@ Rilis produksi jangka panjang pertama untuk fork dedicated server Stardew Valley
   - UI Web Admin Pusat Mod: Panel monitoring mod terpasang di server, manajemen status policy (Required / Recommended / Allowed / Disallowed), sinkronisasi otomatis mod SVE, dan tombol unduh 1-klik untuk mod klien dan batch script setup.
   - Perbaikan Stabilitas Arsitektur DI: Resolusi circular dependency antara `ChatCommandsService` dan `ApiService` menggunakan decoupled event callback model (`OnPlayerChatMessage`).
 
+* **Phase 12 (Manual & Vote World Pause System & AFK Safeguard):**
+  - Sistem Jeda Dunia Komprehensif (`PauseService`): Membekukan waktu game dan simulasi dunia saat pemain perlu istirahat (ke kamar mandi, makan, urusan mendadak) tanpa risiko tanaman terlantar atau pingsan jam 02:00 pagi.
+  - Perintah Obrolan In-Game:
+    - `!pause [alasan]`: Menjeda dunia seketika (jika solo atau admin) atau memulai voting (jika multiplayer > 1 pemain, kuorum 50%+ dalam durasi 60 detik).
+    - `!resume` / `!unpause`: Melanjutkan kembali jalannya waktu game secara instan.
+    - `!pause status`: Menampilkan status jeda aktif, pelaku jeda, alasan, dan sisa batas waktu aman.
+  - Safeguard & Integrasi Engine:
+    - Auto-Resume Timeout: Batas aman otomatis maksimal 15 menit dengan notifikasi peringatan dini 1 menit sebelum game dilanjutkan secara otomatis.
+    - Intersepsi Auto-Pause Engine (`AlwaysOnServer`): Memastikan engine game tidak memaksakan unpause saat jeda manual pemain sedang berlangsung.
+    - Perlindungan Watchdog AFK (`AfkWatchdogService`): Membekukan timer inaktivitas selama jeda aktif sehingga pemain tidak terkena kick otomatis.
+  - Integrasi Telemetri & Web Admin Dashboard:
+    - Endpoint REST API: `POST /api/server/pause`, `POST /api/server/resume`, `GET /api/server/pause/status`, serta penambahan properti status pada `GET /status` dan `GET /api/automation/status`.
+    - Banner Notifikasi Jeda Aktif di `ServerOverviewCard` dengan countdown sisa waktu dan tombol resume instan.
+    - Tombol kontrol cepat jeda dunia di `AdminControlsCard` (Toilet Break, Meal Break, dan Pause Kustom).
+
 ## [1.4.1](https://github.com/stardew-valley-dedicated-server/server/compare/sdvd-server-v1.4.0...sdvd-server-v1.4.1) (2026-01-17)
 
 
