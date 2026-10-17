@@ -78,7 +78,8 @@ tests/test-ui/dist/
 /tools/.playground
 
 # Extra mods
-/mods
+/mods/*
+!/mods/JunimoServer
 
 # Local build artifacts
 /.game_libs/

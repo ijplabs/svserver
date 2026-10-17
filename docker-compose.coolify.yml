@@ -31,6 +31,7 @@ services:
       - saves:/config/xdg/config/StardewValley
       - server-settings:/data/settings
       - diagnostics:/data/diagnostics
+      - ./mods/JunimoServer:/data/Mods/JunimoServer
     environment:
       - SDVD_COMPOSE_REV=4
       - STEAM_AUTH_URL=http://steam-auth:${STEAM_AUTH_PORT:-3001}
