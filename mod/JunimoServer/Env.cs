@@ -240,6 +240,22 @@ internal class Env
 
     #endregion
 
+    #region Phase 10: Discord Webhooks
+
+    /// <summary>
+    /// Discord Webhook URL for automated server notifications.
+    /// When empty or unset, webhook notifications are disabled.
+    /// </summary>
+    public static readonly string DiscordWebhookUrl =
+        Environment.GetEnvironmentVariable("DISCORD_WEBHOOK_URL")?.Trim() ?? "";
+
+    /// <summary>
+    /// Whether automated Discord webhook notifications are enabled.
+    /// </summary>
+    public static bool DiscordWebhookEnabled => !string.IsNullOrWhiteSpace(DiscordWebhookUrl);
+
+    #endregion
+
     private static int ParseInt(string envVar, int defaultValue)
     {
         var value = Environment.GetEnvironmentVariable(envVar);

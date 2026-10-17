@@ -699,7 +699,7 @@ async function runDashboardUpdate(channel: PostableChannel, embed: EmbedBuilder)
 // MAIN MESSAGE EVENT ROUTER (Commands + Chat Relay)
 // ============================================================================
 
-const COMMANDS = ["!status", "!players", "!server", "!help"];
+const COMMANDS = ["!status", "!players", "!server", "!weather", "!crops", "!backups", "!help"];
 
 /**
  * The command in a message addressed to this bot (`@Bot !status`), or null. The mention
@@ -831,6 +831,102 @@ client.on(Events.MessageCreate, async (message: Message) => {
             return;
         }
 
+        // COMMAND: !weather
+        if (input === "!weather") {
+            try {
+                const res = await fetch(`${API_URL}/weather`, {
+                    headers: getApiHeaders(),
+                    signal: AbortSignal.timeout(5000),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const lines = [
+                        `**Farm Weather Report:**`,
+                        `• Date: Year ${data.year}, ${data.season} Day ${data.day}`,
+                        `• Today: ${data.today}`,
+                        `• Tomorrow Forecast: ${data.tomorrow}`,
+                    ];
+                    await reply(message, lines.join("\n"));
+                } else {
+                    const status: ServerStatus | null = await fetchServerStatus();
+                    if (!status?.isOnline) {
+                        await reply(message, "**Weather:** Server is currently offline.");
+                    } else {
+                        await reply(message, `**Weather:** Year ${status.year ?? 1}, ${status.season ?? "Spring"} Day ${status.day ?? 1}`);
+                    }
+                }
+            } catch (_e) {
+                await reply(message, "Could not load the weather report.");
+            }
+            return;
+        }
+
+        // COMMAND: !crops
+        if (input === "!crops") {
+            try {
+                const res = await fetch(`${API_URL}/farm/crops`, {
+                    headers: getApiHeaders(),
+                    signal: AbortSignal.timeout(5000),
+                });
+                if (!res.ok) {
+                    await reply(message, "Could not load crops information (server may be offline or loading).");
+                    return;
+                }
+                const data = await res.json();
+                const total = data.totalCrops ?? 0;
+                const ready = data.readyCount ?? 0;
+                const watered = data.wateredCount ?? 0;
+                const unwatered = data.unwateredCount ?? 0;
+                const dead = data.deadCount ?? 0;
+
+                const lines = [
+                    `**Farm Crops Summary:**`,
+                    `• Total Crops Planted: ${total}`,
+                    `• Ready for Harvest: ${ready}`,
+                    `• Watered Today: ${watered}`,
+                    `• Unwatered: ${unwatered}`,
+                    dead > 0 ? `• Withered/Dead: ${dead}` : null,
+                ].filter(Boolean) as string[];
+
+                await reply(message, lines.join("\n"));
+            } catch (_e) {
+                await reply(message, "Could not load crop data.");
+            }
+            return;
+        }
+
+        // COMMAND: !backups
+        if (input === "!backups") {
+            try {
+                const res = await fetch(`${API_URL}/api/backups`, {
+                    headers: getApiHeaders(),
+                    signal: AbortSignal.timeout(5000),
+                });
+                if (!res.ok) {
+                    await reply(message, "Could not load backup archives list.");
+                    return;
+                }
+                const backups: Array<{ fileName: string; sizeBytes: number; season: string; day: number; year: number }> =
+                    await res.json();
+                if (!backups || backups.length === 0) {
+                    await reply(message, "**Save Backups:** No backup archives stored yet.");
+                    return;
+                }
+
+                const recent = backups.slice(0, 5);
+                const lines = [
+                    `**Recent Save Backups (${backups.length} total):**`,
+                    ...recent.map(
+                        (b) => `• \`${b.fileName}\` (${(b.sizeBytes / 1024).toFixed(0)} KB) - Year ${b.year}, ${b.season} Day ${b.day}`,
+                    ),
+                ];
+                await reply(message, lines.join("\n"));
+            } catch (_e) {
+                await reply(message, "Could not load backup information.");
+            }
+            return;
+        }
+
         // COMMAND: !help
         if (input === "!help") {
             const helpLines = [
@@ -838,6 +934,9 @@ client.on(Events.MessageCreate, async (message: Message) => {
                 `\`!status\` - server state, players, in-game date, versions, tick rate, and the invite code`,
                 `\`!players\` - who is online, and cabin availability`,
                 `\`!server\` - tick rate, memory, and gameplay settings`,
+                `\`!weather\` - current weather condition and tomorrow's forecast`,
+                `\`!crops\` - farm crops count, watered status, and ready-to-harvest tally`,
+                `\`!backups\` - recent save backup archives stored on the server`,
                 `\`!help\` - this list`,
             ];
             await reply(message, helpLines.join("\n"));
@@ -858,15 +957,9 @@ client.on(Events.MessageCreate, async (message: Message) => {
 
     const success = sendChatToGame(displayName, message.content);
 
-    // Add reaction to indicate failure
+    // Log failure if message could not be relayed
     if (!success) {
-        try {
-            await message.react("❌");
-        } catch (error) {
-            if (error instanceof Error) {
-                log.error(`Failed to add reaction: ${error.message}`);
-            }
-        }
+        log.warn(`Failed to relay chat message from ${displayName} to game`);
     }
 });
 

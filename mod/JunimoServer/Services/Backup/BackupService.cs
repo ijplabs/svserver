@@ -30,6 +30,8 @@ public class BackupEntry
 /// </summary>
 public class BackupService : ModService
 {
+    public event Action<BackupEntry>? OnBackupCreated;
+
     private readonly IModHelper _helper;
     private readonly IMonitor _monitor;
     private readonly RoleService _roleService;
@@ -138,7 +140,7 @@ public class BackupService : ModService
 
             PruneOldBackups();
 
-            return new BackupEntry
+            var entry = new BackupEntry
             {
                 FileName = fileName,
                 SizeBytes = fileInfo.Length,
@@ -147,6 +149,17 @@ public class BackupService : ModService
                 Day = dateNow.Day,
                 Year = dateNow.Year
             };
+
+            try
+            {
+                OnBackupCreated?.Invoke(entry);
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Backup] Exception invoking OnBackupCreated listener: {ex.Message}", LogLevel.Warn);
+            }
+
+            return entry;
         }
         catch (Exception ex)
         {

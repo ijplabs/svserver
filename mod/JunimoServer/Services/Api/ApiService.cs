@@ -119,6 +119,12 @@ public class ServerStatus
     /// <summary>Current year.</summary>
     public int Year { get; set; }
 
+    /// <summary>Today's weather condition (e.g. Sunny, Rain, Thunderstorm, Snow, Windy, Festival).</summary>
+    public string Weather { get; set; } = "Sunny";
+
+    /// <summary>Tomorrow's weather forecast.</summary>
+    public string WeatherTomorrow { get; set; } = "Sunny";
+
     /// <summary>Current time in 24-hour format (e.g., 1430 = 2:30 PM).</summary>
     public int TimeOfDay { get; set; }
 
@@ -138,6 +144,23 @@ public class ServerStatus
     /// satisfies the requested filters.
     /// </summary>
     public long Sequence { get; set; }
+}
+
+/// <summary>
+/// Weather information for the current day and tomorrow's forecast.
+/// </summary>
+public class WeatherResponse
+{
+    public string Today { get; set; } = "Sunny";
+    public string Tomorrow { get; set; } = "Sunny";
+    public int Day { get; set; }
+    public string Season { get; set; } = "spring";
+    public int Year { get; set; }
+    public bool IsRaining { get; set; }
+    public bool IsLightning { get; set; }
+    public bool IsSnowing { get; set; }
+    public bool IsDebris { get; set; }
+    public bool IsFestival { get; set; }
 }
 
 /// <summary>
@@ -1164,6 +1187,8 @@ public partial class ApiService : ModService
         public string FarmTypeKey = "";
         public string GameVersion = "";
         public bool IsPaused;
+        public string Weather = "Sunny";
+        public string WeatherTomorrow = "Sunny";
 
         // /players
         public List<PlayerInfo> Players = new();
@@ -1602,6 +1627,8 @@ public partial class ApiService : ModService
             snap.TimeOfDay = Game1.timeOfDay;
             snap.FarmTypeKey = Game1.GetFarmTypeKey();
             snap.IsPaused = Game1.netWorldState.Value?.IsPaused ?? false;
+            snap.Weather = GetCurrentWeatherSummary();
+            snap.WeatherTomorrow = GetTomorrowWeatherForecast();
 
             // Per-field change-time tracking. The local helper compares the
             // previous-snapshot's value to the new value: same → carry over
@@ -2440,6 +2467,10 @@ public partial class ApiService : ModService
                         break;
                     case "/farm/crops":
                         await WriteJsonAsync(response, HandleGetFarmCrops());
+                        break;
+                    case "/weather":
+                    case "/farm/weather":
+                        await WriteJsonAsync(response, HandleGetWeather());
                         break;
                     case "/api/backups":
                         await WriteJsonAsync(response, _backupService?.GetBackups() ?? new List<Backup.BackupEntry>());
@@ -3313,6 +3344,8 @@ public partial class ApiService : ModService
             TimeOfDay = snap.TimeOfDay,
             FarmTypeKey = snap.FarmTypeKey,
             IsPaused = snap.IsPaused,
+            Weather = snap.Weather,
+            WeatherTomorrow = snap.WeatherTomorrow,
             Tps = tps,
             Sequence = snap.Sequence,
         };
@@ -5844,6 +5877,104 @@ public partial class ApiService : ModService
         {
             CapturedAtUtc = DateTime.UtcNow
         };
+    }
+
+    [ApiEndpoint(
+        "GET",
+        "/weather",
+        Public = true,
+        Summary = "Returns current weather condition and tomorrow's forecast.",
+        Tag = "Farm"
+    )]
+    [ApiResponse(typeof(WeatherResponse), 200, Description = "Current and forecast weather condition.")]
+    private WeatherResponse HandleGetWeather()
+    {
+        return new WeatherResponse
+        {
+            Today = GetCurrentWeatherSummary(),
+            Tomorrow = GetTomorrowWeatherForecast(),
+            Day = Game1.dayOfMonth,
+            Season = Game1.currentSeason ?? "spring",
+            Year = Game1.year,
+            IsRaining = Game1.isRainingHere(),
+            IsLightning = Game1.isLightningHere(),
+            IsSnowing = Game1.isSnowingHere(),
+            IsDebris = Game1.isDebrisWeatherHere(),
+            IsFestival = Utility.isFestivalDay(Game1.dayOfMonth, Game1.currentSeason)
+        };
+    }
+
+    private static string GetCurrentWeatherSummary()
+    {
+        try
+        {
+            if (Utility.isFestivalDay(Game1.dayOfMonth, Game1.currentSeason))
+            {
+                return "Festival";
+            }
+            if (Game1.isLightningHere())
+            {
+                return "Thunderstorm";
+            }
+            if (Game1.isRainingHere())
+            {
+                return "Rain";
+            }
+            if (Game1.isSnowingHere())
+            {
+                return "Snow";
+            }
+            if (Game1.isDebrisWeatherHere())
+            {
+                return "Windy";
+            }
+            return "Sunny";
+        }
+        catch
+        {
+            return "Sunny";
+        }
+    }
+
+    private static string GetTomorrowWeatherForecast()
+    {
+        try
+        {
+            var raw = Game1.weatherForTomorrow?.ToLowerInvariant() ?? "";
+            if (raw.Contains("green"))
+            {
+                return "Green Rain";
+            }
+            if (raw.Contains("storm") || raw.Contains("lightning"))
+            {
+                return "Thunderstorm";
+            }
+            if (raw.Contains("rain"))
+            {
+                return "Rain";
+            }
+            if (raw.Contains("snow"))
+            {
+                return "Snow";
+            }
+            if (raw.Contains("debris") || raw.Contains("wind"))
+            {
+                return "Windy";
+            }
+            if (raw.Contains("festival"))
+            {
+                return "Festival";
+            }
+            if (raw.Contains("sun"))
+            {
+                return "Sunny";
+            }
+            return string.IsNullOrEmpty(Game1.weatherForTomorrow) ? "Sunny" : Game1.weatherForTomorrow;
+        }
+        catch
+        {
+            return "Unknown";
+        }
     }
 
     #endregion
