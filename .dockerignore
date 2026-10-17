@@ -25,6 +25,7 @@ mod/.vs/
 mod/JunimoServer/bin/
 mod/JunimoServer/obj/
 mods/
+!mods/JunimoServer/
 sub_modules/
 
 # Build artifacts
