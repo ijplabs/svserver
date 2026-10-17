@@ -55,6 +55,14 @@ Rilis produksi jangka panjang pertama untuk fork dedicated server Stardew Valley
   - Endpoint REST API baru `GET /weather` dan `GET /farm/weather`.
   - Penegakan ketat Zero Emoji Policy di seluruh ekosistem notifikasi.
 
+* **Phase 11 (Centralized Mod Management, Native Enforcement & Client EZ Sync Suite):**
+  - Mod Policy Enforcement di server (`ModEnforcementService`): Memeriksa mod klien yang terhubung ke server, validasi versi minimum, dan penolakan otomatis jika terdapat mod yang tidak kompatibel.
+  - Mod Distribution API (`ModDistributionService`): `/api/mods/installed`, `/api/mods/policy`, `/api/mods/sync/manifest`, `/api/mods/sync/bundle`, `/api/mods/sync/client-mod`, `/api/mods/sync/download/{folder}`.
+  - Mod Klien SMAPI Ringan (`JunimoClientSync`): Mod klien pendamping yang dapat diunduh langsung dari web admin atau server API.
+  - In-Game EZ Setup Integration: Tombol "Sync Server Mods" di layar menu utama Title Screen dan Co-op Lobby Stardew Valley, serta integrasi konfigurasi GMCM dan perintah `sync_mods`.
+  - UI Web Admin Pusat Mod: Panel monitoring mod terpasang di server, manajemen status policy (Required / Recommended / Allowed / Disallowed), sinkronisasi otomatis mod SVE, dan tombol unduh 1-klik untuk mod klien dan batch script setup.
+  - Perbaikan Stabilitas Arsitektur DI: Resolusi circular dependency antara `ChatCommandsService` dan `ApiService` menggunakan decoupled event callback model (`OnPlayerChatMessage`).
+
 ## [1.4.1](https://github.com/stardew-valley-dedicated-server/server/compare/sdvd-server-v1.4.0...sdvd-server-v1.4.1) (2026-01-17)
 
 
