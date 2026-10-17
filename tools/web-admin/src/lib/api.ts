@@ -78,7 +78,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   const text = await res.text();
-  return text ? (JSON.parse(text) as T) : ({} as T);
+  const data = text ? (JSON.parse(text) as T) : ({} as T);
+  if (data && typeof data === 'object' && 'error' in data && (data as any).error) {
+    throw new Error(String((data as any).error));
+  }
+  return data;
 }
 
 export const api = {

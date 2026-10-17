@@ -23,6 +23,7 @@ import { QuestsAndCommunityCard } from './components/quests/QuestsAndCommunityCa
 import { ValleyMapCard } from './components/map/ValleyMapCard';
 import { UserManagementCard } from './components/admin/UserManagementCard';
 import { ModManagementCard } from './components/mods/ModManagementCard';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -111,7 +112,8 @@ export const App: React.FC = () => {
 
         {/* CENTER VIEWPORT / ACTIVE GAME STAGE */}
         <main className="flex-1 overflow-y-auto space-y-6 pb-20 lg:pb-6 min-w-0 pr-0.5">
-          {/* Tab: Server Overview & Automation Controls (Admin Only) */}
+          <ErrorBoundary key={activeTab}>
+            {/* Tab: Server Overview & Automation Controls (Admin Only) */}
           {activeTab === 'overview' && isAdmin && (
             <div className="space-y-6 max-w-7xl mx-auto">
               <ServerOverviewCard />
@@ -204,6 +206,7 @@ export const App: React.FC = () => {
               <ModManagementCard />
             </div>
           )}
+          </ErrorBoundary>
 
           {/* Footer Bar */}
           <footer className="pt-6 border-t border-slate-200 dark:border-[#1e2a42] text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">

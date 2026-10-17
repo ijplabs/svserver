@@ -33,19 +33,48 @@ export const QuestsAndCommunityCard: React.FC = () => {
   const [communityData, setCommunityData] = useState<CommunityCenterResponse | null>(null);
   const [questsData, setQuestsData] = useState<FarmerQuestsResponse | null>(null);
   const [selectedRoomIndex, setSelectedRoomIndex] = useState<number | 'all'>('all');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [ccRes, questsRes] = await Promise.all([
+      const results = await Promise.allSettled([
         api.farmer.getCommunityCenter(),
         api.farmer.getQuests(),
       ]);
-      setCommunityData(ccRes);
-      setQuestsData(questsRes);
+
+      let hasData = false;
+      let errMessage = '';
+
+      if (results[0].status === 'fulfilled') {
+        const val = results[0].value;
+        if (val && typeof val === 'object' && !('error' in val)) {
+          setCommunityData(val);
+          hasData = true;
+        } else if (val && 'error' in val) {
+          errMessage = String((val as any).error);
+        }
+      } else {
+        errMessage = results[0].reason?.message || 'Gagal memuat Balai Kota';
+      }
+
+      if (results[1].status === 'fulfilled') {
+        const val = results[1].value;
+        if (val && typeof val === 'object' && !('error' in val)) {
+          setQuestsData(val);
+          hasData = true;
+        } else if (val && 'error' in val) {
+          errMessage = String((val as any).error);
+        }
+      } else {
+        errMessage = results[1].reason?.message || 'Gagal memuat Misi';
+      }
+
+      if (!hasData && errMessage) {
+        setError(errMessage);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Gagal memuat data misi & balai kota.';
       setError(message);
@@ -85,6 +114,20 @@ export const QuestsAndCommunityCard: React.FC = () => {
     return null;
   };
 
+  const roomsList = Array.isArray(communityData?.rooms) ? communityData.rooms : [];
+  const filteredRooms = roomsList.filter(
+    (room) => selectedRoomIndex === 'all' || room.roomIndex === selectedRoomIndex
+  );
+
+  const totalBundles = communityData?.totalBundles || 0;
+  const completedBundles = communityData?.completedBundles || 0;
+  const ccCompletionPercent = totalBundles > 0
+    ? Math.round((completedBundles / totalBundles) * 100)
+    : 0;
+
+  const activeQuests = Array.isArray(questsData?.activeQuests) ? questsData.activeQuests : [];
+  const specialOrders = Array.isArray(questsData?.specialOrders) ? questsData.specialOrders : [];
+
   if (isLoading && !communityData && !questsData) {
     return (
       <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl shadow-xs text-slate-400">
@@ -109,14 +152,6 @@ export const QuestsAndCommunityCard: React.FC = () => {
     );
   }
 
-  const filteredRooms = communityData?.rooms.filter(
-    (room) => selectedRoomIndex === 'all' || room.roomIndex === selectedRoomIndex
-  ) || [];
-
-  const ccCompletionPercent = communityData?.totalBundles
-    ? Math.round((communityData.completedBundles / communityData.totalBundles) * 100)
-    : 0;
-
   return (
     <div className="space-y-6">
       {/* TOP TOGGLE: BALAI KOTA vs MISI PRIBADI */}
@@ -132,7 +167,7 @@ export const QuestsAndCommunityCard: React.FC = () => {
           >
             <Building2 className="w-4 h-4" />
             <span>Balai Kota & Bundel</span>
-            {communityData && (
+            {communityData && totalBundles > 0 && (
               <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-700/50 text-white">
                 {ccCompletionPercent}%
               </span>
@@ -149,11 +184,9 @@ export const QuestsAndCommunityCard: React.FC = () => {
           >
             <Scroll className="w-4 h-4" />
             <span>Misi & Pesanan</span>
-            {questsData && (
-              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-700/50 text-white">
-                {(questsData.activeQuests?.length || 0) + (questsData.specialOrders?.length || 0)}
-              </span>
-            )}
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-700/50 text-white">
+              {activeQuests.length + specialOrders.length}
+            </span>
           </button>
         </div>
 
@@ -168,282 +201,291 @@ export const QuestsAndCommunityCard: React.FC = () => {
       </div>
 
       {/* SUB-TAB 1: BALAI KOTA / COMMUNITY CENTER */}
-      {activeSubTab === 'community' && communityData && (
+      {activeSubTab === 'community' && (
         <div className="space-y-6">
-          {/* OVERVIEW PROGRESS CARD */}
-          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-bold text-slate-900 dark:text-white">
-                    {communityData.isJojaRoute
-                      ? 'Formulir Proyek Pembangunan Komunitas Joja'
-                      : 'Progres Pemugaran Balai Kota (Community Center)'}
-                  </h1>
-                  <span
-                    className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
-                      communityData.isJojaRoute
-                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
-                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                    }`}
-                  >
-                    {communityData.isJojaRoute ? 'Rute Joja' : 'Rute Junimo'}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {communityData.isComplete
-                    ? 'Selamat! Balai Kota telah sepenuhnya dipugar dan selesai!'
-                    : `Selesaikan bundel persembahan Junimo untuk memulihkan ruangan dan membuka fitur baru.`}
-                </p>
-              </div>
-
-              {/* Progress Count */}
-              <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {communityData.completedBundles} / {communityData.totalBundles}
-                </div>
-                <div className="text-[11px] text-slate-400">Bundel Selesai ({ccCompletionPercent}%)</div>
-              </div>
+          {!communityData ? (
+            <div className="p-12 text-center bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl text-slate-400">
+              <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
+              <p className="text-sm font-medium">Data Balai Kota belum tersedia dari save aktif.</p>
             </div>
+          ) : (
+            <>
+              {/* OVERVIEW PROGRESS CARD */}
+              <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-lg font-bold text-slate-900 dark:text-white">
+                        {communityData.isJojaRoute
+                          ? 'Formulir Proyek Pembangunan Komunitas Joja'
+                          : 'Progres Pemugaran Balai Kota (Community Center)'}
+                      </h1>
+                      <span
+                        className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
+                          communityData.isJojaRoute
+                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                        }`}
+                      >
+                        {communityData.isJojaRoute ? 'Rute Joja' : 'Rute Junimo'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {communityData.isComplete
+                        ? 'Selamat! Balai Kota telah sepenuhnya dipugar dan selesai!'
+                        : `Selesaikan bundel persembahan Junimo untuk memulihkan ruangan dan membuka fitur baru.`}
+                    </p>
+                  </div>
 
-            {/* Progress bar */}
-            <div className="w-full h-2.5 bg-slate-100 dark:bg-[#162035] rounded-full overflow-hidden mt-4 border border-slate-200/50 dark:border-slate-800">
-              <div
-                className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
-                style={{ width: `${ccCompletionPercent}%` }}
-              />
-            </div>
+                  {/* Progress Count */}
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                      {completedBundles} / {totalBundles}
+                    </div>
+                    <div className="text-[11px] text-slate-400">Bundel Selesai ({ccCompletionPercent}%)</div>
+                  </div>
+                </div>
 
-            {/* Room Filter Pills */}
-            {!communityData.isJojaRoute && (
-              <div className="flex items-center gap-2 overflow-x-auto pt-5 border-t border-slate-100 dark:border-[#162035] mt-5">
-                <button
-                  onClick={() => setSelectedRoomIndex('all')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-xl whitespace-nowrap transition-colors ${
-                    selectedRoomIndex === 'all'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-100 dark:bg-[#162035] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1e2a42]'
-                  }`}
-                >
-                  Semua Ruangan ({communityData.rooms.length})
-                </button>
-                {communityData.rooms.map((room) => {
-                  const isRoomDone = room.isComplete;
-                  return (
+                {/* Progress bar */}
+                <div className="w-full h-2.5 bg-slate-100 dark:bg-[#162035] rounded-full overflow-hidden mt-4 border border-slate-200/50 dark:border-slate-800">
+                  <div
+                    className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
+                    style={{ width: `${ccCompletionPercent}%` }}
+                  />
+                </div>
+
+                {/* Room Filter Pills */}
+                {!communityData.isJojaRoute && roomsList.length > 0 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pt-5 border-t border-slate-100 dark:border-[#162035] mt-5">
                     <button
-                      key={room.roomIndex}
-                      onClick={() => setSelectedRoomIndex(room.roomIndex)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl whitespace-nowrap transition-colors ${
-                        selectedRoomIndex === room.roomIndex
+                      onClick={() => setSelectedRoomIndex('all')}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-xl whitespace-nowrap transition-colors ${
+                        selectedRoomIndex === 'all'
                           ? 'bg-emerald-600 text-white'
                           : 'bg-slate-100 dark:bg-[#162035] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1e2a42]'
                       }`}
                     >
-                      <span>{room.displayName || room.name}</span>
-                      {isRoomDone ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <span className="text-[10px] text-slate-400">
-                          {room.completedBundles}/{room.totalBundles}
-                        </span>
-                      )}
+                      Semua Ruangan ({roomsList.length})
                     </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* IF JOJA ROUTE: LIST PROJECTS */}
-          {communityData.isJojaRoute && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {communityData.jojaProjects.map((proj) => (
-                <div
-                  key={proj.key}
-                  className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-5 shadow-xs flex flex-col justify-between"
-                >
-                  <div className="flex items-start gap-4">
-                    <WikiImage
-                      src={getJojaProjectImageUrl(proj.key)}
-                      alt={proj.name}
-                      fallbackIcon={<Building2 className="w-6 h-6" />}
-                      className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 shrink-0 p-1"
-                    />
-                    <div>
-                      <h2 className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{proj.description}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#162035] flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                      <Coins className="w-3.5 h-3.5" />
-                      <span>{proj.cost.toLocaleString()} g</span>
-                    </div>
-                    {proj.isComplete ? (
-                      <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Selesai Dibeli
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">Belum Selesai</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* ROOMS & BUNDLES DISPLAY */}
-          {!communityData.isJojaRoute && (
-            <div className="space-y-6">
-              {filteredRooms.map((room) => (
-                <div
-                  key={room.roomIndex}
-                  className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs space-y-4"
-                >
-                  {/* Room Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-[#162035]">
-                    <div className="flex items-center gap-3">
-                      <WikiImage
-                        src={getRoomImageUrl(room.name)}
-                        alt={room.displayName}
-                        fallbackIcon={<Building2 className="w-5 h-5" />}
-                        className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] p-1 shrink-0"
-                      />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                            {room.displayName || room.name}
-                          </h2>
-                          {room.isComplete && (
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                              Pulih Sepenuhnya
-                            </span>
-                          )}
-                        </div>
-                        {room.reward && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                            <Sparkles className="w-3 h-3 text-amber-500" />
-                            <span>Hadiah Ruangan: {room.reward}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                      {room.completedBundles} dari {room.totalBundles} Bundel Selesai
-                    </div>
-                  </div>
-
-                  {/* Bundles Grid inside Room */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-2">
-                    {room.bundles.map((bundle) => {
-                      const isComplete = bundle.isComplete;
-                      const progressPercent = bundle.requiredItemsCount
-                        ? Math.min(100, Math.round((bundle.fulfilledCount / bundle.requiredItemsCount) * 100))
-                        : 0;
-
+                    {roomsList.map((room) => {
+                      const isRoomDone = room.isComplete;
                       return (
-                        <div
-                          key={bundle.bundleIndex}
-                          className={`rounded-2xl p-4 border transition-colors flex flex-col justify-between ${
-                            isComplete
-                              ? 'bg-emerald-500/5 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/20'
-                              : 'bg-slate-50 dark:bg-[#162035] border-slate-200 dark:border-[#1e2a42]'
+                        <button
+                          key={room.roomIndex}
+                          onClick={() => setSelectedRoomIndex(room.roomIndex)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl whitespace-nowrap transition-colors ${
+                            selectedRoomIndex === room.roomIndex
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-100 dark:bg-[#162035] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1e2a42]'
                           }`}
                         >
-                          <div>
-                            {/* Bundle Title & Reward */}
-                            <div className="flex items-start gap-3">
-                              <WikiImage
-                                src={getBundleImageUrl(bundle.name)}
-                                alt={bundle.name}
-                                fallbackIcon={<Scroll className="w-5 h-5 text-emerald-500" />}
-                                className="w-10 h-10 rounded-xl bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] p-1 shrink-0"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-1">
-                                  <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                    {bundle.name}
-                                  </h3>
-                                  {isComplete ? (
-                                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0 flex items-center gap-0.5">
-                                      <CheckCircle2 className="w-3 h-3" /> Selesai
-                                    </span>
-                                  ) : (
-                                    <span className="text-[10px] text-slate-400 shrink-0">
-                                      {bundle.fulfilledCount}/{bundle.requiredItemsCount}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {bundle.rewardName && (
-                                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                                    Hadiah: {bundle.rewardCount}x {bundle.rewardName}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Progress bar */}
-                            <div className="w-full h-1.5 bg-slate-200 dark:bg-[#111a2e] rounded-full overflow-hidden mt-3">
-                              <div
-                                className={`h-full rounded-full transition-all duration-300 ${
-                                  isComplete ? 'bg-emerald-500' : 'bg-amber-500'
-                                }`}
-                                style={{ width: `${progressPercent}%` }}
-                              />
-                            </div>
-
-                            {/* Ingredients Checklist */}
-                            <div className="mt-3 space-y-1.5">
-                              {bundle.ingredients.map((ing, i) => (
-                                <div
-                                  key={i}
-                                  className={`flex items-center justify-between p-1.5 rounded-xl text-xs transition-colors ${
-                                    ing.isFulfilled
-                                      ? 'bg-emerald-500/10 text-slate-700 dark:text-slate-300'
-                                      : 'bg-white dark:bg-[#111a2e] text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-[#1e2a42]'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <WikiImage
-                                      src={getItemImageUrl(ing.name)}
-                                      alt={ing.name}
-                                      fallbackIcon={<Package className="w-3 h-3" />}
-                                      className="w-5 h-5 rounded-md shrink-0"
-                                    />
-                                    <span className="truncate text-[11px] font-medium">
-                                      {ing.stack > 1 ? `${ing.stack}x ` : ''}
-                                      {ing.name}
-                                    </span>
-                                    {getQualityBadge(ing.quality)}
-                                  </div>
-
-                                  <div className="shrink-0 ml-1">
-                                    {ing.isFulfilled ? (
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                                    ) : (
-                                      <Circle className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600" />
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                          <span>{room.displayName || room.name}</span>
+                          {isRoomDone ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <span className="text-[10px] text-slate-400">
+                              {room.completedBundles}/{room.totalBundles}
+                            </span>
+                          )}
+                        </button>
                       );
                     })}
                   </div>
+                )}
+              </div>
+
+              {/* IF JOJA ROUTE: LIST PROJECTS */}
+              {communityData.isJojaRoute && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(communityData.jojaProjects || []).map((proj) => (
+                    <div
+                      key={proj.key}
+                      className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-5 shadow-xs flex flex-col justify-between"
+                    >
+                      <div className="flex items-start gap-4">
+                        <WikiImage
+                          src={getJojaProjectImageUrl(proj.key)}
+                          alt={proj.name}
+                          fallbackIcon={<Building2 className="w-6 h-6" />}
+                          className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 shrink-0 p-1"
+                        />
+                        <div>
+                          <h2 className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</h2>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{proj.description}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#162035] flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                          <Coins className="w-3.5 h-3.5" />
+                          <span>{proj.cost.toLocaleString()} g</span>
+                        </div>
+                        {proj.isComplete ? (
+                          <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Selesai Dibeli
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">Belum Selesai</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+
+              {/* ROOMS & BUNDLES DISPLAY */}
+              {!communityData.isJojaRoute && (
+                <div className="space-y-6">
+                  {filteredRooms.map((room) => (
+                    <div
+                      key={room.roomIndex}
+                      className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs space-y-4"
+                    >
+                      {/* Room Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-[#162035]">
+                        <div className="flex items-center gap-3">
+                          <WikiImage
+                            src={getRoomImageUrl(room.name)}
+                            alt={room.displayName}
+                            fallbackIcon={<Building2 className="w-5 h-5" />}
+                            className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] p-1 shrink-0"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                                {room.displayName || room.name}
+                              </h2>
+                              {room.isComplete && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                  Pulih Sepenuhnya
+                                </span>
+                              )}
+                            </div>
+                            {room.reward && (
+                              <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                                <Sparkles className="w-3 h-3 text-amber-500" />
+                                <span>Hadiah Ruangan: {room.reward}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                          {room.completedBundles} dari {room.totalBundles} Bundel Selesai
+                        </div>
+                      </div>
+
+                      {/* Bundles Grid inside Room */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-2">
+                        {(room.bundles || []).map((bundle) => {
+                          const isComplete = bundle.isComplete;
+                          const progressPercent = bundle.requiredItemsCount
+                            ? Math.min(100, Math.round((bundle.fulfilledCount / bundle.requiredItemsCount) * 100))
+                            : 0;
+
+                          return (
+                            <div
+                              key={bundle.bundleIndex}
+                              className={`rounded-2xl p-4 border transition-colors flex flex-col justify-between ${
+                                isComplete
+                                  ? 'bg-emerald-500/5 dark:bg-emerald-950/10 border-emerald-500/30 dark:border-emerald-500/20'
+                                  : 'bg-slate-50 dark:bg-[#162035] border-slate-200 dark:border-[#1e2a42]'
+                              }`}
+                            >
+                              <div>
+                                {/* Bundle Title & Reward */}
+                                <div className="flex items-start gap-3">
+                                  <WikiImage
+                                    src={getBundleImageUrl(bundle.name)}
+                                    alt={bundle.name}
+                                    fallbackIcon={<Scroll className="w-5 h-5 text-emerald-500" />}
+                                    className="w-10 h-10 rounded-xl bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] p-1 shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                        {bundle.name}
+                                      </h3>
+                                      {isComplete ? (
+                                        <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0 flex items-center gap-0.5">
+                                          <CheckCircle2 className="w-3 h-3" /> Selesai
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] text-slate-400 shrink-0">
+                                          {bundle.fulfilledCount}/{bundle.requiredItemsCount}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {bundle.rewardName && (
+                                      <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                                        Hadiah: {bundle.rewardCount}x {bundle.rewardName}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Progress bar */}
+                                <div className="w-full h-1.5 bg-slate-200 dark:bg-[#111a2e] rounded-full overflow-hidden mt-3">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-300 ${
+                                      isComplete ? 'bg-emerald-500' : 'bg-amber-500'
+                                    }`}
+                                    style={{ width: `${progressPercent}%` }}
+                                  />
+                                </div>
+
+                                {/* Ingredients Checklist */}
+                                <div className="mt-3 space-y-1.5">
+                                  {(bundle.ingredients || []).map((ing, i) => (
+                                    <div
+                                      key={i}
+                                      className={`flex items-center justify-between p-1.5 rounded-xl text-xs transition-colors ${
+                                        ing.isFulfilled
+                                          ? 'bg-emerald-500/10 text-slate-700 dark:text-slate-300'
+                                          : 'bg-white dark:bg-[#111a2e] text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-[#1e2a42]'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <WikiImage
+                                          src={getItemImageUrl(ing.name)}
+                                          alt={ing.name}
+                                          fallbackIcon={<Package className="w-3 h-3" />}
+                                          className="w-5 h-5 rounded-md shrink-0"
+                                        />
+                                        <span className="truncate text-[11px] font-medium">
+                                          {ing.stack > 1 ? `${ing.stack}x ` : ''}
+                                          {ing.name}
+                                        </span>
+                                        {getQualityBadge(ing.quality)}
+                                      </div>
+
+                                      <div className="shrink-0 ml-1">
+                                        {ing.isFulfilled ? (
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                        ) : (
+                                          <Circle className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
 
       {/* SUB-TAB 2: MISI & PESANAN PRIBADI */}
-      {activeSubTab === 'quests' && questsData && (
+      {activeSubTab === 'quests' && (
         <div className="space-y-6">
           {/* SECTION 1: ACTIVE QUESTS */}
           <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs space-y-4">
@@ -451,7 +493,7 @@ export const QuestsAndCommunityCard: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Scroll className="w-5 h-5 text-amber-500" />
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  Buku Catatan Misi ({questsData.activeQuests?.length || 0})
+                  Buku Catatan Misi ({activeQuests.length})
                 </h2>
               </div>
               <span className="text-xs text-slate-400">
@@ -459,14 +501,14 @@ export const QuestsAndCommunityCard: React.FC = () => {
               </span>
             </div>
 
-            {(!questsData.activeQuests || questsData.activeQuests.length === 0) ? (
+            {activeQuests.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
                 <Scroll className="w-8 h-8 mx-auto mb-2 opacity-40" />
                 <p className="text-xs font-medium">Tidak ada misi aktif saat ini. Periksa papan buletin Pierre!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {questsData.activeQuests.map((quest) => (
+                {activeQuests.map((quest) => (
                   <div
                     key={quest.id}
                     className="p-4 bg-slate-50 dark:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-2xl flex flex-col justify-between space-y-3"
@@ -520,7 +562,7 @@ export const QuestsAndCommunityCard: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-indigo-500" />
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  Pesanan Khusus Komunitas & Qi ({questsData.specialOrders?.length || 0})
+                  Pesanan Khusus Komunitas & Qi ({specialOrders.length})
                 </h2>
               </div>
               <span className="text-xs text-slate-400">
@@ -528,14 +570,14 @@ export const QuestsAndCommunityCard: React.FC = () => {
               </span>
             </div>
 
-            {(!questsData.specialOrders || questsData.specialOrders.length === 0) ? (
+            {specialOrders.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
                 <HelpCircle className="w-8 h-8 mx-auto mb-2 opacity-40" />
                 <p className="text-xs font-medium">Belum ada pesanan khusus yang sedang berjalan.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {questsData.specialOrders.map((order) => (
+                {specialOrders.map((order) => (
                   <div
                     key={order.key}
                     className="p-5 bg-slate-50 dark:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-2xl flex flex-col justify-between space-y-4"
@@ -573,7 +615,7 @@ export const QuestsAndCommunityCard: React.FC = () => {
                       </p>
 
                       {/* Objectives Progress */}
-                      {order.objectives && order.objectives.length > 0 && (
+                      {Array.isArray(order.objectives) && order.objectives.length > 0 && (
                         <div className="mt-3 space-y-2">
                           {order.objectives.map((obj, idx) => {
                             const percent = obj.maxCount > 0 ? Math.min(100, Math.round((obj.currentCount / obj.maxCount) * 100)) : 0;

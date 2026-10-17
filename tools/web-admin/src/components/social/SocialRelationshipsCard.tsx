@@ -21,7 +21,7 @@ import { WikiImage } from '../common/WikiImage';
 
 export const SocialRelationshipsCard: React.FC = () => {
   const [socialData, setSocialData] = useState<FarmerSocialResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'datable' | 'notMax' | 'birthdaySeason' | 'needTalk'>('all');
@@ -32,7 +32,11 @@ export const SocialRelationshipsCard: React.FC = () => {
     setError(null);
     try {
       const data = await api.farmer.getSocial();
-      setSocialData(data);
+      if (data && typeof data === 'object' && !('error' in data)) {
+        setSocialData(data);
+      } else if (data && 'error' in data) {
+        setError(String((data as any).error));
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Gagal memuat data hubungan sosial.';
       setError(message);

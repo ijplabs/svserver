@@ -6244,7 +6244,14 @@ public partial class ApiService : ModService
 
     private static async Task WriteJsonAsync(HttpListenerResponse response, object data, int statusCode = 200)
     {
-        response.StatusCode = statusCode;
+        if (statusCode != 200)
+        {
+            response.StatusCode = statusCode;
+        }
+        else if (response.StatusCode == 0)
+        {
+            response.StatusCode = 200;
+        }
         var json = JsonConvert.SerializeObject(data, JsonSettings);
         await WriteJsonRawAsync(response, json);
     }
@@ -7077,17 +7084,17 @@ public partial class ApiService : ModService
                 {
                     target = Game1.player;
                 }
-                if (target == null) return;
 
                 socialData = new FarmerSocialResponse
                 {
-                    FarmerId = target.UniqueMultiplayerID,
-                    FarmerName = target.Name
+                    FarmerId = target?.UniqueMultiplayerID ?? 0,
+                    FarmerName = target?.Name ?? "Server",
+                    Villagers = new List<VillagerFriendshipDto>()
                 };
 
                 var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                if (target.friendshipData != null)
+                if (target != null && target.friendshipData != null)
                 {
                     foreach (var pair in target.friendshipData.Pairs)
                     {
@@ -7209,9 +7216,12 @@ public partial class ApiService : ModService
 
         if (socialData == null)
         {
-            response.StatusCode = 404;
-            await WriteJsonAsync(response, new { error = "Farmer character not found in active save." });
-            return;
+            socialData = new FarmerSocialResponse
+            {
+                FarmerId = user.Value.FarmerId,
+                FarmerName = user.Value.Username ?? "Farmer",
+                Villagers = new List<VillagerFriendshipDto>()
+            };
         }
 
         await WriteJsonAsync(response, socialData);
@@ -7247,32 +7257,37 @@ public partial class ApiService : ModService
                 {
                     target = Game1.player;
                 }
-                if (target == null) return;
 
                 questsData = new FarmerQuestsResponse
                 {
-                    FarmerId = target.UniqueMultiplayerID,
-                    FarmerName = target.Name
+                    FarmerId = target?.UniqueMultiplayerID ?? 0,
+                    FarmerName = target?.Name ?? "Server",
+                    ActiveQuests = new List<QuestDto>(),
+                    SpecialOrders = new List<SpecialOrderDto>()
                 };
 
                 // 1. Personal Quests
-                if (target.questLog != null)
+                if (target != null && target.questLog != null)
                 {
                     foreach (var q in target.questLog)
                     {
                         if (q == null) continue;
-                        questsData.ActiveQuests.Add(new QuestDto
+                        try
                         {
-                            Id = q.id.Value ?? "",
-                            Title = q.questTitle ?? "Misi Lembah",
-                            Description = q.questDescription ?? "",
-                            CurrentObjective = q.currentObjective ?? "",
-                            RewardMoney = q.moneyReward.Value,
-                            DaysLeft = q.daysLeft.Value,
-                            IsDailyQuest = q.dailyQuest.Value,
-                            IsComplete = q.completed.Value,
-                            QuestType = q.questType.Value.ToString()
-                        });
+                            questsData.ActiveQuests.Add(new QuestDto
+                            {
+                                Id = q.id?.Value ?? "",
+                                Title = q.questTitle ?? "Misi Lembah",
+                                Description = q.questDescription ?? "",
+                                CurrentObjective = q.currentObjective ?? "",
+                                RewardMoney = q.moneyReward?.Value ?? 0,
+                                DaysLeft = q.daysLeft?.Value ?? 0,
+                                IsDailyQuest = q.dailyQuest?.Value ?? false,
+                                IsComplete = q.completed?.Value ?? false,
+                                QuestType = q.questType?.Value.ToString() ?? "Standard"
+                            });
+                        }
+                        catch { }
                     }
                 }
 
@@ -7282,37 +7297,46 @@ public partial class ApiService : ModService
                     foreach (var so in Game1.player.team.specialOrders)
                     {
                         if (so == null) continue;
-                        var sDto = new SpecialOrderDto
+                        try
                         {
-                            Key = so.orderKey.Value ?? "",
-                            Name = so.questName.Value ?? "Special Order",
-                            Description = so.questDescription.Value ?? "",
-                            OrderType = so.orderType.Value ?? "",
-                            Requester = so.requester.Value ?? "",
-                            DaysLeft = Math.Max(0, so.dueDate.Value - Game1.dayOfMonth),
-                            IsComplete = false
-                        };
-
-                        if (so.objectives != null)
-                        {
-                            bool allComplete = true;
-                            foreach (var obj in so.objectives)
+                            var sDto = new SpecialOrderDto
                             {
-                                if (obj == null) continue;
-                                bool c = obj.IsComplete();
-                                if (!c) allComplete = false;
-                                sDto.Objectives.Add(new QuestObjectiveDto
-                                {
-                                    Description = obj.GetDescription() ?? "",
-                                    CurrentCount = obj.GetCount(),
-                                    MaxCount = obj.GetMaxCount(),
-                                    IsComplete = c
-                                });
-                            }
-                            sDto.IsComplete = allComplete;
-                        }
+                                Key = so.orderKey?.Value ?? "",
+                                Name = so.questName?.Value ?? "Special Order",
+                                Description = so.questDescription?.Value ?? "",
+                                OrderType = so.orderType?.Value ?? "",
+                                Requester = so.requester?.Value ?? "",
+                                DaysLeft = Math.Max(0, (so.dueDate?.Value ?? Game1.dayOfMonth) - Game1.dayOfMonth),
+                                IsComplete = false,
+                                Objectives = new List<QuestObjectiveDto>()
+                            };
 
-                        questsData.SpecialOrders.Add(sDto);
+                            if (so.objectives != null)
+                            {
+                                bool allComplete = true;
+                                foreach (var obj in so.objectives)
+                                {
+                                    if (obj == null) continue;
+                                    try
+                                    {
+                                        bool c = obj.IsComplete();
+                                        if (!c) allComplete = false;
+                                        sDto.Objectives.Add(new QuestObjectiveDto
+                                        {
+                                            Description = obj.GetDescription() ?? "",
+                                            CurrentCount = obj.GetCount(),
+                                            MaxCount = obj.GetMaxCount(),
+                                            IsComplete = c
+                                        });
+                                    }
+                                    catch { }
+                                }
+                                sDto.IsComplete = allComplete;
+                            }
+
+                            questsData.SpecialOrders.Add(sDto);
+                        }
+                        catch { }
                     }
                 }
             }
@@ -7324,9 +7348,13 @@ public partial class ApiService : ModService
 
         if (questsData == null)
         {
-            response.StatusCode = 404;
-            await WriteJsonAsync(response, new { error = "Farmer character not found in active save." });
-            return;
+            questsData = new FarmerQuestsResponse
+            {
+                FarmerId = user.Value.FarmerId,
+                FarmerName = user.Value.Username ?? "Farmer",
+                ActiveQuests = new List<QuestDto>(),
+                SpecialOrders = new List<SpecialOrderDto>()
+            };
         }
 
         await WriteJsonAsync(response, questsData);
@@ -7353,22 +7381,27 @@ public partial class ApiService : ModService
         {
             try
             {
-                ccData = new CommunityCenterResponse();
-                bool isJoja = Game1.player.mailReceived.Contains("JojaMember") ||
-                              Game1.player.mailReceived.Contains("jojaVault") ||
-                              Game1.player.hasCompletedTownProject("JojaMember");
+                ccData = new CommunityCenterResponse
+                {
+                    Rooms = new List<CommunityRoomDto>(),
+                    JojaProjects = new List<JojaProjectDto>()
+                };
+
+                bool isJoja = (Game1.player?.mailReceived?.Contains("JojaMember") == true) ||
+                              (Game1.player?.mailReceived?.Contains("jojaVault") == true) ||
+                              (Game1.player != null && Game1.player.hasCompletedTownProject("JojaMember"));
                 ccData.IsJojaRoute = isJoja;
 
                 if (isJoja)
                 {
                     ccData.JojaProjects = new List<JojaProjectDto>
                     {
-                        new JojaProjectDto { Key = "jojaGreenhouse", Name = "Rumah Kaca (Greenhouse)", Description = "Membuka kembali Rumah Kaca di kebun untuk bercocok tanam sepanjang tahun.", Cost = 35000, IsComplete = Game1.player.mailReceived.Contains("jojaGreenhouse") },
-                        new JojaProjectDto { Key = "jojaBoilerRoom", Name = "Kereta Tambang (Minecarts)", Description = "Memperbaiki jaringan gerobak tambang untuk perjalanan instan antara Kota, Tambang, dan Halte Bus.", Cost = 15000, IsComplete = Game1.player.mailReceived.Contains("jojaBoilerRoom") },
-                        new JojaProjectDto { Key = "jojaCraftsRoom", Name = "Jembatan Tambang (Bridge Repair)", Description = "Memperbaiki jembatan menuju Tambang Batu (Quarry).", Cost = 25000, IsComplete = Game1.player.mailReceived.Contains("jojaCraftsRoom") },
-                        new JojaProjectDto { Key = "jojaVault", Name = "Perbaikan Bus (Bus Repair)", Description = "Memperbaiki bus Pam untuk perjalanan ke Gurun Calico.", Cost = 40000, IsComplete = Game1.player.mailReceived.Contains("jojaVault") },
-                        new JojaProjectDto { Key = "jojaFishTank", Name = "Pendulangan Emas (Panning)", Description = "Menghilangkan batu besar berkilau di hulu sungai untuk memungkinkan pendulangan bijih mineral.", Cost = 20000, IsComplete = Game1.player.mailReceived.Contains("jojaFishTank") },
-                        new JojaProjectDto { Key = "ccMovieTheater", Name = "Bioskop Lembah (Movie Theater)", Description = "Membangun bioskop mewah di bekas bangunan JojaMart.", Cost = 500000, IsComplete = Game1.player.mailReceived.Contains("ccMovieTheater") }
+                        new JojaProjectDto { Key = "jojaGreenhouse", Name = "Rumah Kaca (Greenhouse)", Description = "Membuka kembali Rumah Kaca di kebun untuk bercocok tanam sepanjang tahun.", Cost = 35000, IsComplete = Game1.player?.mailReceived?.Contains("jojaGreenhouse") == true },
+                        new JojaProjectDto { Key = "jojaBoilerRoom", Name = "Kereta Tambang (Minecarts)", Description = "Memperbaiki jaringan gerobak tambang untuk perjalanan instan antara Kota, Tambang, dan Halte Bus.", Cost = 15000, IsComplete = Game1.player?.mailReceived?.Contains("jojaBoilerRoom") == true },
+                        new JojaProjectDto { Key = "jojaCraftsRoom", Name = "Jembatan Tambang (Bridge Repair)", Description = "Memperbaiki jembatan menuju Tambang Batu (Quarry).", Cost = 25000, IsComplete = Game1.player?.mailReceived?.Contains("jojaCraftsRoom") == true },
+                        new JojaProjectDto { Key = "jojaVault", Name = "Perbaikan Bus (Bus Repair)", Description = "Memperbaiki bus Pam untuk perjalanan ke Gurun Calico.", Cost = 40000, IsComplete = Game1.player?.mailReceived?.Contains("jojaVault") == true },
+                        new JojaProjectDto { Key = "jojaFishTank", Name = "Pendulangan Emas (Panning)", Description = "Menghilangkan batu besar berkilau di hulu sungai untuk memungkinkan pendulangan bijih mineral.", Cost = 20000, IsComplete = Game1.player?.mailReceived?.Contains("jojaFishTank") == true },
+                        new JojaProjectDto { Key = "ccMovieTheater", Name = "Bioskop Lembah (Movie Theater)", Description = "Membangun bioskop mewah di bekas bangunan JojaMart.", Cost = 500000, IsComplete = Game1.player?.mailReceived?.Contains("ccMovieTheater") == true }
                     };
                     ccData.IsComplete = ccData.JojaProjects.All(p => p.IsComplete);
                     ccData.TotalBundles = ccData.JojaProjects.Count;
@@ -7378,7 +7411,7 @@ public partial class ApiService : ModService
                 CommunityCenter? cc = Game1.getLocationFromName("CommunityCenter") as CommunityCenter;
                 if (cc == null)
                 {
-                    cc = Game1.locations.OfType<CommunityCenter>().FirstOrDefault();
+                    cc = Game1.locations?.OfType<CommunityCenter>()?.FirstOrDefault();
                 }
 
                 var roomNames = new Dictionary<int, (string Name, string DisplayName, string Reward)>
@@ -7398,7 +7431,7 @@ public partial class ApiService : ModService
                     bool roomComplete = false;
                     try
                     {
-                        if (cc != null && r.Key < cc.areasComplete.Length)
+                        if (cc != null && cc.areasComplete != null && r.Key < cc.areasComplete.Length)
                         {
                             roomComplete = cc.areasComplete[r.Key];
                         }
@@ -7411,17 +7444,20 @@ public partial class ApiService : ModService
                         Name = r.Value.Name,
                         DisplayName = r.Value.DisplayName,
                         Reward = r.Value.Reward,
-                        IsComplete = roomComplete
+                        IsComplete = roomComplete,
+                        Bundles = new List<BundleDto>()
                     };
                 }
 
-                var bundleData = Game1.netWorldState.Value.BundleData;
+                var bundleData = Game1.netWorldState?.Value?.BundleData;
                 if (bundleData != null)
                 {
                     foreach (var kvp in bundleData)
                     {
                         string key = kvp.Key;
                         string value = kvp.Value;
+                        if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value)) continue;
+
                         var keyParts = key.Split('/');
                         int bIdx = 0;
                         int rIdx = 0;
@@ -7462,15 +7498,20 @@ public partial class ApiService : ModService
                             BundleIndex = bIdx,
                             Name = bName,
                             RoomIndex = rIdx,
-                            RoomName = rooms.TryGetValue(rIdx, out var roomDto) ? roomDto.Name : "Pantry"
+                            RoomName = rooms.TryGetValue(rIdx, out var roomDto) ? roomDto.Name : "Pantry",
+                            Ingredients = new List<BundleIngredientDto>()
                         };
 
                         var tokens = ingredientsStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         bool[]? fulfilledSlots = null;
-                        if (cc != null && cc.bundles.TryGetValue(bIdx, out var arr))
+                        try
                         {
-                            fulfilledSlots = arr;
+                            if (cc != null && cc.bundles != null && cc.bundles.TryGetValue(bIdx, out var arr))
+                            {
+                                fulfilledSlots = arr;
+                            }
                         }
+                        catch { }
 
                         int slotIdx = 0;
                         int fulfilledCount = 0;
@@ -7505,7 +7546,16 @@ public partial class ApiService : ModService
                         if (reqCount <= 0) reqCount = bDto.Ingredients.Count;
                         bDto.RequiredItemsCount = reqCount;
                         bDto.FulfilledCount = fulfilledCount;
-                        bDto.IsComplete = (cc != null && cc.isBundleComplete(bIdx)) || (fulfilledCount >= reqCount);
+                        bool bundleComplete = false;
+                        try
+                        {
+                            bundleComplete = (cc != null && cc.isBundleComplete(bIdx)) || (fulfilledCount >= reqCount);
+                        }
+                        catch
+                        {
+                            bundleComplete = fulfilledCount >= reqCount;
+                        }
+                        bDto.IsComplete = bundleComplete;
 
                         try
                         {
@@ -7545,8 +7595,17 @@ public partial class ApiService : ModService
 
                 ccData.TotalBundles = ccData.Rooms.Sum(r => r.TotalBundles);
                 ccData.CompletedBundles = ccData.Rooms.Sum(r => r.CompletedBundles);
-                ccData.IsComplete = (cc != null && cc.areAllAreasComplete()) ||
-                                    (ccData.TotalBundles > 0 && ccData.CompletedBundles >= ccData.TotalBundles);
+                bool allComplete = false;
+                try
+                {
+                    allComplete = (cc != null && cc.areAllAreasComplete()) ||
+                                  (ccData.TotalBundles > 0 && ccData.CompletedBundles >= ccData.TotalBundles);
+                }
+                catch
+                {
+                    allComplete = ccData.TotalBundles > 0 && ccData.CompletedBundles >= ccData.TotalBundles;
+                }
+                ccData.IsComplete = allComplete;
             }
             catch (Exception ex)
             {
@@ -7556,9 +7615,11 @@ public partial class ApiService : ModService
 
         if (ccData == null)
         {
-            response.StatusCode = 500;
-            await WriteJsonAsync(response, new { error = "Failed to load Community Center data." });
-            return;
+            ccData = new CommunityCenterResponse
+            {
+                Rooms = new List<CommunityRoomDto>(),
+                JojaProjects = new List<JojaProjectDto>()
+            };
         }
 
         await WriteJsonAsync(response, ccData);
