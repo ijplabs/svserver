@@ -34,6 +34,13 @@ services:
       - saves:/config/xdg/config/StardewValley
       - server-settings:/data/settings
       - diagnostics:/data/diagnostics
+      - backups-data:/data/backups
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+        reservations:
+          memory: 2048M
     environment:
       - SDVD_COMPOSE_REV=4
       - STEAM_AUTH_URL=http://steam-auth:${STEAM_AUTH_PORT:-3001}
@@ -138,3 +145,4 @@ volumes:
   diagnostics:
   discord-bot-data:
   redis-data:
+  backups-data:
