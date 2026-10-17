@@ -14,14 +14,18 @@ import {
   Download,
   Laptop,
   HardDriveDownload,
-  FileCode
+  FileCode,
+  Upload,
+  HardDrive,
+  FileArchive
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import type {
   ServerInstalledMod,
   ModPolicy,
   ConnectedPeerAudit,
-  ModRejectionLog
+  ModRejectionLog,
+  CustomModItem
 } from '../../types/mods';
 
 export const ModManagementCard: React.FC = () => {
@@ -29,16 +33,24 @@ export const ModManagementCard: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [installedMods, setInstalledMods] = useState<ServerInstalledMod[]>([]);
+  const [customMods, setCustomMods] = useState<CustomModItem[]>([]);
   const [policy, setPolicy] = useState<ModPolicy>({
     enforcementMode: 'Disabled',
+    unknownModsMode: 'Ignore',
     requiredMods: [],
-    blacklistedMods: []
+    blacklistedMods: [],
+    whitelistModIds: []
   });
   const [rejections, setRejections] = useState<ModRejectionLog[]>([]);
   const [connectedPeers, setConnectedPeers] = useState<ConnectedPeerAudit[]>([]);
   const [syncManifest, setSyncManifest] = useState<any>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'required' | 'blacklisted' | 'server' | 'audit' | 'distribution'>('required');
+  const [activeSubTab, setActiveSubTab] = useState<'required' | 'blacklisted' | 'server' | 'custom' | 'audit' | 'distribution'>('required');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Upload state
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
 
   // New Required Mod Form State
   const [newReqId, setNewReqId] = useState('');
@@ -53,16 +65,18 @@ export const ModManagementCard: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [policyRes, installedRes, manifestRes] = await Promise.all([
+      const [policyRes, installedRes, manifestRes, customRes] = await Promise.all([
         api.mods.getPolicy(),
         api.mods.getInstalled(),
-        api.mods.getSyncManifest().catch(() => null)
+        api.mods.getSyncManifest().catch(() => null),
+        api.mods.getCustomMods().catch(() => [])
       ]);
       setPolicy(policyRes.policy);
       setRejections(policyRes.rejections || []);
       setConnectedPeers(policyRes.connectedPeers || []);
       setInstalledMods(installedRes || []);
       setSyncManifest(manifestRes);
+      setCustomMods(customRes || []);
     } catch (err: any) {
       setMessage({ text: err.message || 'Gagal memuat data kebijakan mod', type: 'error' });
     } finally {
@@ -157,6 +171,59 @@ export const ModManagementCard: React.FC = () => {
       blacklistedMods: policy.blacklistedMods.filter((m) => m.uniqueId !== id)
     };
     handleSavePolicy(updated);
+  };
+
+  const handleFileUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    try {
+      setUploading(true);
+      setUploadProgress(`Mengunggah "${selectedFile.name}" ke penyimpanan aman server...`);
+      const res = await api.mods.uploadMod(selectedFile);
+      setMessage({ text: res.message || 'Mod berhasil diunggah dan disimpan ke volume persisten.', type: 'success' });
+      setSelectedFile(null);
+      setUploadProgress(null);
+      await fetchData();
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Gagal mengunggah mod.', type: 'error' });
+      setUploadProgress(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteCustomMod = async (folderName: string) => {
+    if (!window.confirm(`Hapus mod "${folderName}" dari server? Mod akan dihapus secara permanen dari penyimpanan persisten.`)) {
+      return;
+    }
+    try {
+      await api.mods.deleteCustomMod(folderName);
+      setMessage({ text: `Mod "${folderName}" berhasil dihapus dari server.`, type: 'success' });
+      await fetchData();
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Gagal menghapus mod.', type: 'error' });
+    }
+  };
+
+  const handleMakeRequired = (mod: CustomModItem) => {
+    if (policy.requiredMods.some((r) => r.uniqueId === mod.uniqueId)) {
+      setMessage({ text: `Mod "${mod.name}" sudah ada di daftar Mod Wajib.`, type: 'error' });
+      return;
+    }
+    const updated: ModPolicy = {
+      ...policy,
+      requiredMods: [
+        ...policy.requiredMods,
+        {
+          uniqueId: mod.uniqueId,
+          name: mod.name,
+          minVersion: mod.version !== 'custom' ? mod.version : undefined,
+          required: true
+        }
+      ]
+    };
+    handleSavePolicy(updated);
+    setMessage({ text: `Mod "${mod.name}" ditambahkan ke daftar Mod Wajib.`, type: 'success' });
   };
 
   return (
@@ -300,11 +367,78 @@ export const ModManagementCard: React.FC = () => {
         </div>
       </div>
 
+      {/* Unknown Mods Behavior Selector */}
+      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-slate-200">Kebijakan Mod Asing / Mod Klien Lain</h3>
+            <p className="text-xs text-slate-400">
+              Pengaturan perlakuan terhadap mod lain di PC pemain (misal mod yang pernah dicoba sebelumnya atau mod kosmetik).
+            </p>
+          </div>
+          <span
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${
+              (policy.unknownModsMode || 'Ignore') === 'StrictReject'
+                ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+            }`}
+          >
+            {(policy.unknownModsMode || 'Ignore') === 'StrictReject'
+              ? 'Whitelist Ketat (Tolak Lainnya)'
+              : 'Abaikan Mod Lain (Direkomendasikan)'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            onClick={() => handleSavePolicy({ ...policy, unknownModsMode: 'Ignore' })}
+            className={`cursor-pointer p-4 rounded-xl border transition ${
+              (policy.unknownModsMode || 'Ignore') === 'Ignore'
+                ? 'bg-slate-800/80 border-emerald-500/50 shadow-sm'
+                : 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2
+                className={`w-4 h-4 ${
+                  (policy.unknownModsMode || 'Ignore') === 'Ignore' ? 'text-emerald-400' : 'text-slate-500'
+                }`}
+              />
+              <span className="text-sm font-semibold text-slate-200">Abaikan Mod Lain (Rekomendasi Fleksibel)</span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Mod kosmetik pribadi, visual, UI info, atau mod yang pernah dicoba pemain sebelumnya dibiarkan berjalan aman. Pemain dapat login lancar tanpa ditolak selama memiliki mod server wajib.
+            </p>
+          </div>
+
+          <div
+            onClick={() => handleSavePolicy({ ...policy, unknownModsMode: 'StrictReject' })}
+            className={`cursor-pointer p-4 rounded-xl border transition ${
+              policy.unknownModsMode === 'StrictReject'
+                ? 'bg-slate-800/80 border-rose-500/50 shadow-sm'
+                : 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldAlert
+                className={`w-4 h-4 ${
+                  policy.unknownModsMode === 'StrictReject' ? 'text-rose-400' : 'text-slate-500'
+                }`}
+              />
+              <span className="text-sm font-semibold text-slate-200">Whitelist Ketat (Tolak Mod di Luar Daftar)</span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Hanya mod resmi server dan whitelist yang diizinkan. Pemain yang membawa mod asing lain akan ditolak masuk ke dalam server demi keseragaman gameplay 100%.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Sub-tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab('required')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition whitespace-nowrap ${
             activeSubTab === 'required'
               ? 'bg-indigo-600 text-white'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
@@ -316,7 +450,7 @@ export const ModManagementCard: React.FC = () => {
 
         <button
           onClick={() => setActiveSubTab('blacklisted')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition whitespace-nowrap ${
             activeSubTab === 'blacklisted'
               ? 'bg-indigo-600 text-white'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
@@ -327,8 +461,20 @@ export const ModManagementCard: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveSubTab('custom')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition whitespace-nowrap ${
+            activeSubTab === 'custom'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+          }`}
+        >
+          <Upload className="w-4 h-4" />
+          Unggah & Mod Persisten ({customMods.length})
+        </button>
+
+        <button
           onClick={() => setActiveSubTab('server')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition whitespace-nowrap ${
             activeSubTab === 'server'
               ? 'bg-indigo-600 text-white'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
@@ -809,6 +955,196 @@ export const ModManagementCard: React.FC = () => {
                 </p>
                 <p className="text-xs text-slate-500">
                   Setelah mod seperti StardewValleyExpanded dimasukkan ke folder Mods server, daftar akan otomatis muncul di sini.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sub-tab 6: Unggah Mod & Penyimpanan Persisten */}
+      {activeSubTab === 'custom' && (
+        <div className="space-y-6">
+          {/* Persistent Storage Notice Banner */}
+          <div className="bg-indigo-950/30 border border-indigo-500/30 rounded-2xl p-6 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400 shrink-0">
+                <HardDrive className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-slate-100">
+                    Penyimpanan Mod Persisten (/data/game/custom-mods)
+                  </h3>
+                  <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Persistent Volume (Aman Rebuild)
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Mod yang diunggah di sini disimpan langsung di Docker named volume (<code className="text-indigo-300 font-mono">game-data</code>) dan disinkronkan ke folder SMAPI (<code className="text-indigo-300 font-mono">/data/Mods</code>). Data mod Anda <strong className="text-emerald-300 font-semibold">tidak akan terhapus</strong> saat kontainer Coolify di-rebuild, restart, atau saat deploy ulang kode baru.
+                </p>
+                <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
+                  <span>Akses: <strong className="text-slate-200">Khusus Sysadmin</strong></span>
+                  <span>Format: <strong className="text-slate-200">.zip (Mendukung Multi-mod / SVE)</strong></span>
+                  <span>Status Volume: <strong className="text-emerald-400">Aktif & Terhubung</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Upload Form Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-100 flex items-center gap-2">
+                  <Upload className="w-4 h-4 text-indigo-400" />
+                  Unggah File ZIP Mod
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Unggah mod baru untuk server dan klien tanpa perlu menyetel URL eksternal di environment variable.
+                </p>
+              </div>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
+                Sysadmin Only
+              </span>
+            </div>
+
+            <form onSubmit={handleFileUpload} className="space-y-4">
+              <div className="p-6 bg-slate-950/60 border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl transition flex flex-col items-center justify-center text-center space-y-3 cursor-pointer">
+                <FileArchive className="w-10 h-10 text-slate-500" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-200">
+                    {selectedFile ? selectedFile.name : 'Pilih file mod (.zip) dari komputer Anda'}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {selectedFile
+                      ? `Ukuran: ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
+                      : 'Mendukung bundle ZIP mod individual maupun paket ekspansi besar (SVE, FTM, dsb)'}
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  accept=".zip"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setSelectedFile(e.target.files[0]);
+                    }
+                  }}
+                  className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                />
+              </div>
+
+              {uploadProgress && (
+                <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
+                  <span>{uploadProgress}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3">
+                {selectedFile && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFile(null)}
+                    disabled={uploading}
+                    className="px-4 py-2 text-xs text-slate-400 hover:text-slate-200 transition"
+                  >
+                    Batal
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={!selectedFile || uploading}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                  <Upload className="w-4 h-4" />
+                  {uploading ? 'Mengunggah & Mengekstrak...' : 'Unggah & Pasang Mod'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Custom Uploaded Mods List Table */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-100">
+                  Daftar Mod Kustom Terpasang di Penyimpanan Persisten
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Mod yang tersimpan di volume persisten dan otomatis didistribusikan ke klien SMAPI.
+                </p>
+              </div>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                {customMods.length} mod persisten
+              </span>
+            </div>
+
+            {customMods.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {customMods.map((mod) => {
+                  const isRequired = policy.requiredMods.some((r) => r.uniqueId === mod.uniqueId);
+                  return (
+                    <div
+                      key={mod.folderName}
+                      className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between hover:border-slate-700 transition"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="text-sm font-semibold text-slate-200">{mod.name}</h4>
+                            <p className="text-xs font-mono text-slate-400">{mod.uniqueId}</p>
+                          </div>
+                          <span className="px-2 py-0.5 text-xs font-mono rounded bg-slate-800 text-indigo-400 border border-slate-700 shrink-0">
+                            v{mod.version}
+                          </span>
+                        </div>
+                        {mod.description && (
+                          <p className="text-xs text-slate-400 line-clamp-2">{mod.description}</p>
+                        )}
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                          <span>Folder: <code className="text-slate-400 font-mono">{mod.folderName}</code></span>
+                          <span>{(mod.sizeBytes / 1024 / 1024).toFixed(2)} MB</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+                        {isRequired ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Mod Wajib Aktif
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleMakeRequired(mod)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            Jadikan Mod Wajib
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCustomMod(mod.folderName)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-center space-y-2">
+                <FileArchive className="w-8 h-8 text-slate-600 mx-auto" />
+                <p className="text-xs font-medium text-slate-300">Belum ada mod kustom yang diunggah ke penyimpanan persisten.</p>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  Gunakan formulir di atas untuk mengunggah file .zip mod (seperti mod ekspansi atau mod gameplay) agar tersimpan permanen di server.
                 </p>
               </div>
             )}

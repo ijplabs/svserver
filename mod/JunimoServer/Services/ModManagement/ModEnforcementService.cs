@@ -14,8 +14,10 @@ namespace JunimoServer.Services.ModManagement;
 public class ModPolicyData
 {
     public string EnforcementMode { get; set; } = "Disabled"; // "Disabled", "RequireSmapi", "StrictRequired"
+    public string UnknownModsMode { get; set; } = "Ignore"; // "Ignore" (default - safe for cosmetics), "StrictReject"
     public List<RequiredModRule> RequiredMods { get; set; } = new();
     public List<BlacklistedModRule> BlacklistedMods { get; set; } = new();
+    public List<string> WhitelistModIds { get; set; } = new();
 }
 
 public class RequiredModRule
@@ -135,8 +137,10 @@ public class ModEnforcementService : ModService
             _policy = new ModPolicyData
             {
                 EnforcementMode = "Disabled",
+                UnknownModsMode = "Ignore",
                 RequiredMods = new List<RequiredModRule>(),
-                BlacklistedMods = new List<BlacklistedModRule>()
+                BlacklistedMods = new List<BlacklistedModRule>(),
+                WhitelistModIds = new List<string>()
             };
             SavePolicyInternal();
         }
@@ -168,9 +172,11 @@ public class ModEnforcementService : ModService
         {
             return new ModPolicyData
             {
-                EnforcementMode = _policy.EnforcementMode,
+                EnforcementMode = _policy.EnforcementMode ?? "Disabled",
+                UnknownModsMode = _policy.UnknownModsMode ?? "Ignore",
                 RequiredMods = new List<RequiredModRule>(_policy.RequiredMods),
-                BlacklistedMods = new List<BlacklistedModRule>(_policy.BlacklistedMods)
+                BlacklistedMods = new List<BlacklistedModRule>(_policy.BlacklistedMods),
+                WhitelistModIds = new List<string>(_policy.WhitelistModIds ?? new List<string>())
             };
         }
     }
@@ -180,12 +186,14 @@ public class ModEnforcementService : ModService
         lock (_lock)
         {
             _policy.EnforcementMode = newPolicy.EnforcementMode ?? "Disabled";
+            _policy.UnknownModsMode = newPolicy.UnknownModsMode ?? "Ignore";
             _policy.RequiredMods = newPolicy.RequiredMods ?? new List<RequiredModRule>();
             _policy.BlacklistedMods = newPolicy.BlacklistedMods ?? new List<BlacklistedModRule>();
+            _policy.WhitelistModIds = newPolicy.WhitelistModIds ?? new List<string>();
             SavePolicyInternal();
         }
 
-        _monitor.Log($"[ModEnforcement] Policy updated: Mode={_policy.EnforcementMode}, {_policy.RequiredMods.Count} required mods", LogLevel.Info);
+        _monitor.Log($"[ModEnforcement] Policy updated: Mode={_policy.EnforcementMode}, UnknownModsMode={_policy.UnknownModsMode}, {_policy.RequiredMods.Count} required mods", LogLevel.Info);
     }
 
     public List<ServerInstalledModInfo> GetInstalledServerMods()
@@ -405,7 +413,53 @@ public class ModEnforcementService : ModService
             }
         }
 
-        _monitor.Log($"[ModEnforcement] Client {farmerName} passed mod validation ({audit.ModCount} mods verified)", LogLevel.Info);
+        // Check 4: Unknown Mods Handling (Strict Whitelist Mode)
+        if (policy.UnknownModsMode.Equals("StrictReject", StringComparison.OrdinalIgnoreCase) && e.Peer.Mods != null)
+        {
+            var allowedModIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "ConsoleCommands",
+                "SaveBackup",
+                "ErrorHandler",
+                "JunimoClientSync"
+            };
+
+            if (policy.RequiredMods != null)
+            {
+                foreach (var req in policy.RequiredMods)
+                {
+                    if (!string.IsNullOrWhiteSpace(req.UniqueId))
+                    {
+                        allowedModIds.Add(req.UniqueId);
+                    }
+                }
+            }
+
+            if (policy.WhitelistModIds != null)
+            {
+                foreach (var w in policy.WhitelistModIds)
+                {
+                    if (!string.IsNullOrWhiteSpace(w))
+                    {
+                        allowedModIds.Add(w);
+                    }
+                }
+            }
+
+            foreach (var peerMod in e.Peer.Mods)
+            {
+                if (!allowedModIds.Contains(peerMod.ID))
+                {
+                    string rejectMsg = $"[Server] Mod asing terdeteksi: {peerMod.ID}. Server hanya memperbolehkan mod yang masuk whitelist.";
+                    _helper.SendPrivateMessage(playerId, rejectMsg);
+                    RecordRejection(playerId, farmerName, $"Mod di luar whitelist: {peerMod.ID}", peerMod.ID);
+                    Game1.server.kick(playerId);
+                    return;
+                }
+            }
+        }
+
+        _monitor.Log($"[ModEnforcement] Client {farmerName} passed mod validation ({audit.ModCount} mods verified, unknown mods mode: {policy.UnknownModsMode})", LogLevel.Info);
     }
 
     private void OnPeerDisconnected(object sender, PeerDisconnectedEventArgs e)

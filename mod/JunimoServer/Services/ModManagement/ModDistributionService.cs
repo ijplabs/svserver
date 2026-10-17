@@ -57,6 +57,25 @@ public class ModDistributionService : ModService
     {
     }
 
+    public static string GetPersistentModsDirectory()
+    {
+        if (Directory.Exists("/data/game"))
+        {
+            var path = Path.Combine("/data/game", "custom-mods");
+            Directory.CreateDirectory(path);
+            return path;
+        }
+        if (Directory.Exists("/data"))
+        {
+            var path = Path.Combine("/data", "custom-mods");
+            Directory.CreateDirectory(path);
+            return path;
+        }
+        var localDir = Path.Combine(Directory.GetCurrentDirectory(), "custom-mods");
+        Directory.CreateDirectory(localDir);
+        return localDir;
+    }
+
     private string GetModsDirectory()
     {
         try
@@ -75,80 +94,315 @@ public class ModDistributionService : ModService
         return Helper.DirectoryPath;
     }
 
+    private SyncModInfo? GetModInfoFromFolder(string dir, string folderName)
+    {
+        var manifestPath = Path.Combine(dir, "manifest.json");
+        if (!File.Exists(manifestPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(manifestPath);
+            var raw = JsonConvert.DeserializeObject<dynamic>(json);
+            if (raw == null)
+            {
+                return null;
+            }
+
+            string uniqueId = (string?)raw.UniqueID ?? folderName;
+            if (ExcludedModIds.Contains(uniqueId))
+            {
+                return null;
+            }
+
+            string name = (string?)raw.Name ?? folderName;
+            string version = (string?)raw.Version ?? "1.0.0";
+            string author = (string?)raw.Author ?? "";
+            string description = (string?)raw.Description ?? "";
+
+            long sizeBytes = 0;
+            try
+            {
+                var files = Directory.GetFiles(dir, "*", SearchOption.AllDirectories);
+                sizeBytes = files.Sum(f => new FileInfo(f).Length);
+            }
+            catch
+            {
+            }
+
+            return new SyncModInfo
+            {
+                UniqueId = uniqueId,
+                Name = name,
+                Version = version,
+                Author = author,
+                Description = description,
+                FolderName = folderName,
+                SizeBytes = sizeBytes,
+                DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(folderName)}"
+            };
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"[ModDistribution] Error parsing manifest in {folderName}: {ex.Message}", LogLevel.Trace);
+            return null;
+        }
+    }
+
     public List<SyncModInfo> GetSyncableMods()
     {
         var result = new List<SyncModInfo>();
-        var modsDir = GetModsDirectory();
+        var seenFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        if (!Directory.Exists(modsDir))
+        var dirsToScan = new List<string>();
+        var modsDir = GetModsDirectory();
+        if (Directory.Exists(modsDir)) dirsToScan.Add(modsDir);
+
+        var persistentDir = GetPersistentModsDirectory();
+        if (Directory.Exists(persistentDir) && !persistentDir.Equals(modsDir, StringComparison.OrdinalIgnoreCase))
         {
-            return result;
+            dirsToScan.Add(persistentDir);
         }
 
-        foreach (var dir in Directory.GetDirectories(modsDir))
+        foreach (var parentDir in dirsToScan)
         {
-            var folderName = Path.GetFileName(dir);
-            if (ExcludedFolderNames.Contains(folderName))
+            foreach (var dir in Directory.GetDirectories(parentDir))
             {
-                continue;
-            }
-
-            var manifestPath = Path.Combine(dir, "manifest.json");
-            if (!File.Exists(manifestPath))
-            {
-                continue;
-            }
-
-            try
-            {
-                var json = File.ReadAllText(manifestPath);
-                var raw = JsonConvert.DeserializeObject<dynamic>(json);
-                if (raw == null)
+                var folderName = Path.GetFileName(dir);
+                if (ExcludedFolderNames.Contains(folderName) || !seenFolders.Add(folderName))
                 {
                     continue;
                 }
 
-                string uniqueId = (string?)raw.UniqueID ?? folderName;
-                if (ExcludedModIds.Contains(uniqueId))
+                var modInfo = GetModInfoFromFolder(dir, folderName);
+                if (modInfo != null)
                 {
-                    continue;
+                    result.Add(modInfo);
                 }
-
-                string name = (string?)raw.Name ?? folderName;
-                string version = (string?)raw.Version ?? "1.0.0";
-                string author = (string?)raw.Author ?? "";
-                string description = (string?)raw.Description ?? "";
-
-                long sizeBytes = 0;
-                try
-                {
-                    var files = Directory.GetFiles(dir, "*", SearchOption.AllDirectories);
-                    sizeBytes = files.Sum(f => new FileInfo(f).Length);
-                }
-                catch
-                {
-                    // Ignore file access exceptions for size calculation
-                }
-
-                result.Add(new SyncModInfo
-                {
-                    UniqueId = uniqueId,
-                    Name = name,
-                    Version = version,
-                    Author = author,
-                    Description = description,
-                    FolderName = folderName,
-                    SizeBytes = sizeBytes,
-                    DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(folderName)}"
-                });
-            }
-            catch (Exception ex)
-            {
-                Monitor.Log($"[ModDistribution] Error parsing manifest in {folderName}: {ex.Message}", LogLevel.Trace);
             }
         }
 
         return result;
+    }
+
+    public List<SyncModInfo> GetCustomModsList()
+    {
+        var result = new List<SyncModInfo>();
+        var persistentDir = GetPersistentModsDirectory();
+
+        if (Directory.Exists(persistentDir))
+        {
+            foreach (var dir in Directory.GetDirectories(persistentDir))
+            {
+                var folderName = Path.GetFileName(dir);
+                if (ExcludedFolderNames.Contains(folderName)) continue;
+
+                var modInfo = GetModInfoFromFolder(dir, folderName);
+                if (modInfo != null)
+                {
+                    result.Add(modInfo);
+                }
+                else
+                {
+                    // Fallback if no manifest.json
+                    long size = 0;
+                    try
+                    {
+                        size = Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+                    }
+                    catch { }
+
+                    result.Add(new SyncModInfo
+                    {
+                        UniqueId = folderName,
+                        Name = folderName,
+                        Version = "custom",
+                        FolderName = folderName,
+                        SizeBytes = size,
+                        DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(folderName)}"
+                    });
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public (bool Success, string Message, List<SyncModInfo> InstalledMods) InstallModZip(Stream zipStream, string fileName)
+    {
+        var tempFile = Path.Combine(Path.GetTempPath(), $"upload_{Guid.NewGuid():N}.zip");
+        try
+        {
+            using (var fs = File.Create(tempFile))
+            {
+                zipStream.CopyTo(fs);
+            }
+
+            if (new FileInfo(tempFile).Length == 0)
+            {
+                return (false, "File upload kosong atau rusak.", new List<SyncModInfo>());
+            }
+
+            var persistentDir = GetPersistentModsDirectory();
+            var activeModsDir = GetModsDirectory();
+
+            using var archive = ZipFile.OpenRead(tempFile);
+            if (archive.Entries.Count == 0)
+            {
+                return (false, "File ZIP tidak memiliki isi.", new List<SyncModInfo>());
+            }
+
+            var detectedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Check if manifest.json is at the root
+            var rootManifest = archive.Entries.FirstOrDefault(e => e.FullName.Equals("manifest.json", StringComparison.OrdinalIgnoreCase));
+            if (rootManifest != null)
+            {
+                string folderName = Path.GetFileNameWithoutExtension(fileName);
+                if (string.IsNullOrWhiteSpace(folderName)) folderName = "CustomMod_" + DateTime.UtcNow.Ticks;
+
+                try
+                {
+                    using var s = rootManifest.Open();
+                    using var r = new StreamReader(s);
+                    var raw = JsonConvert.DeserializeObject<dynamic>(r.ReadToEnd());
+                    if (raw?.Name != null) folderName = SanitizeFolderName((string)raw.Name);
+                    else if (raw?.UniqueID != null) folderName = SanitizeFolderName((string)raw.UniqueID);
+                }
+                catch { }
+
+                var targetPersistent = Path.Combine(persistentDir, folderName);
+                var targetActive = Path.Combine(activeModsDir, folderName);
+
+                if (Directory.Exists(targetPersistent)) Directory.Delete(targetPersistent, true);
+                if (Directory.Exists(targetActive)) Directory.Delete(targetActive, true);
+
+                Directory.CreateDirectory(targetPersistent);
+                Directory.CreateDirectory(targetActive);
+
+                foreach (var entry in archive.Entries)
+                {
+                    if (string.IsNullOrEmpty(entry.Name)) continue;
+
+                    var pPath = Path.Combine(targetPersistent, entry.FullName);
+                    var aPath = Path.Combine(targetActive, entry.FullName);
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(pPath)!);
+                    Directory.CreateDirectory(Path.GetDirectoryName(aPath)!);
+
+                    entry.ExtractToFile(pPath, true);
+                    File.Copy(pPath, aPath, true);
+                }
+
+                detectedFolders.Add(folderName);
+            }
+            else
+            {
+                // Multi-mod or top-level directory structure
+                foreach (var entry in archive.Entries)
+                {
+                    if (string.IsNullOrEmpty(entry.Name)) continue;
+
+                    var cleanPath = entry.FullName.Replace('\\', '/').TrimStart('/');
+                    var parts = cleanPath.Split('/');
+                    if (parts.Length > 0 && !string.IsNullOrEmpty(parts[0]))
+                    {
+                        detectedFolders.Add(parts[0]);
+                    }
+
+                    var pPath = Path.Combine(persistentDir, cleanPath);
+                    var aPath = Path.Combine(activeModsDir, cleanPath);
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(pPath)!);
+                    Directory.CreateDirectory(Path.GetDirectoryName(aPath)!);
+
+                    entry.ExtractToFile(pPath, true);
+                    try
+                    {
+                        File.Copy(pPath, aPath, true);
+                    }
+                    catch { }
+                }
+            }
+
+            _zipCache.Clear();
+
+            var installed = new List<SyncModInfo>();
+            foreach (var folder in detectedFolders)
+            {
+                var mod = GetModInfoFromFolder(Path.Combine(persistentDir, folder), folder);
+                if (mod != null)
+                {
+                    installed.Add(mod);
+                }
+            }
+
+            Monitor.Log($"[ModDistribution] Successfully installed {installed.Count} mod(s) to persistent storage ({persistentDir})", LogLevel.Info);
+            return (true, $"Berhasil mengunggah dan menginstal {detectedFolders.Count} folder mod ke penyimpanan aman server.", installed);
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"[ModDistribution] Mod upload failed: {ex.Message}", LogLevel.Error);
+            return (false, $"Gagal mengekstrak mod: {ex.Message}", new List<SyncModInfo>());
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
+            catch { }
+        }
+    }
+
+    public bool DeleteCustomMod(string folderName)
+    {
+        if (string.IsNullOrWhiteSpace(folderName) || ExcludedFolderNames.Contains(folderName))
+        {
+            return false;
+        }
+
+        bool deleted = false;
+        var persistentDir = Path.Combine(GetPersistentModsDirectory(), folderName);
+        var activeDir = Path.Combine(GetModsDirectory(), folderName);
+
+        if (Directory.Exists(persistentDir))
+        {
+            try
+            {
+                Directory.Delete(persistentDir, true);
+                deleted = true;
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[ModDistribution] Failed to delete persistent mod {persistentDir}: {ex.Message}", LogLevel.Warn);
+            }
+        }
+
+        if (Directory.Exists(activeDir))
+        {
+            try
+            {
+                Directory.Delete(activeDir, true);
+                deleted = true;
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[ModDistribution] Failed to delete active mod {activeDir}: {ex.Message}", LogLevel.Warn);
+            }
+        }
+
+        _zipCache.Clear();
+        return deleted;
+    }
+
+    private static string SanitizeFolderName(string name)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        var cleaned = new string(name.Where(c => !invalid.Contains(c)).ToArray()).Trim();
+        return string.IsNullOrWhiteSpace(cleaned) ? "CustomMod" : cleaned;
     }
 
     public SyncManifestResponse GetSyncManifest()

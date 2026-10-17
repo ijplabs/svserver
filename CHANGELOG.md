@@ -78,6 +78,14 @@ Rilis produksi jangka panjang pertama untuk fork dedicated server Stardew Valley
     - Banner Notifikasi Jeda Aktif di `ServerOverviewCard` dengan countdown sisa waktu dan tombol resume instan.
     - Tombol kontrol cepat jeda dunia di `AdminControlsCard` (Toilet Break, Meal Break, dan Pause Kustom).
 
+* **Phase 13 (Centralized Mod Upload, Persistent Storage & Unknown Mods Policy):**
+  - Upload Mod Terpusat via Web Admin (`POST /api/mods/upload`): Sysadmin dapat mengunggah file `.zip` mod langsung dari antarmuka Web Admin tanpa perlu mengatur URL eksternal pada environment variable.
+  - Penyimpanan Persisten Aman Rebuild: Mod yang diunggah disimpan pada persistent volume Docker `game-data` di `/data/game/custom-mods` dan disinkronkan ke `/data/Mods`, sehingga data mod tidak hilang saat kontainer di-rebuild atau di-deploy ulang.
+  - Manajemen Mod Kustom (`GET /api/mods/custom/list`, `DELETE /api/mods/custom/{folder}`): Sysadmin dapat meninjau mod kustom yang tersimpan, menjadikannya Mod Wajib (*Required*), atau menghapusnya langsung dari dashboard.
+  - Kebijakan Mod Asing / Klien Lain (*Unknown Mods Behavior*):
+    - Mode `Ignore` (Default): Mod kosmetik pribadi, visual, UI info, atau mod yang pernah dicoba pemain sebelumnya dibiarkan berjalan aman tanpa menyebabkan pemain ditolak.
+    - Mode `StrictReject`: Menolak pemain yang membawa mod di luar whitelist resmi server demi keseragaman penuh gameplay.
+
 ## [1.4.1](https://github.com/stardew-valley-dedicated-server/server/compare/sdvd-server-v1.4.0...sdvd-server-v1.4.1) (2026-01-17)
 
 

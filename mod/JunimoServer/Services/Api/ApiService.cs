@@ -2542,6 +2542,9 @@ public partial class ApiService : ModService
                             connectedPeers = _modEnforcementService?.GetConnectedPeerAudits() ?? new List<ModManagement.PeerAuditInfo>()
                         });
                         break;
+                    case "/api/mods/custom/list":
+                        await WriteJsonAsync(response, _modDistributionService?.GetCustomModsList() ?? new List<ModManagement.SyncModInfo>());
+                        break;
                     case "/api/mods/sync/manifest":
                         await WriteJsonAsync(response, _modDistributionService?.GetSyncManifest() ?? new ModManagement.SyncManifestResponse());
                         break;
@@ -2738,6 +2741,12 @@ public partial class ApiService : ModService
                     case "/api/mods/policy":
                         await HandlePostModPolicyAsync(request, response);
                         break;
+                    case "/api/mods/policy/sync-sve":
+                        await HandlePostModPolicySyncSveAsync(request, response);
+                        break;
+                    case "/api/mods/upload":
+                        await HandlePostModUploadAsync(request, response);
+                        break;
                     case "/api/server/pause":
                     case "/api/admin/pause":
                         await HandlePostServerPauseAsync(request, response);
@@ -2824,8 +2833,18 @@ public partial class ApiService : ModService
             }
             else if (method == "DELETE")
             {
+                if (path.StartsWith("/api/mods/custom/"))
+                {
+                    await HandleDeleteCustomModAsync(request, response);
+                    return;
+                }
+
                 switch (path)
                 {
+                    case "/api/mods/custom":
+                    case "/api/mods/custom/delete":
+                        await HandleDeleteCustomModAsync(request, response);
+                        break;
                     case "/farmhands":
                         var nameParam = request.QueryString["name"];
                         var farmhandIdParam = request.QueryString["playerId"];
@@ -6578,6 +6597,89 @@ public partial class ApiService : ModService
             message = $"Successfully synced {added} mod(s) to required policy.",
             policy = _modEnforcementService.GetPolicy()
         });
+    }
+
+    private async Task HandlePostModUploadAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null || (user.Value.Role != "SUPERADMIN" && user.Value.Role != "ADMIN"))
+        {
+            response.StatusCode = 403;
+            await WriteJsonAsync(response, new { error = "Hanya Administrator / Sysadmin yang berhak mengunggah mod ke server." });
+            return;
+        }
+
+        if (_modDistributionService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Layanan distribusi mod tidak aktif." });
+            return;
+        }
+
+        try
+        {
+            string fileName = request.Headers["X-File-Name"] ?? request.QueryString["filename"] ?? "uploaded_mod.zip";
+            fileName = Uri.UnescapeDataString(fileName);
+
+            var (success, message, installedMods) = _modDistributionService.InstallModZip(request.InputStream, fileName);
+            if (!success)
+            {
+                response.StatusCode = 400;
+                await WriteJsonAsync(response, new { success = false, error = message });
+                return;
+            }
+
+            await WriteJsonAsync(response, new
+            {
+                success = true,
+                message = message,
+                installedMods = installedMods
+            });
+        }
+        catch (Exception ex)
+        {
+            response.StatusCode = 500;
+            await WriteJsonAsync(response, new { error = ex.Message });
+        }
+    }
+
+    private async Task HandleDeleteCustomModAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null || (user.Value.Role != "SUPERADMIN" && user.Value.Role != "ADMIN"))
+        {
+            response.StatusCode = 403;
+            await WriteJsonAsync(response, new { error = "Hanya Administrator / Sysadmin yang berhak menghapus mod server." });
+            return;
+        }
+
+        string? folderName = request.QueryString["folder"];
+        if (string.IsNullOrEmpty(folderName) && request.Url != null)
+        {
+            var segments = request.Url.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length >= 4 && segments[0] == "api" && segments[1] == "mods" && segments[2] == "custom")
+            {
+                folderName = Uri.UnescapeDataString(segments[3]);
+            }
+        }
+
+        if (string.IsNullOrEmpty(folderName))
+        {
+            response.StatusCode = 400;
+            await WriteJsonAsync(response, new { error = "Parameter 'folder' diperlukan." });
+            return;
+        }
+
+        bool success = _modDistributionService?.DeleteCustomMod(folderName) ?? false;
+        if (success)
+        {
+            await WriteJsonAsync(response, new { success = true, deleted = folderName });
+        }
+        else
+        {
+            response.StatusCode = 404;
+            await WriteJsonAsync(response, new { error = "Mod kustom tidak ditemukan atau gagal dihapus." });
+        }
     }
 
     private static bool IsPublicSyncPath(string path)

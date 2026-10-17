@@ -222,5 +222,37 @@ export const api = {
           downloadUrl: string;
         }>;
       }>('/api/mods/sync/manifest'),
+    uploadMod: async (file: File) => {
+      const token = getToken();
+      const headers: Record<string, string> = {
+        'X-File-Name': encodeURIComponent(file.name),
+        'Content-Type': 'application/zip',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const base = getApiBase();
+      const res = await fetch(`${base}/api/mods/upload`, {
+        method: 'POST',
+        headers,
+        body: file,
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Upload gagal (${res.status})`);
+      }
+      return res.json() as Promise<{
+        success: boolean;
+        message: string;
+        installedMods?: import('../types/mods').CustomModItem[];
+      }>;
+    },
+    getCustomMods: () =>
+      request<import('../types/mods').CustomModItem[]>('/api/mods/custom/list'),
+    deleteCustomMod: (folderName: string) =>
+      request<{ success: boolean; deleted: string }>(
+        `/api/mods/custom/${encodeURIComponent(folderName)}`,
+        { method: 'DELETE' }
+      ),
   },
 };
