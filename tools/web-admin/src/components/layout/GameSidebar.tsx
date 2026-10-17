@@ -55,9 +55,9 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
   const navItems: NavItem[] = isAdmin
     ? [
         // World & Farm
-        { id: 'overview', label: 'Ringkasan Host', icon: LayoutDashboard, category: 'World', badge: onlineFarmers > 0 ? `${onlineFarmers}` : null, badgeColor: 'bg-emerald-950 text-emerald-300 border-emerald-500/40' },
+        { id: 'overview', label: 'Ringkasan Host', icon: LayoutDashboard, category: 'World', badge: onlineFarmers > 0 ? `${onlineFarmers}` : null, badgeColor: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40' },
         { id: 'character', label: 'Karakter Saya', icon: User, category: 'World' },
-        { id: 'crops', label: 'Tanaman & Panen', icon: Sprout, category: 'World', badge: readyCrops > 0 ? `${readyCrops}` : null, badgeColor: 'bg-amber-950 text-amber-300 border-amber-500/40' },
+        { id: 'crops', label: 'Tanaman & Panen', icon: Sprout, category: 'World', badge: readyCrops > 0 ? `${readyCrops}` : null, badgeColor: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40' },
         { id: 'animals', label: 'Peternakan', icon: Milk, category: 'World' },
         { id: 'map', label: 'Peta Lembah', icon: Compass, category: 'World' },
         // Social & Economy
@@ -71,7 +71,7 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
       ]
     : [
         { id: 'character', label: 'Karakter Petani', icon: User, category: 'World' },
-        { id: 'crops', label: 'Tanaman (Shared)', icon: Sprout, category: 'World', badge: readyCrops > 0 ? `${readyCrops}` : null, badgeColor: 'bg-amber-950 text-amber-300 border-amber-500/40' },
+        { id: 'crops', label: 'Tanaman (Shared)', icon: Sprout, category: 'World', badge: readyCrops > 0 ? `${readyCrops}` : null, badgeColor: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40' },
         { id: 'animals', label: 'Peternakan', icon: Milk, category: 'World' },
         { id: 'map', label: 'Peta Lembah', icon: Compass, category: 'World' },
         { id: 'chat', label: 'Obrolan Langsung', icon: MessageSquare, category: 'Social' },
@@ -94,7 +94,7 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
       {/* Mobile Drawer Overlay */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 lg:hidden"
           onClick={onCloseMobile}
         />
       )}
@@ -102,22 +102,22 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
       {/* Main Sidebar Element */}
       <aside className={`
         fixed lg:sticky top-0 lg:top-16 z-50 lg:z-30 h-screen lg:h-[calc(100vh-4rem)]
-        bg-[#0c1220] border-r border-[#1e2a42] text-slate-300 flex flex-col justify-between
+        bg-white dark:bg-[#0c1220] border-r border-slate-200 dark:border-[#1e2a42] text-slate-700 dark:text-slate-300 flex flex-col justify-between
         transition-all duration-200 select-none
         ${isCollapsed ? 'w-18' : 'w-64'}
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* TOP: Header (Mobile only) or Collapse Toggle */}
-        <div className="p-3 border-b border-[#1e2a42] flex items-center justify-between">
+        <div className="p-3 border-b border-slate-200 dark:border-[#1e2a42] flex items-center justify-between">
           {!isCollapsed && (
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400/90 px-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 px-2">
               Menu Kendali Game
             </span>
           )}
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 ml-auto cursor-pointer"
+            className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 ml-auto cursor-pointer"
             title={isCollapsed ? 'Perlebar Sidebar' : 'Persempit Sidebar (Icon Only)'}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -133,7 +133,7 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
             return (
               <div key={cat.key} className="space-y-1">
                 {!isCollapsed && (
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-2 py-1">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 py-1">
                     {cat.title}
                   </div>
                 )}
@@ -150,15 +150,15 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
                         w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold
                         transition-all cursor-pointer group relative
                         ${isActive
-                          ? 'bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent text-amber-200 border-l-4 border-amber-400 shadow-sm'
-                          : 'text-slate-400 hover:text-slate-100 hover:bg-[#141e33]'
+                          ? 'bg-amber-50 dark:bg-gradient-to-r dark:from-amber-500/20 dark:via-amber-500/10 dark:to-transparent text-amber-800 dark:text-amber-200 border-l-4 border-amber-500 dark:border-amber-400 shadow-2xs font-bold'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-[#141e33]'
                         }
                         ${isCollapsed ? 'justify-center px-0' : ''}
                       `}
                       title={isCollapsed ? item.label : undefined}
                     >
                       <Icon className={`w-4 h-4 shrink-0 transition-transform ${
-                        isActive ? 'text-amber-400 scale-110' : 'text-slate-400 group-hover:text-slate-200'
+                        isActive ? 'text-amber-600 dark:text-amber-400 scale-110' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
                       }`} />
 
                       {!isCollapsed && (
@@ -168,7 +168,7 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
                       )}
 
                       {!isCollapsed && item.badge && (
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${item.badgeColor || 'bg-slate-800 text-slate-300 border-slate-700'}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${item.badgeColor || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>
                           {item.badge}
                         </span>
                       )}
@@ -182,22 +182,22 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
 
         {/* BOTTOM: Farmer Profile & Logout */}
         {user && (
-          <div className="p-3 border-t border-[#1e2a42] bg-[#090d17]">
+          <div className="p-3 border-t border-slate-200 dark:border-[#1e2a42] bg-slate-50 dark:bg-[#090d17]">
             <div className={`flex items-center gap-2.5 ${isCollapsed ? 'justify-center' : ''}`}>
-              <div className="w-8 h-8 rounded-lg bg-[#141e33] border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 font-bold text-xs">
+              <div className="w-8 h-8 rounded-lg bg-white dark:bg-[#141e33] border border-slate-200 dark:border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 font-bold text-xs shadow-2xs">
                 {user.role === 'SUPERADMIN' ? (
-                  <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                  <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 ) : (
-                  <User className="w-4 h-4 text-emerald-400" />
+                  <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 )}
               </div>
 
               {!isCollapsed && (
                 <div className="flex-1 truncate">
-                  <div className="font-bold text-xs text-white truncate">
+                  <div className="font-bold text-xs text-slate-900 dark:text-white truncate">
                     {user.username}
                   </div>
-                  <div className="text-[10px] text-amber-400/80 uppercase font-mono tracking-wider">
+                  <div className="text-[10px] text-amber-700 dark:text-amber-400/80 uppercase font-mono tracking-wider">
                     {user.role === 'SUPERADMIN' ? 'Superadmin' : `Petani #${user.farmerId}`}
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
               <button
                 type="button"
                 onClick={logout}
-                className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
                 title="Keluar (Sign Out)"
               >
                 <LogOut className="w-4 h-4" />

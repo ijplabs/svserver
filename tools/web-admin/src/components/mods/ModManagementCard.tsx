@@ -229,7 +229,7 @@ export const ModManagementCard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner / Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] p-6 rounded-2xl">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
             <Blocks className="w-6 h-6" />
@@ -276,7 +276,7 @@ export const ModManagementCard: React.FC = () => {
       )}
 
       {/* Enforcement Mode Selector */}
-      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+      <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] p-6 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-semibold text-slate-200">Mode Penegakan Kebijakan Klien</h3>
@@ -368,7 +368,7 @@ export const ModManagementCard: React.FC = () => {
       </div>
 
       {/* Unknown Mods Behavior Selector */}
-      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+      <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] p-6 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-semibold text-slate-200">Kebijakan Mod Asing / Mod Klien Lain</h3>
@@ -511,7 +511,7 @@ export const ModManagementCard: React.FC = () => {
 
       {/* Sub-tab 1: Mod Wajib (Required Mods) */}
       {activeSubTab === 'required' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-base font-semibold text-slate-100">Daftar Mod Wajib (Required Mods)</h3>
@@ -610,7 +610,7 @@ export const ModManagementCard: React.FC = () => {
 
       {/* Sub-tab 2: Mod Dilarang (Blacklisted Mods) */}
       {activeSubTab === 'blacklisted' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-6">
           <div>
             <h3 className="text-base font-semibold text-slate-100">Daftar Mod Dilarang (Blacklisted Mods)</h3>
             <p className="text-xs text-slate-400">
@@ -699,7 +699,7 @@ export const ModManagementCard: React.FC = () => {
 
       {/* Sub-tab 3: Mod Terpasang di Server (Server-Installed Mods) */}
       {activeSubTab === 'server' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-100">Mod Terpasang di Server ({installedMods.length})</h3>
@@ -738,7 +738,7 @@ export const ModManagementCard: React.FC = () => {
       {activeSubTab === 'audit' && (
         <div className="space-y-6">
           {/* Pemain Online Mod Audit */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-4">
             <h3 className="text-base font-semibold text-slate-100">Mod Pemain yang Sedang Online</h3>
             {connectedPeers.length === 0 ? (
               <p className="text-xs text-slate-500">Tidak ada pemain yang sedang terhubung.</p>
@@ -774,7 +774,7 @@ export const ModManagementCard: React.FC = () => {
           </div>
 
           {/* Riwayat Penolakan Login */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-4">
             <h3 className="text-base font-semibold text-slate-100">Riwayat Penolakan Login Klien</h3>
             {rejections.length === 0 ? (
               <p className="text-xs text-slate-500">Belum ada riwayat penolakan klien.</p>
@@ -812,7 +812,7 @@ export const ModManagementCard: React.FC = () => {
       {activeSubTab === 'distribution' && (
         <div className="space-y-6">
           {/* Header Info Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -910,7 +910,7 @@ export const ModManagementCard: React.FC = () => {
           </div>
 
           {/* Sync Manifest Preview */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-slate-100">
@@ -993,7 +993,7 @@ export const ModManagementCard: React.FC = () => {
           </div>
 
           {/* Upload Form Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-slate-100 flex items-center gap-2">
@@ -1066,7 +1066,7 @@ export const ModManagementCard: React.FC = () => {
           </div>
 
           {/* Custom Uploaded Mods List Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-slate-100">

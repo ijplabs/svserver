@@ -108,15 +108,15 @@ export const AdminControlsCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+    <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-xl p-5 shadow-xs">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-[#1e2a42]">
         <div className="flex items-center space-x-2">
-          <Sliders className="w-4 h-4 text-indigo-600" />
-          <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+          <Sliders className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
             Superadmin Server Controls
           </h2>
         </div>
-        <span className="text-[11px] font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+        <span className="text-[11px] font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/50 px-2 py-0.5 rounded-full">
           Superadmin Protected
         </span>
       </div>
@@ -125,8 +125,8 @@ export const AdminControlsCard: React.FC = () => {
         <div
           className={`mb-4 p-3 rounded-lg text-xs flex items-center space-x-2 ${
             actionMessage.error
-              ? 'bg-rose-50 text-rose-700 border border-rose-200'
-              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+              ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/50'
+              : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50'
           }`}
         >
           {actionMessage.error ? (
@@ -141,7 +141,7 @@ export const AdminControlsCard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* World Simulation Pause / Resume */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5">
             <Pause className="w-3.5 h-3.5 text-slate-400" />
             <span>World Simulation</span>
           </label>
@@ -151,12 +151,12 @@ export const AdminControlsCard: React.FC = () => {
                 type="button"
                 disabled={isProcessing}
                 onClick={handleResume}
-                className="w-full py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5 shadow-xs"
+                className="w-full py-1.5 px-2 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5 shadow-xs"
               >
                 <Play className="w-3.5 h-3.5" />
                 <span>Resume Game</span>
               </button>
-              <div className="px-2 py-1 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 text-center font-medium">
+              <div className="px-2 py-1 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/50 rounded text-[11px] text-amber-800 dark:text-amber-300 text-center font-medium">
                 Paused ({Math.floor((status.pauseRemainingSeconds || 0) / 60)}m left)
               </div>
             </div>
@@ -166,7 +166,7 @@ export const AdminControlsCard: React.FC = () => {
                 type="button"
                 disabled={isProcessing}
                 onClick={() => handlePause('AFK / Istirahat')}
-                className="w-full py-1.5 px-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5 shadow-xs"
+                className="w-full py-1.5 px-2 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5 shadow-xs"
               >
                 <Pause className="w-3.5 h-3.5" />
                 <span>Pause World</span>
@@ -176,7 +176,7 @@ export const AdminControlsCard: React.FC = () => {
                   type="button"
                   disabled={isProcessing}
                   onClick={() => handlePause('Kamar Mandi')}
-                  className="py-1 px-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-slate-600 text-center truncate cursor-pointer"
+                  className="py-1 px-1 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] text-slate-600 dark:text-slate-400 rounded text-center truncate cursor-pointer"
                   title="Pause: Kamar Mandi"
                 >
                   Toilet Break
@@ -185,7 +185,7 @@ export const AdminControlsCard: React.FC = () => {
                   type="button"
                   disabled={isProcessing}
                   onClick={() => handlePause('Makan / Minum')}
-                  className="py-1 px-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-slate-600 text-center truncate cursor-pointer"
+                  className="py-1 px-1 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] text-slate-600 dark:text-slate-400 rounded text-center truncate cursor-pointer"
                   title="Pause: Makan / Minum"
                 >
                   Meal Break
@@ -196,7 +196,7 @@ export const AdminControlsCard: React.FC = () => {
         </div>
         {/* Set Time */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>Set Time of Day</span>
           </label>
@@ -205,7 +205,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(600)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               06:00 (Dawn)
             </button>
@@ -213,7 +213,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(1200)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               12:00 (Noon)
             </button>
@@ -221,7 +221,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(1800)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               18:00 (Dusk)
             </button>
@@ -229,7 +229,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleSetTime(2200)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               22:00 (Night)
             </button>
@@ -238,7 +238,7 @@ export const AdminControlsCard: React.FC = () => {
 
         {/* Clock Speed Multiplier */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5">
             <Gauge className="w-3.5 h-3.5 text-slate-400" />
             <span>Clock Speed</span>
           </label>
@@ -247,7 +247,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(0.5)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               0.5x
             </button>
@@ -255,7 +255,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(1.0)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               1.0x
             </button>
@@ -263,7 +263,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(2.0)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               2.0x
             </button>
@@ -271,7 +271,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleClockSpeed(5.0)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
             >
               5.0x
             </button>
@@ -280,7 +280,7 @@ export const AdminControlsCard: React.FC = () => {
 
         {/* Rendering Throttle */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5">
             <Monitor className="w-3.5 h-3.5 text-slate-400" />
             <span>Rendering Mode</span>
           </label>
@@ -289,7 +289,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleRendering(0)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
               title="0 FPS: Minimum CPU usage"
             >
               0 FPS (Headless)
@@ -298,7 +298,7 @@ export const AdminControlsCard: React.FC = () => {
               type="button"
               disabled={isProcessing}
               onClick={() => handleRendering(60)}
-              className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-1.5 px-2 bg-slate-50 dark:bg-[#0a0f1d] hover:bg-slate-100 dark:hover:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
               title="60 FPS: Smooth VNC screen"
             >
               60 FPS (Active)
@@ -308,7 +308,7 @@ export const AdminControlsCard: React.FC = () => {
 
         {/* Maintenance Actions */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5">
             <RotateCw className="w-3.5 h-3.5 text-slate-400" />
             <span>Maintenance</span>
           </label>
@@ -316,7 +316,7 @@ export const AdminControlsCard: React.FC = () => {
             type="button"
             disabled={isProcessing}
             onClick={handleReload}
-            className="w-full py-2 px-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5"
+            className="w-full py-2 px-3 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5"
           >
             <RotateCw className="w-3.5 h-3.5" />
             <span>Reload Mod Engine</span>
@@ -326,3 +326,5 @@ export const AdminControlsCard: React.FC = () => {
     </div>
   );
 };
+
+export default AdminControlsCard;

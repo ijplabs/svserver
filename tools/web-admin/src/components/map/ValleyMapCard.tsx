@@ -49,8 +49,8 @@ export const ValleyMapCard: React.FC = () => {
 
   if (isLoading && !mapData) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm text-slate-400">
-        <RefreshCw className="w-8 h-8 animate-spin mb-3 text-indigo-500" />
+      <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl shadow-xs text-slate-400">
+        <RefreshCw className="w-8 h-8 animate-spin mb-3 text-amber-500" />
         <span className="text-sm font-medium">Memuat pelacak peta interaktif Lembah Stardew...</span>
       </div>
     );
@@ -107,10 +107,10 @@ export const ValleyMapCard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* HEADER & VIEW TOGGLES */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-slate-200 dark:border-[#1e2a42]">
               <Compass className="w-5 h-5" />
             </div>
             <div>
@@ -125,12 +125,12 @@ export const ValleyMapCard: React.FC = () => {
 
           <div className="flex items-center gap-3">
             {/* View Switcher */}
-            <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+            <div className="flex p-1 bg-slate-100 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl">
               <button
                 onClick={() => setViewMode('farm')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   viewMode === 'farm'
-                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                    ? 'bg-white dark:bg-[#162035] text-amber-600 dark:text-amber-400 shadow-xs font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -138,9 +138,9 @@ export const ValleyMapCard: React.FC = () => {
               </button>
               <button
                 onClick={() => setViewMode('valley')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   viewMode === 'valley'
-                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                    ? 'bg-white dark:bg-[#162035] text-amber-600 dark:text-amber-400 shadow-xs font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -194,17 +194,17 @@ export const ValleyMapCard: React.FC = () => {
 
       {/* VIEW MODE 1: FARM LAYOUT VISUAL MAP */}
       {viewMode === 'farm' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs space-y-4 transition-colors">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#1e2a42]">
             <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <Layers className="w-4 h-4 text-amber-500" />
               <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
                 Denah visual Kebun ({mapData.farmWidth} x {mapData.farmHeight} Petak)
               </h3>
             </div>
-            <div className="flex items-center gap-4 text-xs text-slate-500">
+            <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                 Posisi Petani
               </span>
               <span className="flex items-center gap-1.5">
@@ -219,7 +219,7 @@ export const ValleyMapCard: React.FC = () => {
           </div>
 
           {/* SVG Map Canvas */}
-          <div className="relative w-full aspect-[80/65] bg-emerald-950/10 dark:bg-slate-950 border border-emerald-900/20 dark:border-slate-800 rounded-xl overflow-hidden shadow-inner">
+          <div className="relative w-full aspect-[80/65] bg-emerald-950/10 dark:bg-[#0a0f1d] border border-emerald-900/20 dark:border-[#1e2a42] rounded-xl overflow-hidden shadow-inner">
             <svg
               viewBox={`0 0 ${mapData.farmWidth} ${mapData.farmHeight}`}
               className="w-full h-full"
@@ -367,9 +367,9 @@ export const ValleyMapCard: React.FC = () => {
 
       {/* VIEW MODE 2: VALLEY REGIONAL MAP */}
       {viewMode === 'valley' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <Compass className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+        <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs space-y-6 transition-colors">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-[#1e2a42]">
+            <Compass className="w-4 h-4 text-amber-500" />
             <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
               Distribusi Pemain di Wilayah Lembah Stardew
             </h3>

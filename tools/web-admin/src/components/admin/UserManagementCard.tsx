@@ -154,7 +154,7 @@ export const UserManagementCard: React.FC = () => {
       )}
 
       {/* SECTION 1: PENDING LOBBY APPROVALS (MANUAL ACCESS BYPASS) */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -176,7 +176,7 @@ export const UserManagementCard: React.FC = () => {
             <button
               onClick={fetchData}
               disabled={isLoading}
-              className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-[#141e33] transition-colors"
               title="Perbarui daftar"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -185,7 +185,7 @@ export const UserManagementCard: React.FC = () => {
         </div>
 
         {pendingPlayers.length === 0 ? (
-          <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-sm border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+          <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-sm border border-dashed border-slate-200 dark:border-[#1e2a42] rounded-xl">
             Tidak ada pemain yang tertahan di lobby saat ini. Semua pemain telah terautentikasi.
           </div>
         ) : (
@@ -193,7 +193,7 @@ export const UserManagementCard: React.FC = () => {
             {pendingPlayers.map((player) => (
               <div
                 key={player.playerId}
-                className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-xl flex flex-col justify-between"
+                className="p-4 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl flex flex-col justify-between shadow-2xs"
               >
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between">
@@ -234,7 +234,7 @@ export const UserManagementCard: React.FC = () => {
       </div>
 
       {/* SECTION 2: WEB ACCOUNT MANAGEMENT & WHITELIST */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl p-6 shadow-xs transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -251,7 +251,7 @@ export const UserManagementCard: React.FC = () => {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-medium transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-xs cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>Tambah / Tautkan Akun</span>
@@ -261,7 +261,7 @@ export const UserManagementCard: React.FC = () => {
         {/* Users Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold border-b border-slate-200 dark:border-slate-800">
+            <thead className="bg-slate-50 dark:bg-[#0a0f1d] text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold border-b border-slate-200 dark:border-[#1e2a42]">
               <tr>
                 <th className="py-3 px-4">Nama Petani</th>
                 <th className="py-3 px-4">Farmer ID</th>
@@ -271,7 +271,7 @@ export const UserManagementCard: React.FC = () => {
                 <th className="py-3 px-4 text-right">Tindakan</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#1e2a42]">
               {users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-400 dark:text-slate-500">
@@ -280,11 +280,11 @@ export const UserManagementCard: React.FC = () => {
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.farmerId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                  <tr key={user.farmerId} className="hover:bg-slate-50/50 dark:hover:bg-[#162035]/60 transition-colors">
                     <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
                       {user.username}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-400">
+                    <td className="py-3.5 px-4 font-mono text-slate-400 dark:text-slate-500">
                       {user.farmerId}
                     </td>
                     <td className="py-3.5 px-4">
@@ -294,21 +294,21 @@ export const UserManagementCard: React.FC = () => {
                             ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'
                             : user.role === 'ADMIN'
                             ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                            : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                            : 'bg-slate-100 text-slate-700 dark:bg-[#162035] dark:text-slate-300'
                         }`}
                       >
                         <Shield className="w-3 h-3" />
                         {user.role}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500">
+                    <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400">
                       {new Date(user.createdAtUtc).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500">
+                    <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400">
                       {user.lastLoginUtc
                         ? new Date(user.lastLoginUtc).toLocaleDateString('id-ID', {
                             day: 'numeric',
@@ -322,7 +322,7 @@ export const UserManagementCard: React.FC = () => {
                       {user.role !== 'SUPERADMIN' && (
                         <button
                           onClick={() => handleDeleteUser(user.farmerId, user.username)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                           title="Hapus akses akun"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -339,9 +339,9 @@ export const UserManagementCard: React.FC = () => {
 
       {/* PROVISION USER MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111a2e] border border-slate-200 dark:border-[#1e2a42] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#1e2a42]">
               <div className="flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
@@ -364,7 +364,7 @@ export const UserManagementCard: React.FC = () => {
                 <select
                   value={selectedFarmerId}
                   onChange={(e) => handleSelectFarmerChange(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                 >
                   <option value={0}>-- Masukkan ID Kustom atau Pilih --</option>
                   {availableFarmers.map((f) => (
@@ -385,7 +385,7 @@ export const UserManagementCard: React.FC = () => {
                   onChange={(e) => setSelectedFarmerId(Number(e.target.value))}
                   placeholder="e.g. -741289410294"
                   required
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl text-slate-900 dark:text-white font-mono focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                 />
               </div>
 
@@ -399,7 +399,7 @@ export const UserManagementCard: React.FC = () => {
                   onChange={(e) => setNewUsername(e.target.value)}
                   placeholder="Nama login petani"
                   required
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                 />
               </div>
 
@@ -415,7 +415,7 @@ export const UserManagementCard: React.FC = () => {
                     placeholder="Masukkan kata sandi baru"
                     required
                     minLength={6}
-                    className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                   />
                   <Key className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
                 </div>
@@ -428,25 +428,25 @@ export const UserManagementCard: React.FC = () => {
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as 'PLAYER' | 'ADMIN')}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                 >
                   <option value="PLAYER">Petani Biasa (Farmer View Pribadi)</option>
                   <option value="ADMIN">Administrator Server (Akses Penuh)</option>
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-[#1e2a42]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium transition-colors"
+                  className="px-4 py-2 border border-slate-200 dark:border-[#1e2a42] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#141e33] rounded-xl font-medium transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan Akun'}
                 </button>

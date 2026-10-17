@@ -30,6 +30,25 @@ export const App: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isRightTickerOpen, setIsRightTickerOpen] = useState(true);
 
+  // Theme state: 'dark' (default) or 'light'
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('sv_theme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('sv_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   const isSuperadmin = user?.role === 'SUPERADMIN';
   const isAdmin = user?.role === 'ADMIN' || isSuperadmin;
   const isPlayer = user?.role === 'PLAYER';
@@ -50,9 +69,9 @@ export const App: React.FC = () => {
 
   if (authLoading && !user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#090d16] text-slate-400">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-400 mb-3" />
-        <span className="text-xs font-mono font-bold tracking-widest uppercase text-amber-300">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#090d16] text-slate-500 dark:text-slate-400">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-500 mb-3" />
+        <span className="text-xs font-mono font-bold tracking-widest uppercase text-slate-700 dark:text-amber-300">
           Memuat Stardew Cockpit...
         </span>
       </div>
@@ -61,19 +80,21 @@ export const App: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#090d16] text-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4">
         <LoginForm />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col selection:bg-amber-500 selection:text-white">
+    <div className="min-h-screen bg-slate-100/60 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-amber-500 selection:text-white transition-colors">
       {/* 1. TOP SIMULATION HUD */}
       <GameTopHud 
         isRightTickerOpen={isRightTickerOpen}
         onToggleRightTicker={() => setIsRightTickerOpen(!isRightTickerOpen)}
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* 2. MAIN COCKPIT BODY (Left Sidebar + Center Canvas + Right Telemetry) */}
@@ -169,14 +190,14 @@ export const App: React.FC = () => {
           )}
 
           {/* Footer Bar */}
-          <footer className="pt-6 border-t border-[#1e2a42] text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
+          <footer className="pt-6 border-t border-slate-200 dark:border-[#1e2a42] text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
             <div className="flex items-center space-x-2">
-              <span className="font-semibold text-slate-400">JunimoServer Cockpit</span>
+              <span className="font-semibold text-slate-700 dark:text-slate-300">JunimoServer Cockpit</span>
               <span>•</span>
               <span>Stardew Valley 1.6 Dedicated Engine</span>
             </div>
             {lastUpdated && (
-              <span className="font-mono tabular-nums text-slate-500">
+              <span className="font-mono tabular-nums text-slate-500 dark:text-slate-400">
                 Telemetri tersinkronisasi: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
