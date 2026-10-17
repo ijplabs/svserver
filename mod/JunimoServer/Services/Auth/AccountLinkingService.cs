@@ -155,16 +155,13 @@ public class AccountLinkingService : ModService
             {
                 isAdminPassValid = true;
             }
-            else if (string.IsNullOrEmpty(Env.AdminPassword))
+            else if (!string.IsNullOrEmpty(Env.ApiKey) && password == Env.ApiKey)
             {
-                if (!string.IsNullOrEmpty(Env.ApiKey) && password == Env.ApiKey)
-                {
-                    isAdminPassValid = true;
-                }
-                else if (!string.IsNullOrEmpty(Env.ServerPassword) && password == Env.ServerPassword)
-                {
-                    isAdminPassValid = true;
-                }
+                isAdminPassValid = true;
+            }
+            else if (!string.IsNullOrEmpty(Env.ServerPassword) && password == Env.ServerPassword)
+            {
+                isAdminPassValid = true;
             }
 
             if (isAdminPassValid)
@@ -173,6 +170,8 @@ public class AccountLinkingService : ModService
                 _monitor.Log("[WebAuth] Superadmin authenticated successfully.", LogLevel.Info);
                 return (true, "Login successful as Superadmin.", adminSession);
             }
+
+            return (false, "Invalid superadmin credentials.", null);
         }
 
         // 2. Farmer authentication

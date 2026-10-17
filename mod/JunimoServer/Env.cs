@@ -127,12 +127,17 @@ internal class Env
         Environment.GetEnvironmentVariable("ADMIN_USERNAME")?.Trim() ?? "admin";
 
     /// <summary>
-    /// Superadmin password for web dashboard login. If unset, falls back to API_KEY or VNC_PASSWORD.
+    /// Superadmin password for web dashboard login. If unset, falls back to VNC_PASSWORD or API_KEY.
     /// </summary>
     public static readonly string AdminPassword =
-        Environment.GetEnvironmentVariable("ADMIN_PASSWORD")
-        ?? Environment.GetEnvironmentVariable("VNC_PASSWORD")
-        ?? "";
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ADMIN_PASSWORD"))
+            ? Environment.GetEnvironmentVariable("ADMIN_PASSWORD")!.Trim()
+            : (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VNC_PASSWORD"))
+                ? Environment.GetEnvironmentVariable("VNC_PASSWORD")!.Trim()
+                : (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("API_KEY"))
+                    ? Environment.GetEnvironmentVariable("API_KEY")!.Trim()
+                    : ""));
+
 
     /// <summary>
     /// Secret key used to sign and verify web admin session tokens / JWTs.
