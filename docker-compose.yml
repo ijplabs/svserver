@@ -89,8 +89,8 @@ services:
       --requirepass ${REDIS_PASSWORD:-svserver_redis_secret}
     volumes:
       - redis-data:/data
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    expose:
+      - "${REDIS_PORT:-6379}"
     restart: unless-stopped
 
   # Discord bot for server status display and chat relay
@@ -142,6 +142,8 @@ services:
       dockerfile: Dockerfile
     container_name: sdvd-web-admin
     restart: unless-stopped
+    expose:
+      - "80"
     ports:
       - "${WEB_ADMIN_PORT:-3000}:80"
     environment:
