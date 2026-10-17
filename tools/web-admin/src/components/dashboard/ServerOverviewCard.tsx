@@ -52,21 +52,21 @@ export const ServerOverviewCard: React.FC = () => {
     <div className="space-y-4">
       {/* Active Manual Pause Alert Banner */}
       {status?.isManuallyPaused && (
-        <div className="p-4 bg-amber-50/90 border border-amber-300 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs">
+        <div className="p-4 bg-amber-950/40 border-2 border-amber-500/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-200 shadow-lg">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-200/80 flex items-center justify-center text-amber-800 shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-amber-900/60 border border-amber-500/50 flex items-center justify-center text-amber-300 shrink-0">
               <Pause className="w-5 h-5" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider bg-amber-200 px-2 py-0.5 rounded text-amber-900">
+                <span className="text-xs font-bold uppercase tracking-wider bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded text-amber-300">
                   Dunia Sedang Dijeda (Game Paused)
                 </span>
-                <span className="text-xs text-amber-800 font-medium">
+                <span className="text-xs text-amber-300/80 font-medium">
                   oleh {status.pausedBy || 'Admin'}
                 </span>
               </div>
-              <p className="text-xs font-medium text-amber-800 mt-1">
+              <p className="text-xs font-medium text-amber-200/90 mt-1">
                 Alasan: "{status.pauseReason || 'AFK / Istirahat'}" • Jam game berhenti • Sisa batas otomatis: {Math.floor((status.pauseRemainingSeconds || 0) / 60)}m {(status.pauseRemainingSeconds || 0) % 60}s
               </p>
             </div>
@@ -75,7 +75,7 @@ export const ServerOverviewCard: React.FC = () => {
             type="button"
             onClick={handleResume}
             disabled={isActionLoading}
-            className="btn-tactile btn-tactile-primary inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer shrink-0 disabled:opacity-50 min-h-[40px]"
+            className="btn-tactile btn-tactile-primary inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer shrink-0 disabled:opacity-50 min-h-[40px]"
           >
             <Play className="w-4 h-4" />
             <span>Lanjutkan Game (Resume)</span>
@@ -86,44 +86,44 @@ export const ServerOverviewCard: React.FC = () => {
       {/* Main Metric Cards Grid (4 Columns, Responsive to Fluid Widescreen) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Invite Code Card */}
-        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between">
+        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between border-t-2 border-t-amber-500/50">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Steam & Galaxy Invite
             </span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+            <div className="w-8 h-8 rounded-lg bg-[#0a0f1d] border border-[#223354] flex items-center justify-center text-amber-300">
               <Key className="w-4 h-4" />
             </div>
           </div>
 
           <div className="my-3">
             {status?.inviteCode ? (
-              <div className="flex items-center justify-between bg-slate-50 border border-slate-200/90 px-3 py-2 rounded-lg font-mono text-base font-bold text-slate-900">
+              <div className="flex items-center justify-between bg-[#0a0f1d] border border-amber-500/30 px-3 py-2 rounded-lg font-mono text-base font-bold text-amber-200 shadow-inner">
                 <span className="tracking-wide select-all">{status.inviteCode}</span>
                 <button
                   type="button"
                   onClick={handleCopyInvite}
-                  className="text-slate-400 hover:text-slate-800 transition-colors cursor-pointer p-1.5 rounded hover:bg-slate-200/50"
+                  className="text-slate-400 hover:text-amber-200 transition-colors cursor-pointer p-1.5 rounded hover:bg-slate-800"
                   title="Salin kode invite"
                   aria-label="Salin kode invite"
                 >
                   {copied ? (
-                    <Check className="w-4 h-4 text-emerald-600" />
+                    <Check className="w-4 h-4 text-emerald-400" />
                   ) : (
                     <Copy className="w-4 h-4" />
                   )}
                 </button>
               </div>
             ) : (
-              <div className="text-xs font-medium text-slate-400 py-2">
+              <div className="text-xs font-medium text-slate-500 py-2 italic">
                 Menunggu inisialisasi lobby...
               </div>
             )}
           </div>
 
-          <div className="text-[11px] text-slate-500 flex items-center justify-between pt-2 border-t border-slate-100">
+          <div className="text-[11px] text-slate-400 flex items-center justify-between pt-2 border-t border-[#1e2a42]">
             <span className="flex items-center space-x-1.5">
-              <Radio className="w-3 h-3 text-slate-400" />
+              <Radio className="w-3 h-3 text-emerald-400" />
               <span>Relay: {status?.steamRelayReady ? 'Aktif' : 'Menunggu'}</span>
             </span>
             <span className="font-mono text-[10px] text-slate-400 uppercase">
@@ -133,28 +133,28 @@ export const ServerOverviewCard: React.FC = () => {
         </div>
 
         {/* 2. Connected Farmers Card */}
-        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between">
+        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between border-t-2 border-t-indigo-500/50">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Petani Terhubung
             </span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <div className="w-8 h-8 rounded-lg bg-indigo-950/60 border border-indigo-700/50 flex items-center justify-center text-indigo-300">
               <Users className="w-4 h-4" />
             </div>
           </div>
 
           <div className="my-3 flex items-baseline space-x-2">
-            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono tabular-nums">
+            <div className="text-3xl font-bold text-white tracking-tight font-mono tabular-nums">
               {players.length}
             </div>
-            <span className="text-xs text-slate-500 font-medium">petani aktif</span>
+            <span className="text-xs text-slate-400 font-medium">petani aktif</span>
           </div>
 
-          <div className="text-[11px] text-slate-500 truncate pt-2 border-t border-slate-100">
+          <div className="text-[11px] text-slate-400 truncate pt-2 border-t border-[#1e2a42]">
             {players.length === 0 ? (
-              <span className="text-slate-400 italic">Tidak ada petani in-game</span>
+              <span className="text-slate-500 italic">Tidak ada petani in-game</span>
             ) : (
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-slate-200">
                 {players.map((p) => p.name).join(', ')}
               </span>
             )}
@@ -162,73 +162,73 @@ export const ServerOverviewCard: React.FC = () => {
         </div>
 
         {/* 3. Ready to Harvest Card */}
-        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between">
+        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between border-t-2 border-t-emerald-500/50">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Siap Panen (Harvest)
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <div className="w-8 h-8 rounded-lg bg-emerald-950/60 border border-emerald-700/50 flex items-center justify-center text-emerald-300">
               <Sparkles className="w-4 h-4" />
             </div>
           </div>
 
           <div className="my-3 flex items-baseline space-x-2">
-            <div className="text-3xl font-bold text-emerald-600 tracking-tight font-mono tabular-nums">
+            <div className="text-3xl font-bold text-emerald-400 tracking-tight font-mono tabular-nums">
               {readyCrops}
             </div>
-            <span className="text-xs text-slate-500 font-medium">
+            <span className="text-xs text-slate-400 font-medium">
               dari {totalCrops} tanaman
             </span>
           </div>
 
-          <div className="text-[11px] text-slate-500 flex items-center justify-between pt-2 border-t border-slate-100">
-            <span>Tanaman lahan terbuka</span>
+          <div className="text-[11px] text-slate-400 flex items-center justify-between pt-2 border-t border-[#1e2a42]">
+            <span>Lahan terbuka</span>
             {readyCrops > 0 ? (
-              <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
+              <span className="text-emerald-300 font-bold bg-emerald-950 border border-emerald-700/50 px-1.5 py-0.5 rounded text-[10px]">
                 Siap Dipetik
               </span>
             ) : (
-              <span className="text-slate-400">Sedang Tumbuh</span>
+              <span className="text-slate-500">Sedang Tumbuh</span>
             )}
           </div>
         </div>
 
         {/* 4. Irrigation & Field Health Card */}
-        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between">
+        <div className="card-cozy rounded-xl p-4 sm:p-5 flex flex-col justify-between border-t-2 border-t-sky-500/50">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Penyiraman Lahan
             </span>
-            <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center text-sky-600">
+            <div className="w-8 h-8 rounded-lg bg-sky-950/60 border border-sky-700/50 flex items-center justify-center text-sky-300">
               <Droplets className="w-4 h-4" />
             </div>
           </div>
 
           <div className="my-3">
             <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-              <span className="text-sky-700 font-mono tabular-nums">{wateredCrops} tersiram</span>
-              <span className="text-slate-600 font-mono tabular-nums">{waterPercent}%</span>
+              <span className="text-sky-300 font-mono tabular-nums">{wateredCrops} tersiram</span>
+              <span className="text-slate-300 font-mono tabular-nums">{waterPercent}%</span>
             </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-[#0a0f1d] rounded-full h-2 overflow-hidden border border-[#1e2a42]">
               <div
-                className="bg-sky-500 h-2 rounded-full transition-all duration-500"
+                className="bg-sky-500 h-2 rounded-full transition-all duration-500 shadow-sm"
                 style={{ width: `${waterPercent}%` }}
               />
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 flex items-center justify-between pt-2 border-t border-slate-100">
-            <span className={unwateredCrops > 0 ? 'text-amber-600 font-medium' : 'text-slate-400'}>
+          <div className="text-[11px] text-slate-400 flex items-center justify-between pt-2 border-t border-[#1e2a42]">
+            <span className={unwateredCrops > 0 ? 'text-amber-400 font-medium' : 'text-slate-500'}>
               {unwateredCrops} kering
             </span>
             {deadCrops > 0 && (
-              <span className="text-rose-600 font-medium flex items-center space-x-1">
+              <span className="text-rose-400 font-medium flex items-center space-x-1">
                 <AlertTriangle className="w-3 h-3" />
                 <span>{deadCrops} mati</span>
               </span>
             )}
             <span className="flex items-center space-x-1 font-mono text-[10px] text-slate-400">
-              <Activity className="w-3 h-3" />
+              <Activity className="w-3 h-3 text-emerald-400" />
               <span>{status?.tps?.toFixed(1) ?? '60.0'} TPS</span>
             </span>
           </div>

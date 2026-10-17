@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useFarmStore } from './store/farmStore';
-import { Navbar, NavTab } from './components/layout/Navbar';
+import { NavTab } from './components/layout/Navbar';
+import { GameTopHud } from './components/layout/GameTopHud';
+import { GameSidebar } from './components/layout/GameSidebar';
+import { GameRightTicker } from './components/layout/GameRightTicker';
+import { MobileGameDock } from './components/layout/MobileGameDock';
 import { LoginForm } from './components/auth/LoginForm';
 import { ServerOverviewCard } from './components/dashboard/ServerOverviewCard';
 import { AdminControlsCard } from './components/dashboard/AdminControlsCard';
@@ -23,17 +27,8 @@ export const App: React.FC = () => {
   const { user, isLoading: authLoading, checkAuth } = useAuthStore();
   const { startPolling, stopPolling, lastUpdated } = useFarmStore();
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
-  const [isWidescreen, setIsWidescreen] = useState<boolean>(() => {
-    return localStorage.getItem('sv_layout_widescreen') === 'true';
-  });
-
-  const handleToggleWidescreen = () => {
-    setIsWidescreen((prev) => {
-      const next = !prev;
-      localStorage.setItem('sv_layout_widescreen', String(next));
-      return next;
-    });
-  };
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isRightTickerOpen, setIsRightTickerOpen] = useState(true);
 
   const isSuperadmin = user?.role === 'SUPERADMIN';
   const isAdmin = user?.role === 'ADMIN' || isSuperadmin;
@@ -55,10 +50,10 @@ export const App: React.FC = () => {
 
   if (authLoading && !user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-900 mb-3" />
-        <span className="text-xs font-semibold tracking-wider uppercase text-slate-600">
-          Memuat Junimo Portal...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#090d16] text-slate-400">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-400 mb-3" />
+        <span className="text-xs font-mono font-bold tracking-widest uppercase text-amber-300">
+          Memuat Stardew Cockpit...
         </span>
       </div>
     );
@@ -66,127 +61,138 @@ export const App: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#090d16] text-slate-100 flex items-center justify-center p-4">
         <LoginForm />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-emerald-500 selection:text-white">
-      <Navbar 
-        activeTab={activeTab} 
-        onSelectTab={setActiveTab} 
-        isWidescreen={isWidescreen}
-        onToggleWidescreen={handleToggleWidescreen}
+    <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col selection:bg-amber-500 selection:text-white">
+      {/* 1. TOP SIMULATION HUD */}
+      <GameTopHud 
+        isRightTickerOpen={isRightTickerOpen}
+        onToggleRightTicker={() => setIsRightTickerOpen(!isRightTickerOpen)}
+        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
       />
 
-      <main 
-        className={`flex-1 w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 pb-24 lg:pb-8 transition-all duration-200 ${
-          isWidescreen ? 'max-w-[1920px]' : 'max-w-7xl'
-        }`}
-      >
-        {/* Tab: Server Overview & Automation Controls (Admin Only) */}
-        {activeTab === 'overview' && isAdmin && (
-          <div className="space-y-6">
-            <ServerOverviewCard />
-            <AutomationStatusCard />
-            {isSuperadmin && <AdminControlsCard />}
-            <PlayersCard />
-          </div>
-        )}
+      {/* 2. MAIN COCKPIT BODY (Left Sidebar + Center Canvas + Right Telemetry) */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* LEFT GAMING DOCK / SIDEBAR */}
+        <GameSidebar 
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+        />
 
-        {/* Tab: Personalized Character Sheet */}
-        {activeTab === 'character' && (
-          <div className="space-y-6">
-            <FarmerProfileCard />
-          </div>
-        )}
+        {/* CENTER VIEWPORT / ACTIVE GAME STAGE */}
+        <main className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6 pb-24 lg:pb-8">
+          {/* Tab: Server Overview & Automation Controls (Admin Only) */}
+          {activeTab === 'overview' && isAdmin && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <ServerOverviewCard />
+              <AutomationStatusCard />
+              {isSuperadmin && <AdminControlsCard />}
+              <PlayersCard />
+            </div>
+          )}
 
-        {/* Tab: Agricultural Telemetry (Shared) */}
-        {activeTab === 'crops' && (
-          <div className="space-y-6">
-            <CropsDashboard />
-          </div>
-        )}
+          {/* Tab: Personalized Character Sheet */}
+          {activeTab === 'character' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <FarmerProfileCard />
+            </div>
+          )}
 
-        {/* Tab: Livestock & Farm Animals (Shared) */}
-        {activeTab === 'animals' && (
-          <div className="space-y-6">
-            <LivestockDashboard />
-          </div>
-        )}
+          {/* Tab: Agricultural Telemetry (Shared) */}
+          {activeTab === 'crops' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <CropsDashboard />
+            </div>
+          )}
 
-        {/* Tab: Interactive Valley Map & Farmer Tracker (Shared) */}
-        {activeTab === 'map' && (
-          <div className="space-y-6">
-            <ValleyMapCard />
-          </div>
-        )}
+          {/* Tab: Livestock & Farm Animals (Shared) */}
+          {activeTab === 'animals' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <LivestockDashboard />
+            </div>
+          )}
 
-        {/* Tab: Live 2-Way Chat Relay (Shared) */}
-        {activeTab === 'chat' && (
-          <div className="space-y-6">
-            <ChatRelayCard />
-          </div>
-        )}
+          {/* Tab: Interactive Valley Map & Farmer Tracker (Shared) */}
+          {activeTab === 'map' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <ValleyMapCard />
+            </div>
+          )}
 
-        {/* Tab: Interactive SMAPI Console (Superadmin Only) */}
-        {activeTab === 'console' && isSuperadmin && (
-          <div className="space-y-6">
-            <ConsoleTerminalCard />
-          </div>
-        )}
+          {/* Tab: Live 2-Way Chat Relay (Shared) */}
+          {activeTab === 'chat' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <ChatRelayCard />
+            </div>
+          )}
 
-        {/* Tab: Persistent Backups Management (Admin Only) */}
-        {activeTab === 'backups' && isAdmin && (
-          <div className="space-y-6">
-            <BackupManagerCard />
-          </div>
-        )}
+          {/* Tab: Interactive SMAPI Console (Superadmin Only) */}
+          {activeTab === 'console' && isSuperadmin && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <ConsoleTerminalCard />
+            </div>
+          )}
 
-        {/* Tab: Village Banking & Economy (Shared) */}
-        {activeTab === 'economy' && (
-          <div className="space-y-6">
-            <EconomyCard />
-          </div>
-        )}
+          {/* Tab: Persistent Backups Management (Admin Only) */}
+          {activeTab === 'backups' && isAdmin && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <BackupManagerCard />
+            </div>
+          )}
 
-        {/* Tab: User Management & Whitelist (Admin Only) */}
-        {activeTab === 'users' && isAdmin && (
-          <div className="space-y-6">
-            <UserManagementCard />
-          </div>
-        )}
+          {/* Tab: Village Banking & Economy (Shared) */}
+          {activeTab === 'economy' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <EconomyCard />
+            </div>
+          )}
 
-        {/* Tab: Centralized Mod Management & Policy (Admin Only) */}
-        {activeTab === 'mods' && isAdmin && (
-          <div className="space-y-6">
-            <ModManagementCard />
-          </div>
-        )}
-      </main>
+          {/* Tab: User Management & Whitelist (Admin Only) */}
+          {activeTab === 'users' && isAdmin && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <UserManagementCard />
+            </div>
+          )}
 
-      <footer className="border-t border-slate-200 bg-white py-4 mt-auto hidden lg:block">
-        <div 
-          className={`mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2 transition-all duration-200 ${
-            isWidescreen ? 'max-w-[1920px]' : 'max-w-7xl'
-          }`}
-        >
-          <div className="flex items-center space-x-2">
-            <span className="font-semibold text-slate-800">JunimoServer Enterprise</span>
-            <span>•</span>
-            <span>Operations & Management Portal</span>
-          </div>
-          <div>
+          {/* Tab: Centralized Mod Management & Policy (Admin Only) */}
+          {activeTab === 'mods' && isAdmin && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <ModManagementCard />
+            </div>
+          )}
+
+          {/* Footer Bar */}
+          <footer className="pt-6 border-t border-[#1e2a42] text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold text-slate-400">JunimoServer Cockpit</span>
+              <span>•</span>
+              <span>Stardew Valley 1.6 Dedicated Engine</span>
+            </div>
             {lastUpdated && (
-              <span className="font-mono tabular-nums">
-                Sinkronisasi telemetri terakhir: {lastUpdated.toLocaleTimeString()}
+              <span className="font-mono tabular-nums text-slate-500">
+                Telemetri tersinkronisasi: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
-          </div>
-        </div>
-      </footer>
+          </footer>
+        </main>
+
+        {/* RIGHT TELEMETRY TICKER (Widescreen 2xl) */}
+        {isRightTickerOpen && <GameRightTicker />}
+      </div>
+
+      {/* 3. MOBILE GAME DOCK (Sticky Bottom Navigation for Phones) */}
+      <MobileGameDock 
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenMenu={() => setIsMobileMenuOpen(true)}
+      />
     </div>
   );
 };

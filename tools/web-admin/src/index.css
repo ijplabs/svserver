@@ -3,25 +3,25 @@
 @layer base {
   :root {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    color-scheme: light;
+    color-scheme: dark;
 
-    /* Impeccable Simulation Gaming Tokens */
-    --color-surface-bg: #f8fafc;
-    --color-surface-card: #ffffff;
-    --color-surface-inset: #f1f5f9;
-    --color-border-subtle: #e2e8f0;
-    --color-border-warm: #eae4d9;
+    /* Stardew Simulation Gaming Tokens (Impeccable Style) */
+    --color-surface-bg: #090d16;
+    --color-surface-card: #111a2e;
+    --color-surface-inset: #0a0f1d;
+    --color-border-subtle: #1e2a42;
+    --color-border-brass: #d97706;
     --color-border-timber: #56160c;
 
-    --color-valley-green: #16a34a;
-    --color-valley-gold: #d97706;
-    --color-valley-sky: #0284c7;
-    --color-valley-berry: #dc2626;
+    --color-valley-green: #10b981;
+    --color-valley-gold: #f59e0b;
+    --color-valley-sky: #38bdf8;
+    --color-valley-berry: #f43f5e;
   }
 
   body {
     background-color: var(--color-surface-bg);
-    color: #0f172a;
+    color: #e2e8f0;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
@@ -34,7 +34,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Tactile Button Press Styles (Anti-AI Slop Human Ergonomics) */
+/* Tactile Gaming Button Press Styles */
 .btn-tactile {
   transition: transform 0.08s ease-in-out, box-shadow 0.08s ease-in-out, background-color 0.15s ease;
   user-select: none;
@@ -45,12 +45,12 @@
 }
 
 .btn-tactile-primary {
-  background-color: #16a34a;
+  background-color: #10b981;
   color: #ffffff;
-  border-bottom: 2px solid #15803d;
+  border-bottom: 2px solid #059669;
 }
 .btn-tactile-primary:hover:not(:disabled) {
-  background-color: #15803d;
+  background-color: #059669;
 }
 .btn-tactile-primary:active:not(:disabled) {
   transform: translateY(1.5px);
@@ -71,12 +71,12 @@
 }
 
 .btn-tactile-danger {
-  background-color: #dc2626;
+  background-color: #e11d48;
   color: #ffffff;
-  border-bottom: 2px solid #b91c1c;
+  border-bottom: 2px solid #be123c;
 }
 .btn-tactile-danger:hover:not(:disabled) {
-  background-color: #b91c1c;
+  background-color: #be123c;
 }
 .btn-tactile-danger:active:not(:disabled) {
   transform: translateY(1.5px);
@@ -84,37 +84,37 @@
 }
 
 .btn-tactile-subtle {
-  background-color: #ffffff;
-  color: #334155;
-  border: 1px solid #e2e8f0;
-  border-bottom: 2px solid #cbd5e1;
+  background-color: #141e33;
+  color: #cbd5e1;
+  border: 1px solid #1e2a42;
+  border-bottom: 2px solid #2a3b5c;
 }
 .btn-tactile-subtle:hover:not(:disabled) {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #1a2845;
+  color: #ffffff;
 }
 .btn-tactile-subtle:active:not(:disabled) {
   transform: translateY(1.5px);
   border-bottom-width: 1px;
 }
 
-/* Cozy Simulation Card Texture & Shadow */
+/* Stardew Gaming Cockpit Card & Panel Frames */
 .card-cozy {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  background-color: #111a2e;
+  border: 1px solid #1e2a42;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
 }
 
 .card-warm-border {
-  border-color: #eae4d9;
+  border-color: #ca8a04;
 }
 
 /* RPG Inventory Slot */
 .slot-box {
   width: 48px;
   height: 48px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: #0a0f1d;
+  border: 1px solid #1e2a42;
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -125,26 +125,26 @@
 
 .slot-box:hover {
   border-color: #f59e0b;
-  background-color: #fffbeb;
+  background-color: #162035;
 }
 
-/* Custom scrollbars */
+/* Custom Gaming Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #090d16;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #1e2a42;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #33486e;
 }
 
 /* Mobile Safe Area Bottom Padding */
