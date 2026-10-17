@@ -33,7 +33,9 @@ import {
   Play,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  Heart,
+  Scroll
 } from 'lucide-react';
 
 export type NavTab = 
@@ -42,6 +44,8 @@ export type NavTab =
   | 'crops' 
   | 'animals' 
   | 'map' 
+  | 'social'
+  | 'quests'
   | 'chat' 
   | 'console' 
   | 'backups' 
@@ -178,6 +182,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     ? [
         { id: 'overview', label: 'Ringkasan & Host', icon: LayoutDashboard, category: 'Operasional' },
         { id: 'character', label: 'Karakter Saya', icon: User, category: 'Operasional' },
+        { id: 'social', label: 'Hubungan Sosial', icon: Heart, category: 'Komunitas' },
+        { id: 'quests', label: 'Misi & Balai Kota', icon: Scroll, category: 'Komunitas' },
         { id: 'crops', label: 'Tanaman & Panen', icon: Sprout, category: 'Kebun' },
         { id: 'animals', label: 'Peternakan', icon: Milk, category: 'Kebun' },
         { id: 'map', label: 'Peta Lembah', icon: Compass, category: 'Kebun' },
@@ -190,6 +196,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       ]
     : [
         { id: 'character', label: 'Karakter Saya', icon: User, category: 'Pribadi' },
+        { id: 'social', label: 'Hubungan Sosial', icon: Heart, category: 'Komunitas' },
+        { id: 'quests', label: 'Misi & Balai Kota', icon: Scroll, category: 'Komunitas' },
         { id: 'crops', label: 'Tanaman Kebun (Shared)', icon: Sprout, category: 'Kebun' },
         { id: 'animals', label: 'Peternakan (Shared)', icon: Milk, category: 'Kebun' },
         { id: 'map', label: 'Peta Lembah (Shared)', icon: Compass, category: 'Kebun' },

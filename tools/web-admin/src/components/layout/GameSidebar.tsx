@@ -18,6 +18,8 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  Heart,
+  Scroll,
   X
 } from 'lucide-react';
 
@@ -62,6 +64,8 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
         { id: 'animals', label: 'Peternakan', icon: Milk, category: 'World' },
         { id: 'map', label: 'Peta Lembah', icon: Compass, category: 'World' },
         // Social & Economy
+        { id: 'social', label: 'Hubungan Sosial', icon: Heart, category: 'Social' },
+        { id: 'quests', label: 'Misi & Balai Kota', icon: Scroll, category: 'Social' },
         { id: 'chat', label: 'Obrolan Langsung', icon: MessageSquare, category: 'Social' },
         { id: 'economy', label: 'Bank & Ekonomi', icon: Coins, category: 'Social' },
         // Engine Room
@@ -75,6 +79,8 @@ export const GameSidebar: React.FC<GameSidebarProps> = ({
         { id: 'crops', label: 'Tanaman (Shared)', icon: Sprout, category: 'World', badge: readyCrops > 0 ? `${readyCrops}` : null, badgeColor: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40' },
         { id: 'animals', label: 'Peternakan', icon: Milk, category: 'World' },
         { id: 'map', label: 'Peta Lembah', icon: Compass, category: 'World' },
+        { id: 'social', label: 'Hubungan Sosial', icon: Heart, category: 'Social' },
+        { id: 'quests', label: 'Misi & Balai Kota', icon: Scroll, category: 'Social' },
         { id: 'chat', label: 'Obrolan Langsung', icon: MessageSquare, category: 'Social' },
         { id: 'economy', label: 'Bank Kas Desa', icon: Coins, category: 'Social' },
       ];

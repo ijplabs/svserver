@@ -18,6 +18,8 @@ import { ChatRelayCard } from './components/chat/ChatRelayCard';
 import { ConsoleTerminalCard } from './components/console/ConsoleTerminalCard';
 import { LivestockDashboard } from './components/livestock/LivestockDashboard';
 import { FarmerProfileCard } from './components/farmer/FarmerProfileCard';
+import { SocialRelationshipsCard } from './components/social/SocialRelationshipsCard';
+import { QuestsAndCommunityCard } from './components/quests/QuestsAndCommunityCard';
 import { ValleyMapCard } from './components/map/ValleyMapCard';
 import { UserManagementCard } from './components/admin/UserManagementCard';
 import { ModManagementCard } from './components/mods/ModManagementCard';
@@ -123,6 +125,20 @@ export const App: React.FC = () => {
           {activeTab === 'character' && (
             <div className="space-y-6 max-w-7xl mx-auto">
               <FarmerProfileCard />
+            </div>
+          )}
+
+          {/* Tab: Social Relationships & Gift Quotas */}
+          {activeTab === 'social' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <SocialRelationshipsCard />
+            </div>
+          )}
+
+          {/* Tab: Quests & Balai Kota Community Center */}
+          {activeTab === 'quests' && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <QuestsAndCommunityCard />
             </div>
           )}
 

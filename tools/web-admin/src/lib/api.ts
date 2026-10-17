@@ -188,6 +188,16 @@ export const api = {
   },
   farmer: {
     getMyProfile: () => request<import('../types/character').FarmerProfile>('/api/farmer/me'),
+    getSocial: (farmerId?: number) =>
+      request<import('../types/social').FarmerSocialResponse>(
+        farmerId ? `/api/farmer/social?farmerId=${farmerId}` : '/api/farmer/social'
+      ),
+    getQuests: (farmerId?: number) =>
+      request<import('../types/quests').FarmerQuestsResponse>(
+        farmerId ? `/api/farmer/quests?farmerId=${farmerId}` : '/api/farmer/quests'
+      ),
+    getCommunityCenter: () =>
+      request<import('../types/quests').CommunityCenterResponse>('/api/farmer/community-center'),
   },
   map: {
     getTracking: () => request<import('../types/map').MapTrackingResponse>('/api/map/tracking'),

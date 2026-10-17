@@ -697,6 +697,129 @@ public class FarmerProfileResponse
     public List<EquipmentItemInfo> Equipment { get; set; } = new();
 }
 
+public class VillagerFriendshipDto
+{
+    public string Name { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public int Points { get; set; }
+    public int Hearts { get; set; }
+    public int MaxHearts { get; set; } = 10;
+    public int GiftsThisWeek { get; set; }
+    public int MaxGiftsPerWeek { get; set; } = 2;
+    public bool GiftGivenToday { get; set; }
+    public bool TalkedToToday { get; set; }
+    public string Status { get; set; } = "Friendly";
+    public string BirthdaySeason { get; set; } = "";
+    public int BirthdayDay { get; set; }
+    public bool IsBirthdayToday { get; set; }
+    public bool IsDatable { get; set; }
+    public string Gender { get; set; } = "";
+}
+
+public class FarmerSocialResponse
+{
+    public long FarmerId { get; set; }
+    public string FarmerName { get; set; } = "";
+    public int TotalVillagersMet { get; set; }
+    public int MaxHeartsAchieved { get; set; }
+    public List<VillagerFriendshipDto> Villagers { get; set; } = new();
+}
+
+public class QuestObjectiveDto
+{
+    public string Description { get; set; } = "";
+    public int CurrentCount { get; set; }
+    public int MaxCount { get; set; }
+    public bool IsComplete { get; set; }
+}
+
+public class QuestDto
+{
+    public string Id { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string CurrentObjective { get; set; } = "";
+    public int RewardMoney { get; set; }
+    public int DaysLeft { get; set; }
+    public bool IsDailyQuest { get; set; }
+    public bool IsComplete { get; set; }
+    public string QuestType { get; set; } = "Standard";
+}
+
+public class SpecialOrderDto
+{
+    public string Key { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string OrderType { get; set; } = "";
+    public string Requester { get; set; } = "";
+    public int DaysLeft { get; set; }
+    public List<QuestObjectiveDto> Objectives { get; set; } = new();
+    public bool IsComplete { get; set; }
+}
+
+public class FarmerQuestsResponse
+{
+    public long FarmerId { get; set; }
+    public string FarmerName { get; set; } = "";
+    public List<QuestDto> ActiveQuests { get; set; } = new();
+    public List<SpecialOrderDto> SpecialOrders { get; set; } = new();
+}
+
+public class BundleIngredientDto
+{
+    public string ItemId { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int Stack { get; set; } = 1;
+    public int Quality { get; set; }
+    public bool IsFulfilled { get; set; }
+}
+
+public class BundleDto
+{
+    public int BundleIndex { get; set; }
+    public string Name { get; set; } = "";
+    public string RoomName { get; set; } = "";
+    public int RoomIndex { get; set; }
+    public int RequiredItemsCount { get; set; }
+    public int FulfilledCount { get; set; }
+    public bool IsComplete { get; set; }
+    public string RewardName { get; set; } = "";
+    public int RewardCount { get; set; } = 1;
+    public List<BundleIngredientDto> Ingredients { get; set; } = new();
+}
+
+public class CommunityRoomDto
+{
+    public int RoomIndex { get; set; }
+    public string Name { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Reward { get; set; } = "";
+    public bool IsComplete { get; set; }
+    public int TotalBundles { get; set; }
+    public int CompletedBundles { get; set; }
+    public List<BundleDto> Bundles { get; set; } = new();
+}
+
+public class JojaProjectDto
+{
+    public string Key { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int Cost { get; set; }
+    public bool IsComplete { get; set; }
+}
+
+public class CommunityCenterResponse
+{
+    public bool IsComplete { get; set; }
+    public bool IsJojaRoute { get; set; }
+    public int TotalBundles { get; set; }
+    public int CompletedBundles { get; set; }
+    public List<CommunityRoomDto> Rooms { get; set; } = new();
+    public List<JojaProjectDto> JojaProjects { get; set; } = new();
+}
+
 public class PlayerMapPin
 {
     public long Id { get; set; }
@@ -2668,6 +2791,15 @@ public partial class ApiService : ModService
                         break;
                     case "/api/farmer/me":
                         await HandleGetFarmerProfileAsync(request, response);
+                        break;
+                    case "/api/farmer/social":
+                        await HandleGetFarmerSocialAsync(request, response);
+                        break;
+                    case "/api/farmer/quests":
+                        await HandleGetFarmerQuestsAsync(request, response);
+                        break;
+                    case "/api/farmer/community-center":
+                        await HandleGetCommunityCenterAsync(request, response);
                         break;
                     case "/api/map/tracking":
                         await HandleGetMapTrackingAsync(request, response);
@@ -6913,6 +7045,523 @@ public partial class ApiService : ModService
         }
 
         await WriteJsonAsync(response, profile);
+    }
+
+    private async Task HandleGetFarmerSocialAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null)
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        if (!Game1.hasLoadedGame)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Save game is not loaded yet." });
+            return;
+        }
+
+        FarmerSocialResponse? socialData = null;
+        await RunOnGameThreadAsync(() =>
+        {
+            try
+            {
+                Farmer? target = null;
+                if (user.Value.FarmerId != 0)
+                {
+                    target = Game1.getAllFarmers().FirstOrDefault(f => f.UniqueMultiplayerID == user.Value.FarmerId);
+                }
+                if (target == null)
+                {
+                    target = Game1.player;
+                }
+                if (target == null) return;
+
+                socialData = new FarmerSocialResponse
+                {
+                    FarmerId = target.UniqueMultiplayerID,
+                    FarmerName = target.Name
+                };
+
+                var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                if (target.friendshipData != null)
+                {
+                    foreach (var pair in target.friendshipData.Pairs)
+                    {
+                        string npcName = pair.Key;
+                        var friendship = pair.Value;
+                        if (friendship == null) continue;
+                        known.Add(npcName);
+
+                        int maxH = 10;
+                        string bSeason = "";
+                        int bDay = 0;
+                        bool isDatable = false;
+                        string gender = "";
+                        string dispName = npcName;
+                        bool isBirthday = false;
+
+                        try
+                        {
+                            NPC? npc = Game1.getCharacterFromName(npcName);
+                            if (npc != null)
+                            {
+                                dispName = npc.displayName ?? npcName;
+                                bSeason = npc.Birthday_Season ?? "";
+                                bDay = npc.Birthday_Day;
+                                isDatable = npc.datable.Value;
+                                gender = npc.Gender.ToString();
+                                isBirthday = string.Equals(npc.Birthday_Season, Game1.currentSeason, StringComparison.OrdinalIgnoreCase) && npc.Birthday_Day == Game1.dayOfMonth;
+
+                                if (friendship.Status == FriendshipStatus.Married)
+                                    maxH = 14;
+                                else if (npc.datable.Value && friendship.Status != FriendshipStatus.Dating)
+                                    maxH = 8;
+                                else
+                                    maxH = 10;
+                            }
+                            else if (Game1.characterData != null && Game1.characterData.TryGetValue(npcName, out var cd))
+                            {
+                                dispName = cd.DisplayName ?? npcName;
+                                bSeason = cd.BirthSeason ?? "";
+                                bDay = cd.BirthDay;
+                                isDatable = cd.CanSocialize && cd.Gender != Gender.Undefined;
+                                gender = cd.Gender.ToString();
+                                isBirthday = string.Equals(cd.BirthSeason, Game1.currentSeason, StringComparison.OrdinalIgnoreCase) && cd.BirthDay == Game1.dayOfMonth;
+                                maxH = isDatable ? 8 : 10;
+                            }
+                        }
+                        catch { }
+
+                        socialData.Villagers.Add(new VillagerFriendshipDto
+                        {
+                            Name = npcName,
+                            DisplayName = dispName,
+                            Points = friendship.Points,
+                            Hearts = Math.Min(maxH, friendship.Points / 250),
+                            MaxHearts = maxH,
+                            GiftsThisWeek = friendship.GiftsThisWeek,
+                            MaxGiftsPerWeek = 2,
+                            GiftGivenToday = friendship.GiftsToday > 0,
+                            TalkedToToday = friendship.TalkedToToday,
+                            Status = friendship.Status.ToString(),
+                            BirthdaySeason = bSeason,
+                            BirthdayDay = bDay,
+                            IsBirthdayToday = isBirthday,
+                            IsDatable = isDatable,
+                            Gender = gender
+                        });
+                    }
+                }
+
+                // Add standard town NPCs not met yet
+                if (Game1.characterData != null)
+                {
+                    foreach (var pair in Game1.characterData)
+                    {
+                        string npcName = pair.Key;
+                        var cd = pair.Value;
+                        if (known.Contains(npcName)) continue;
+                        if (!cd.CanSocialize) continue;
+                        if (cd.HomeRegion == "Other" && npcName != "Krobus" && npcName != "Dwarf" && npcName != "Sandy" && npcName != "Leo") continue;
+
+                        bool isDatable = cd.CanSocialize && cd.Gender != Gender.Undefined;
+                        bool isBirthday = string.Equals(cd.BirthSeason, Game1.currentSeason, StringComparison.OrdinalIgnoreCase) && cd.BirthDay == Game1.dayOfMonth;
+
+                        socialData.Villagers.Add(new VillagerFriendshipDto
+                        {
+                            Name = npcName,
+                            DisplayName = cd.DisplayName ?? npcName,
+                            Points = 0,
+                            Hearts = 0,
+                            MaxHearts = isDatable ? 8 : 10,
+                            GiftsThisWeek = 0,
+                            MaxGiftsPerWeek = 2,
+                            GiftGivenToday = false,
+                            TalkedToToday = false,
+                            Status = "Friendly",
+                            BirthdaySeason = cd.BirthSeason ?? "",
+                            BirthdayDay = cd.BirthDay,
+                            IsBirthdayToday = isBirthday,
+                            IsDatable = isDatable,
+                            Gender = cd.Gender.ToString()
+                        });
+                    }
+                }
+
+                socialData.Villagers = socialData.Villagers
+                    .OrderByDescending(v => v.IsBirthdayToday)
+                    .ThenByDescending(v => v.Points)
+                    .ThenBy(v => v.DisplayName)
+                    .ToList();
+
+                socialData.TotalVillagersMet = socialData.Villagers.Count(v => v.Points > 0 || v.TalkedToToday);
+                socialData.MaxHeartsAchieved = socialData.Villagers.Count(v => v.Hearts >= v.MaxHearts && v.MaxHearts > 0);
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[API] Error reading social data: {ex.Message}", LogLevel.Error);
+            }
+        });
+
+        if (socialData == null)
+        {
+            response.StatusCode = 404;
+            await WriteJsonAsync(response, new { error = "Farmer character not found in active save." });
+            return;
+        }
+
+        await WriteJsonAsync(response, socialData);
+    }
+
+    private async Task HandleGetFarmerQuestsAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null)
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        if (!Game1.hasLoadedGame)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Save game is not loaded yet." });
+            return;
+        }
+
+        FarmerQuestsResponse? questsData = null;
+        await RunOnGameThreadAsync(() =>
+        {
+            try
+            {
+                Farmer? target = null;
+                if (user.Value.FarmerId != 0)
+                {
+                    target = Game1.getAllFarmers().FirstOrDefault(f => f.UniqueMultiplayerID == user.Value.FarmerId);
+                }
+                if (target == null)
+                {
+                    target = Game1.player;
+                }
+                if (target == null) return;
+
+                questsData = new FarmerQuestsResponse
+                {
+                    FarmerId = target.UniqueMultiplayerID,
+                    FarmerName = target.Name
+                };
+
+                // 1. Personal Quests
+                if (target.questLog != null)
+                {
+                    foreach (var q in target.questLog)
+                    {
+                        if (q == null) continue;
+                        questsData.ActiveQuests.Add(new QuestDto
+                        {
+                            Id = q.id.Value ?? "",
+                            Title = q.questTitle ?? "Misi Lembah",
+                            Description = q.questDescription ?? "",
+                            CurrentObjective = q.currentObjective ?? "",
+                            RewardMoney = q.moneyReward.Value,
+                            DaysLeft = q.daysLeft.Value,
+                            IsDailyQuest = q.dailyQuest.Value,
+                            IsComplete = q.completed.Value,
+                            QuestType = q.questType.Value.ToString()
+                        });
+                    }
+                }
+
+                // 2. Special Orders
+                if (Game1.player?.team?.specialOrders != null)
+                {
+                    foreach (var so in Game1.player.team.specialOrders)
+                    {
+                        if (so == null) continue;
+                        var sDto = new SpecialOrderDto
+                        {
+                            Key = so.orderKey.Value ?? "",
+                            Name = so.questName.Value ?? "Special Order",
+                            Description = so.questDescription.Value ?? "",
+                            OrderType = so.orderType.Value ?? "",
+                            Requester = so.requester.Value ?? "",
+                            DaysLeft = Math.Max(0, so.dueDate.Value - Game1.dayOfMonth),
+                            IsComplete = false
+                        };
+
+                        if (so.objectives != null)
+                        {
+                            bool allComplete = true;
+                            foreach (var obj in so.objectives)
+                            {
+                                if (obj == null) continue;
+                                bool c = obj.IsComplete();
+                                if (!c) allComplete = false;
+                                sDto.Objectives.Add(new QuestObjectiveDto
+                                {
+                                    Description = obj.GetDescription() ?? "",
+                                    CurrentCount = obj.GetCount(),
+                                    MaxCount = obj.GetMaxCount(),
+                                    IsComplete = c
+                                });
+                            }
+                            sDto.IsComplete = allComplete;
+                        }
+
+                        questsData.SpecialOrders.Add(sDto);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[API] Error reading quests data: {ex.Message}", LogLevel.Error);
+            }
+        });
+
+        if (questsData == null)
+        {
+            response.StatusCode = 404;
+            await WriteJsonAsync(response, new { error = "Farmer character not found in active save." });
+            return;
+        }
+
+        await WriteJsonAsync(response, questsData);
+    }
+
+    private async Task HandleGetCommunityCenterAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null)
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        if (!Game1.hasLoadedGame)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Save game is not loaded yet." });
+            return;
+        }
+
+        CommunityCenterResponse? ccData = null;
+        await RunOnGameThreadAsync(() =>
+        {
+            try
+            {
+                ccData = new CommunityCenterResponse();
+                bool isJoja = Game1.player.mailReceived.Contains("JojaMember") ||
+                              Game1.player.mailReceived.Contains("jojaVault") ||
+                              Game1.player.hasCompletedTownProject("JojaMember");
+                ccData.IsJojaRoute = isJoja;
+
+                if (isJoja)
+                {
+                    ccData.JojaProjects = new List<JojaProjectDto>
+                    {
+                        new JojaProjectDto { Key = "jojaGreenhouse", Name = "Rumah Kaca (Greenhouse)", Description = "Membuka kembali Rumah Kaca di kebun untuk bercocok tanam sepanjang tahun.", Cost = 35000, IsComplete = Game1.player.mailReceived.Contains("jojaGreenhouse") },
+                        new JojaProjectDto { Key = "jojaBoilerRoom", Name = "Kereta Tambang (Minecarts)", Description = "Memperbaiki jaringan gerobak tambang untuk perjalanan instan antara Kota, Tambang, dan Halte Bus.", Cost = 15000, IsComplete = Game1.player.mailReceived.Contains("jojaBoilerRoom") },
+                        new JojaProjectDto { Key = "jojaCraftsRoom", Name = "Jembatan Tambang (Bridge Repair)", Description = "Memperbaiki jembatan menuju Tambang Batu (Quarry).", Cost = 25000, IsComplete = Game1.player.mailReceived.Contains("jojaCraftsRoom") },
+                        new JojaProjectDto { Key = "jojaVault", Name = "Perbaikan Bus (Bus Repair)", Description = "Memperbaiki bus Pam untuk perjalanan ke Gurun Calico.", Cost = 40000, IsComplete = Game1.player.mailReceived.Contains("jojaVault") },
+                        new JojaProjectDto { Key = "jojaFishTank", Name = "Pendulangan Emas (Panning)", Description = "Menghilangkan batu besar berkilau di hulu sungai untuk memungkinkan pendulangan bijih mineral.", Cost = 20000, IsComplete = Game1.player.mailReceived.Contains("jojaFishTank") },
+                        new JojaProjectDto { Key = "ccMovieTheater", Name = "Bioskop Lembah (Movie Theater)", Description = "Membangun bioskop mewah di bekas bangunan JojaMart.", Cost = 500000, IsComplete = Game1.player.mailReceived.Contains("ccMovieTheater") }
+                    };
+                    ccData.IsComplete = ccData.JojaProjects.All(p => p.IsComplete);
+                    ccData.TotalBundles = ccData.JojaProjects.Count;
+                    ccData.CompletedBundles = ccData.JojaProjects.Count(p => p.IsComplete);
+                }
+
+                CommunityCenter? cc = Game1.getLocationFromName("CommunityCenter") as CommunityCenter;
+                if (cc == null)
+                {
+                    cc = Game1.locations.OfType<CommunityCenter>().FirstOrDefault();
+                }
+
+                var roomNames = new Dictionary<int, (string Name, string DisplayName, string Reward)>
+                {
+                    { 0, ("Pantry", "Ruang Persediaan (Pantry)", "Greenhouse (Rumah Kaca)") },
+                    { 1, ("Crafts Room", "Ruang Kerajinan (Crafts Room)", "Bridge Repair (Jembatan Tambang)") },
+                    { 2, ("Fish Tank", "Akuarium (Fish Tank)", "Glittering Boulder / Panning (Pendulangan)") },
+                    { 3, ("Boiler Room", "Ruang Ketel (Boiler Room)", "Minecarts (Kereta Tambang Cepat)") },
+                    { 4, ("Vault", "Kubah Uang (Vault)", "Bus Repair (Perbaikan Bus Gurun Calico)") },
+                    { 5, ("Bulletin Board", "Papan Pengumuman (Bulletin Board)", "+500 Poin Persahabatan dengan Seluruh Warga") },
+                    { 6, ("Abandoned JojaMart", "Toko Terbengkalai (Missing Bundle)", "Movie Theater (Bioskop Lembah)") }
+                };
+
+                var rooms = new Dictionary<int, CommunityRoomDto>();
+                foreach (var r in roomNames)
+                {
+                    bool roomComplete = false;
+                    try
+                    {
+                        if (cc != null && r.Key < cc.areasComplete.Length)
+                        {
+                            roomComplete = cc.areasComplete[r.Key];
+                        }
+                    }
+                    catch { }
+
+                    rooms[r.Key] = new CommunityRoomDto
+                    {
+                        RoomIndex = r.Key,
+                        Name = r.Value.Name,
+                        DisplayName = r.Value.DisplayName,
+                        Reward = r.Value.Reward,
+                        IsComplete = roomComplete
+                    };
+                }
+
+                var bundleData = Game1.netWorldState.Value.BundleData;
+                if (bundleData != null)
+                {
+                    foreach (var kvp in bundleData)
+                    {
+                        string key = kvp.Key;
+                        string value = kvp.Value;
+                        var keyParts = key.Split('/');
+                        int bIdx = 0;
+                        int rIdx = 0;
+
+                        if (keyParts.Length > 1 && int.TryParse(keyParts[1], out var parsedBIdx))
+                        {
+                            bIdx = parsedBIdx;
+                            string rStr = keyParts[0].Trim();
+                            var foundRoom = roomNames.FirstOrDefault(x => string.Equals(x.Value.Name, rStr, StringComparison.OrdinalIgnoreCase));
+                            rIdx = foundRoom.Key;
+                        }
+                        else if (int.TryParse(keyParts[0], out var singleIdx))
+                        {
+                            bIdx = singleIdx;
+                            if (bIdx >= 0 && bIdx <= 5) rIdx = 0;
+                            else if (bIdx >= 13 && bIdx <= 18) rIdx = 1;
+                            else if (bIdx >= 6 && bIdx <= 11) rIdx = 2;
+                            else if (bIdx >= 20 && bIdx <= 22) rIdx = 3;
+                            else if (bIdx >= 23 && bIdx <= 26) rIdx = 4;
+                            else if (bIdx >= 31 && bIdx <= 35) rIdx = 5;
+                            else if (bIdx == 36) rIdx = 6;
+                        }
+
+                        var valParts = value.Split('/');
+                        if (valParts.Length < 3) continue;
+
+                        string bName = valParts[0];
+                        string rewardStr = valParts[1];
+                        string ingredientsStr = valParts[2];
+                        int reqCount = 0;
+                        if (valParts.Length > 4 && int.TryParse(valParts[4], out var rc))
+                        {
+                            reqCount = rc;
+                        }
+
+                        var bDto = new BundleDto
+                        {
+                            BundleIndex = bIdx,
+                            Name = bName,
+                            RoomIndex = rIdx,
+                            RoomName = rooms.TryGetValue(rIdx, out var roomDto) ? roomDto.Name : "Pantry"
+                        };
+
+                        var tokens = ingredientsStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        bool[]? fulfilledSlots = null;
+                        if (cc != null && cc.bundles.TryGetValue(bIdx, out var arr))
+                        {
+                            fulfilledSlots = arr;
+                        }
+
+                        int slotIdx = 0;
+                        int fulfilledCount = 0;
+                        for (int i = 0; i + 2 < tokens.Length; i += 3)
+                        {
+                            string itemId = tokens[i];
+                            int stack = int.TryParse(tokens[i + 1], out var s) ? s : 1;
+                            int quality = int.TryParse(tokens[i + 2], out var q) ? q : 0;
+                            bool slotDone = fulfilledSlots != null && slotIdx < fulfilledSlots.Length && fulfilledSlots[slotIdx];
+                            if (slotDone) fulfilledCount++;
+
+                            string itemName = itemId;
+                            try
+                            {
+                                var itemData = ItemRegistry.GetData(itemId) ?? ItemRegistry.GetData("(O)" + itemId);
+                                if (itemData != null) itemName = itemData.DisplayName;
+                            }
+                            catch { }
+
+                            bDto.Ingredients.Add(new BundleIngredientDto
+                            {
+                                ItemId = itemId,
+                                Name = itemName,
+                                Stack = stack,
+                                Quality = quality,
+                                IsFulfilled = slotDone
+                            });
+
+                            slotIdx++;
+                        }
+
+                        if (reqCount <= 0) reqCount = bDto.Ingredients.Count;
+                        bDto.RequiredItemsCount = reqCount;
+                        bDto.FulfilledCount = fulfilledCount;
+                        bDto.IsComplete = (cc != null && cc.isBundleComplete(bIdx)) || (fulfilledCount >= reqCount);
+
+                        try
+                        {
+                            var rewTokens = rewardStr.Split(' ');
+                            if (rewTokens.Length >= 2)
+                            {
+                                string rewId = rewTokens[1];
+                                int rewStack = rewTokens.Length >= 3 && int.TryParse(rewTokens[2], out var rs) ? rs : 1;
+                                var rewItem = ItemRegistry.GetData(rewId) ?? ItemRegistry.GetData("(O)" + rewId);
+                                bDto.RewardName = rewItem?.DisplayName ?? rewId;
+                                bDto.RewardCount = rewStack;
+                            }
+                            else
+                            {
+                                bDto.RewardName = rewardStr;
+                            }
+                        }
+                        catch { bDto.RewardName = rewardStr; }
+
+                        if (rooms.TryGetValue(rIdx, out var targetRoom))
+                        {
+                            targetRoom.Bundles.Add(bDto);
+                        }
+                    }
+                }
+
+                foreach (var r in rooms.Values)
+                {
+                    r.TotalBundles = r.Bundles.Count;
+                    r.CompletedBundles = r.Bundles.Count(b => b.IsComplete);
+                    if (r.TotalBundles > 0 && r.CompletedBundles >= r.TotalBundles)
+                    {
+                        r.IsComplete = true;
+                    }
+                    ccData.Rooms.Add(r);
+                }
+
+                ccData.TotalBundles = ccData.Rooms.Sum(r => r.TotalBundles);
+                ccData.CompletedBundles = ccData.Rooms.Sum(r => r.CompletedBundles);
+                ccData.IsComplete = (cc != null && cc.areAllAreasComplete()) ||
+                                    (ccData.TotalBundles > 0 && ccData.CompletedBundles >= ccData.TotalBundles);
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[API] Error reading community center: {ex.Message}", LogLevel.Error);
+            }
+        });
+
+        if (ccData == null)
+        {
+            response.StatusCode = 500;
+            await WriteJsonAsync(response, new { error = "Failed to load Community Center data." });
+            return;
+        }
+
+        await WriteJsonAsync(response, ccData);
     }
 
     private async Task HandleGetMapTrackingAsync(HttpListenerRequest request, HttpListenerResponse response)
