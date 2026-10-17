@@ -74,6 +74,9 @@ services:
       - HEALTH_CHECK_SECONDS=${HEALTH_CHECK_SECONDS:-300}
       - VERBOSE_LOGGING=${VERBOSE_LOGGING:-false}
       - ENABLE_MOD_INCOMPATIBLE_OPTIMIZATIONS=${ENABLE_MOD_INCOMPATIBLE_OPTIMIZATIONS:-true}
+      # SVE & Custom Mods Auto-Installer
+      - SVE_BUNDLE_URL=${SVE_BUNDLE_URL:-}
+      - FORCE_MODS_REDOWNLOAD=${FORCE_MODS_REDOWNLOAD:-false}
     depends_on:
       - steam-auth
       - redis

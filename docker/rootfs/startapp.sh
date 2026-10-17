@@ -356,6 +356,66 @@ init_mods() {
     fi
 }
 
+init_custom_mods() {
+    local PERSISTENT_MODS_DIR="${GAME_DEST_DIR}/custom-mods"
+    mkdir -p "${PERSISTENT_MODS_DIR}"
+
+    # Automated download if SVE_BUNDLE_URL is configured
+    if [ -n "${SVE_BUNDLE_URL:-}" ]; then
+        local BUNDLE_MARKER="${PERSISTENT_MODS_DIR}/.sve_installed"
+        local NEED_DOWNLOAD=false
+
+        if [ "${FORCE_MODS_REDOWNLOAD:-false}" = "true" ] || [ ! -f "${BUNDLE_MARKER}" ]; then
+            NEED_DOWNLOAD=true
+        fi
+
+        if [ "${NEED_DOWNLOAD}" = "true" ]; then
+            echo "[SVE-Manager] SVE_BUNDLE_URL configured: ${SVE_BUNDLE_URL}"
+            echo "[SVE-Manager] Downloading SVE mod bundle..."
+            local TEMP_ARCHIVE="/tmp/sve_bundle_archive"
+            rm -f "${TEMP_ARCHIVE}"
+
+            if curl -fL --retry 3 --retry-delay 2 -o "${TEMP_ARCHIVE}" "${SVE_BUNDLE_URL}"; then
+                echo "[SVE-Manager] Download successful. Extracting into persistent storage (${PERSISTENT_MODS_DIR})..."
+
+                local EXTRACTED=false
+                if command -v unzip >/dev/null 2>&1 && unzip -q -o "${TEMP_ARCHIVE}" -d "${PERSISTENT_MODS_DIR}" 2>/dev/null; then
+                    echo "[SVE-Manager] Extracted zip archive successfully using unzip."
+                    EXTRACTED=true
+                elif command -v python3 >/dev/null 2>&1 && python3 -m zipfile -e "${TEMP_ARCHIVE}" "${PERSISTENT_MODS_DIR}" 2>/dev/null; then
+                    echo "[SVE-Manager] Extracted zip archive successfully using python3."
+                    EXTRACTED=true
+                elif tar -xf "${TEMP_ARCHIVE}" -C "${PERSISTENT_MODS_DIR}" 2>/dev/null; then
+                    echo "[SVE-Manager] Extracted tar archive successfully using tar."
+                    EXTRACTED=true
+                fi
+
+                if [ "${EXTRACTED}" = "true" ]; then
+                    date -u > "${BUNDLE_MARKER}"
+                    echo "[SVE-Manager] SVE installation completed and persisted."
+                else
+                    echo "[SVE-Manager] ERROR: Extraction failed. Ensure bundle is a valid .zip or .tar.gz archive."
+                fi
+
+                rm -f "${TEMP_ARCHIVE}"
+            else
+                echo "[SVE-Manager] ERROR: Failed to download SVE bundle from ${SVE_BUNDLE_URL}."
+            fi
+        else
+            echo "[SVE-Manager] SVE mod bundle already installed in persistent storage (${PERSISTENT_MODS_DIR}). Skipping re-download."
+        fi
+    fi
+
+    # Sync all custom mods from persistent volume to the active SMAPI Mods directory
+    if [ -d "${PERSISTENT_MODS_DIR}" ]; then
+        local CUSTOM_COUNT=$(find "${PERSISTENT_MODS_DIR}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
+        if [ "${CUSTOM_COUNT}" -gt 0 ]; then
+            echo "[SVE-Manager] Syncing ${CUSTOM_COUNT} custom mod folder(s) to ${MODS_DEST_DIR}..."
+            cp -rf "${PERSISTENT_MODS_DIR}"/* "${MODS_DEST_DIR}/" 2>/dev/null || true
+        fi
+    fi
+}
+
 init_permissions() {
     # Ownership is set by the root cont-init hook (etc/cont-init.d/50-server-init.sh) before
     # this script runs as the non-root app user; here we only ensure the game binary is
@@ -404,6 +464,7 @@ init_smapi
 clear_smapi_marker_prompts
 # init_patch_dll # This seems to strip debug symbols from SDV, so currently disabled to avoid issues in Space Core mod
 init_mods
+init_custom_mods
 init_permissions
 
 # Run the game through SMAPI (with FIFO to pipe commands via CLI).

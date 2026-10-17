@@ -183,6 +183,7 @@ RUN add-pkg \
     # Base packages
     ca-certificates \
     curl \
+    unzip \
     # .NET globalization (SMAPI FailFasts at startup without it)
     libicu76 \
     # SkiaSharp's native image decoder (Content Patcher EditImage) needs fontconfig to load
