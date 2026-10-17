@@ -116,6 +116,19 @@ export const api = {
       request<{ success: boolean }>('/reload', {
         method: 'POST',
       }),
+    pauseGame: (reason?: string) =>
+      request<{ success: boolean; message: string; isPaused: boolean }>('/api/server/pause', {
+        method: 'POST',
+        body: JSON.stringify({ reason: reason || 'Dijeda via Web Admin' }),
+      }),
+    resumeGame: () =>
+      request<{ success: boolean; message: string; isPaused: boolean }>('/api/server/resume', {
+        method: 'POST',
+      }),
+    getPauseStatus: () =>
+      request<{ isPaused: boolean; reason: string; pausedBy: string; remainingSeconds: number }>(
+        '/api/server/pause/status'
+      ),
   },
   backups: {
     list: () => request<BackupEntry[]>('/api/backups'),

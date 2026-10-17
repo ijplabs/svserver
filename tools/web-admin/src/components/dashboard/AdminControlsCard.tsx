@@ -8,13 +8,16 @@ import {
   Monitor, 
   RotateCw, 
   Check, 
-  AlertCircle 
+  AlertCircle,
+  Pause,
+  Play
 } from 'lucide-react';
 
 export const AdminControlsCard: React.FC = () => {
-  const { fetchAll } = useFarmStore();
+  const { status, fetchAll } = useFarmStore();
   const [actionMessage, setActionMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [customReason, setCustomReason] = useState('');
 
   const notify = (text: string, error = false) => {
     setActionMessage({ text, error });
@@ -76,6 +79,34 @@ export const AdminControlsCard: React.FC = () => {
     }
   };
 
+  const handlePause = async (reason?: string) => {
+    setIsProcessing(true);
+    try {
+      const finalReason = reason || customReason.trim() || 'Admin paused the game';
+      await api.server.pauseGame(finalReason);
+      notify(`Game paused: "${finalReason}"`);
+      setCustomReason('');
+      await fetchAll();
+    } catch (err: unknown) {
+      notify(err instanceof Error ? err.message : 'Failed to pause game', true);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleResume = async () => {
+    setIsProcessing(true);
+    try {
+      await api.server.resumeGame();
+      notify('Game resumed successfully');
+      await fetchAll();
+    } catch (err: unknown) {
+      notify(err instanceof Error ? err.message : 'Failed to resume game', true);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
@@ -107,7 +138,62 @@ export const AdminControlsCard: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* World Simulation Pause / Resume */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
+            <Pause className="w-3.5 h-3.5 text-slate-400" />
+            <span>World Simulation</span>
+          </label>
+          {status?.isManuallyPaused ? (
+            <div className="space-y-1.5">
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={handleResume}
+                className="w-full py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5 shadow-xs"
+              >
+                <Play className="w-3.5 h-3.5" />
+                <span>Resume Game</span>
+              </button>
+              <div className="px-2 py-1 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 text-center font-medium">
+                Paused ({Math.floor((status.pauseRemainingSeconds || 0) / 60)}m left)
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={() => handlePause('AFK / Istirahat')}
+                className="w-full py-1.5 px-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5 shadow-xs"
+              >
+                <Pause className="w-3.5 h-3.5" />
+                <span>Pause World</span>
+              </button>
+              <div className="grid grid-cols-2 gap-1 text-[10px]">
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() => handlePause('Kamar Mandi')}
+                  className="py-1 px-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-slate-600 text-center truncate cursor-pointer"
+                  title="Pause: Kamar Mandi"
+                >
+                  Toilet Break
+                </button>
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() => handlePause('Makan / Minum')}
+                  className="py-1 px-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-slate-600 text-center truncate cursor-pointer"
+                  title="Pause: Makan / Minum"
+                >
+                  Meal Break
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         {/* Set Time */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">

@@ -45,6 +45,16 @@ public class AfkWatchdogService : ModService
             return;
         }
 
+        // Freeze AFK watchdog while the world is paused so players on break are never penalized
+        if (Game1.netWorldState?.Value?.IsPaused == true)
+        {
+            foreach (var state in _activity.Values)
+            {
+                state.LastActiveTime = DateTime.UtcNow;
+            }
+            return;
+        }
+
         var now = DateTime.UtcNow;
         var activePlayerIds = new HashSet<long>();
 

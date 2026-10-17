@@ -20,6 +20,10 @@ export interface ServerStatus {
   timeOfDay: number;
   farmTypeKey: string;
   isPaused: boolean;
+  isManuallyPaused?: boolean;
+  pauseReason?: string;
+  pausedBy?: string;
+  pauseRemainingSeconds?: number;
   tps: number;
   sequence: number;
 }

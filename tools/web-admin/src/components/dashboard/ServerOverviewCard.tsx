@@ -8,11 +8,14 @@ import {
   Key, 
   Copy, 
   Check, 
-  AlertTriangle
+  AlertTriangle,
+  Pause,
+  Play
 } from 'lucide-react';
+import { api } from '../../lib/api';
 
 export const ServerOverviewCard: React.FC = () => {
-  const { status, players, cropsSnapshot } = useFarmStore();
+  const { status, players, cropsSnapshot, fetchAll } = useFarmStore();
   const [copied, setCopied] = React.useState(false);
 
   const handleCopyInvite = () => {
@@ -20,6 +23,15 @@ export const ServerOverviewCard: React.FC = () => {
       navigator.clipboard.writeText(status.inviteCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleResume = async () => {
+    try {
+      await api.server.resumeGame();
+      await fetchAll();
+    } catch (err) {
+      console.error('Failed to resume:', err);
     }
   };
 
@@ -32,7 +44,40 @@ export const ServerOverviewCard: React.FC = () => {
   const waterPercent = totalCrops > 0 ? Math.round((wateredCrops / totalCrops) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-4">
+      {/* Active Manual Pause Alert Banner */}
+      {status?.isManuallyPaused && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs">
+          <div className="flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+              <Pause className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold uppercase tracking-wider bg-amber-200/80 px-2 py-0.5 rounded text-amber-900">
+                  Dunia Sedang Dijeda (Paused)
+                </span>
+                <span className="text-xs text-amber-700">
+                  oleh {status.pausedBy || 'Admin'}
+                </span>
+              </div>
+              <p className="text-xs font-medium text-amber-800 mt-0.5">
+                Alasan: "{status.pauseReason || 'AFK / Istirahat'}" • Jam game berhenti • Sisa batas aman: {Math.floor((status.pauseRemainingSeconds || 0) / 60)}m {(status.pauseRemainingSeconds || 0) % 60}s
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleResume}
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0"
+          >
+            <Play className="w-3.5 h-3.5" />
+            <span>Lanjutkan Game (Resume)</span>
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Invite Code Card */}
       <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between">
         <div className="flex items-center justify-between">
@@ -160,6 +205,7 @@ export const ServerOverviewCard: React.FC = () => {
           </span>
         </div>
       </div>
+    </div>
     </div>
   );
 };

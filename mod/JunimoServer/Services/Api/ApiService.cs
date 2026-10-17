@@ -136,6 +136,18 @@ public class ServerStatus
     /// <summary>Whether the game clock is currently paused (no players connected, or time not passing).</summary>
     public bool IsPaused { get; set; }
 
+    /// <summary>Whether the world was paused manually by players or sysadmin.</summary>
+    public bool IsManuallyPaused { get; set; }
+
+    /// <summary>Reason for manual pause.</summary>
+    public string PauseReason { get; set; } = "";
+
+    /// <summary>Player or admin who initiated manual pause.</summary>
+    public string PausedBy { get; set; } = "";
+
+    /// <summary>Remaining seconds before automatic resume timeout.</summary>
+    public int PauseRemainingSeconds { get; set; }
+
     /// <summary>Measured game ticks per second over at least the last 30 seconds (see /stats for the instant value and target).</summary>
     public double Tps { get; set; }
 
@@ -1333,6 +1345,7 @@ public partial class ApiService : ModService
     private readonly ModManagement.ModEnforcementService? _modEnforcementService;
     private readonly ModManagement.ModDistributionService? _modDistributionService;
     private readonly ChatCommands.ChatCommandsService? _chatCommandsService;
+    private readonly HostAutomation.PauseService? _pauseService;
 
     public ApiService(
         IModHelper helper,
@@ -1354,7 +1367,8 @@ public partial class ApiService : ModService
         HostAutomation.AfkWatchdogService? afkWatchdogService = null,
         ModManagement.ModEnforcementService? modEnforcementService = null,
         ModManagement.ModDistributionService? modDistributionService = null,
-        ChatCommands.ChatCommandsService? chatCommandsService = null
+        ChatCommands.ChatCommandsService? chatCommandsService = null,
+        HostAutomation.PauseService? pauseService = null
     )
         : base(helper, monitor)
     {
@@ -1376,11 +1390,27 @@ public partial class ApiService : ModService
         _modEnforcementService = modEnforcementService;
         _modDistributionService = modDistributionService;
         _chatCommandsService = chatCommandsService;
+        _pauseService = pauseService;
 
         if (_chatCommandsService != null)
         {
             _chatCommandsService.OnPlayerChatMessage += (player, msg) => BroadcastChatMessage(player, msg);
             OnExternalChatMessage += _chatCommandsService.SendExternalMessage;
+        }
+
+        if (_pauseService != null)
+        {
+            _pauseService.OnPauseStateChanged += (isPaused, by, reason) =>
+            {
+                BroadcastToAllClients(new
+                {
+                    type = "pause_changed",
+                    isPaused,
+                    pausedBy = by,
+                    reason,
+                    timestamp = DateTime.UtcNow.ToString("o")
+                });
+            };
         }
 
         _instance = this;
@@ -2557,7 +2587,23 @@ public partial class ApiService : ModService
                         await WriteJsonAsync(response, new
                         {
                             sleepVote = _sleepVoteService?.GetStatus(),
-                            afkWatchdog = _afkWatchdogService?.GetStatus()
+                            afkWatchdog = _afkWatchdogService?.GetStatus(),
+                            pause = new
+                            {
+                                isPaused = _pauseService?.IsManuallyPaused ?? false,
+                                reason = _pauseService?.PauseReason ?? "",
+                                pausedBy = _pauseService?.PausedBy ?? "",
+                                remainingSeconds = _pauseService?.GetRemainingSeconds() ?? 0
+                            }
+                        });
+                        break;
+                    case "/api/server/pause/status":
+                        await WriteJsonAsync(response, new
+                        {
+                            isPaused = _pauseService?.IsManuallyPaused ?? false,
+                            reason = _pauseService?.PauseReason ?? "",
+                            pausedBy = _pauseService?.PausedBy ?? "",
+                            remainingSeconds = _pauseService?.GetRemainingSeconds() ?? 0
                         });
                         break;
                     case "/api/chat/history":
@@ -2692,8 +2738,13 @@ public partial class ApiService : ModService
                     case "/api/mods/policy":
                         await HandlePostModPolicyAsync(request, response);
                         break;
-                    case "/api/mods/policy/sync-sve":
-                        await HandlePostModPolicySyncSveAsync(request, response);
+                    case "/api/server/pause":
+                    case "/api/admin/pause":
+                        await HandlePostServerPauseAsync(request, response);
+                        break;
+                    case "/api/server/resume":
+                    case "/api/admin/resume":
+                        await HandlePostServerResumeAsync(request, response);
                         break;
                     case "/api/admin/approve-player":
                         var approveUser = await GetUserFromRequestAsync(request);
@@ -3399,6 +3450,10 @@ public partial class ApiService : ModService
             TimeOfDay = snap.TimeOfDay,
             FarmTypeKey = snap.FarmTypeKey,
             IsPaused = snap.IsPaused,
+            IsManuallyPaused = _pauseService?.IsManuallyPaused ?? false,
+            PauseReason = _pauseService?.PauseReason ?? "",
+            PausedBy = _pauseService?.PausedBy ?? "",
+            PauseRemainingSeconds = _pauseService?.GetRemainingSeconds() ?? 0,
             Weather = snap.Weather,
             WeatherTomorrow = snap.WeatherTomorrow,
             Tps = tps,
@@ -6385,6 +6440,77 @@ public partial class ApiService : ModService
             command = commandText,
             output = output,
             timestamp = DateTime.UtcNow.ToString("o")
+        });
+    }
+
+    private async Task HandlePostServerPauseAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        if (_pauseService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Pause service not available." });
+            return;
+        }
+
+        var user = await GetUserFromRequestAsync(request);
+        string initiatorName = user?.Username ?? "Web Admin";
+
+        string reason = "Web Admin Pause";
+        try
+        {
+            using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+            var bodyText = await reader.ReadToEndAsync();
+            if (!string.IsNullOrWhiteSpace(bodyText))
+            {
+                var bodyObj = Newtonsoft.Json.Linq.JObject.Parse(bodyText);
+                if (bodyObj["reason"] != null)
+                {
+                    reason = bodyObj["reason"]!.ToString();
+                }
+            }
+        }
+        catch
+        {
+            // Ignore parse errors, default reason used
+        }
+
+        await RunOnGameThreadAsync(() =>
+        {
+            _pauseService.PauseGame(initiatorName, reason);
+        });
+
+        await WriteJsonAsync(response, new
+        {
+            success = true,
+            message = $"Server paused by {initiatorName}.",
+            isPaused = true,
+            reason,
+            pausedBy = initiatorName
+        });
+    }
+
+    private async Task HandlePostServerResumeAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        if (_pauseService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Pause service not available." });
+            return;
+        }
+
+        var user = await GetUserFromRequestAsync(request);
+        string initiatorName = user?.Username ?? "Web Admin";
+
+        await RunOnGameThreadAsync(() =>
+        {
+            _pauseService.ResumeGame(initiatorName);
+        });
+
+        await WriteJsonAsync(response, new
+        {
+            success = true,
+            message = $"Server resumed by {initiatorName}.",
+            isPaused = false
         });
     }
 

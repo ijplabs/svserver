@@ -68,6 +68,7 @@ public class AlwaysOnServer : ModService
     private readonly AlwaysOnModCompat modCompat;
 
     private readonly AlwaysOnConfig Config;
+    private readonly HostAutomation.PauseService? _pauseService;
 
     public AlwaysOnServer(
         ChatCommandsService chatCommandService,
@@ -76,13 +77,15 @@ public class AlwaysOnServer : ModService
         IMonitor monitor,
         Harmony harmony,
         LobbyService lobbyService,
-        SaveImportService saveImportService
+        SaveImportService saveImportService,
+        HostAutomation.PauseService? pauseService = null
     )
         : base(helper, monitor)
     {
         Config = config;
         _lobbyService = lobbyService;
         _saveImportService = saveImportService;
+        _pauseService = pauseService;
 
         // Register console commands
         helper.ConsoleCommands.Register(
@@ -370,7 +373,10 @@ public class AlwaysOnServer : ModService
         // Automate choices
         if (!IsAutomating)
         {
-            Game1.netWorldState.Value.IsPaused = false;
+            if (_pauseService?.IsManuallyPaused != true)
+            {
+                Game1.netWorldState.Value.IsPaused = false;
+            }
             return;
         }
 
@@ -1058,6 +1064,15 @@ public class AlwaysOnServer : ModService
             SetPaused(false, "day transition in flight");
             _hostSleepRequestedAt = null;
             _emptyPastCutoffSince = null;
+            return;
+        }
+
+        // Manual pause requested by in-game players or sysadmin via Web Admin (!pause / Web Admin)
+        if (_pauseService != null && _pauseService.IsManuallyPaused)
+        {
+            SetPaused(true, $"manual pause ({_pauseService.PausedBy}: {_pauseService.PauseReason})");
+            _emptyPastCutoffSince = null;
+            _emptyPendingWarpStartTime = null;
             return;
         }
 
