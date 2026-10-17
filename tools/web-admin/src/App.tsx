@@ -23,6 +23,17 @@ export const App: React.FC = () => {
   const { user, isLoading: authLoading, checkAuth } = useAuthStore();
   const { startPolling, stopPolling, lastUpdated } = useFarmStore();
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
+  const [isWidescreen, setIsWidescreen] = useState<boolean>(() => {
+    return localStorage.getItem('sv_layout_widescreen') === 'true';
+  });
+
+  const handleToggleWidescreen = () => {
+    setIsWidescreen((prev) => {
+      const next = !prev;
+      localStorage.setItem('sv_layout_widescreen', String(next));
+      return next;
+    });
+  };
 
   const isSuperadmin = user?.role === 'SUPERADMIN';
   const isAdmin = user?.role === 'ADMIN' || isSuperadmin;
@@ -47,7 +58,7 @@ export const App: React.FC = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
         <Loader2 className="w-8 h-8 animate-spin text-slate-900 mb-3" />
         <span className="text-xs font-semibold tracking-wider uppercase text-slate-600">
-          Loading Junimo Portal...
+          Memuat Junimo Portal...
         </span>
       </div>
     );
@@ -62,10 +73,19 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      <Navbar activeTab={activeTab} onSelectTab={setActiveTab} />
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-emerald-500 selection:text-white">
+      <Navbar 
+        activeTab={activeTab} 
+        onSelectTab={setActiveTab} 
+        isWidescreen={isWidescreen}
+        onToggleWidescreen={handleToggleWidescreen}
+      />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main 
+        className={`flex-1 w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 pb-24 lg:pb-8 transition-all duration-200 ${
+          isWidescreen ? 'max-w-[1920px]' : 'max-w-7xl'
+        }`}
+      >
         {/* Tab: Server Overview & Automation Controls (Admin Only) */}
         {activeTab === 'overview' && isAdmin && (
           <div className="space-y-6">
@@ -147,16 +167,22 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="border-t border-slate-200 bg-white py-4 mt-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+      <footer className="border-t border-slate-200 bg-white py-4 mt-auto hidden lg:block">
+        <div 
+          className={`mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2 transition-all duration-200 ${
+            isWidescreen ? 'max-w-[1920px]' : 'max-w-7xl'
+          }`}
+        >
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-slate-700">JunimoServer Enterprise</span>
+            <span className="font-semibold text-slate-800">JunimoServer Enterprise</span>
             <span>•</span>
             <span>Operations & Management Portal</span>
           </div>
           <div>
             {lastUpdated && (
-              <span>Last telemetry sync: {lastUpdated.toLocaleTimeString()}</span>
+              <span className="font-mono tabular-nums">
+                Sinkronisasi telemetri terakhir: {lastUpdated.toLocaleTimeString()}
+              </span>
             )}
           </div>
         </div>
