@@ -1328,6 +1328,7 @@ public partial class ApiService : ModService
     private readonly Economy.BankService? _bankService;
     private readonly HostAutomation.SleepVoteService? _sleepVoteService;
     private readonly HostAutomation.AfkWatchdogService? _afkWatchdogService;
+    private readonly ModManagement.ModEnforcementService? _modEnforcementService;
 
     public ApiService(
         IModHelper helper,
@@ -1346,7 +1347,8 @@ public partial class ApiService : ModService
         Backup.BackupService? backupService = null,
         Economy.BankService? bankService = null,
         HostAutomation.SleepVoteService? sleepVoteService = null,
-        HostAutomation.AfkWatchdogService? afkWatchdogService = null
+        HostAutomation.AfkWatchdogService? afkWatchdogService = null,
+        ModManagement.ModEnforcementService? modEnforcementService = null
     )
         : base(helper, monitor)
     {
@@ -1365,6 +1367,7 @@ public partial class ApiService : ModService
         _bankService = bankService;
         _sleepVoteService = sleepVoteService;
         _afkWatchdogService = afkWatchdogService;
+        _modEnforcementService = modEnforcementService;
         _instance = this;
     }
 
@@ -2475,6 +2478,18 @@ public partial class ApiService : ModService
                     case "/api/backups":
                         await WriteJsonAsync(response, _backupService?.GetBackups() ?? new List<Backup.BackupEntry>());
                         break;
+                    case "/api/mods/installed":
+                        await WriteJsonAsync(response, _modEnforcementService?.GetInstalledServerMods() ?? new List<ModManagement.ServerInstalledModInfo>());
+                        break;
+                    case "/api/mods/policy":
+                        await WriteJsonAsync(response, new
+                        {
+                            policy = _modEnforcementService?.GetPolicy() ?? new ModManagement.ModPolicyData(),
+                            installedCount = _modEnforcementService?.GetInstalledServerMods().Count ?? 0,
+                            rejections = _modEnforcementService?.GetRecentRejections() ?? new List<ModManagement.ModRejectionLog>(),
+                            connectedPeers = _modEnforcementService?.GetConnectedPeerAudits() ?? new List<ModManagement.PeerAuditInfo>()
+                        });
+                        break;
                     case "/api/backup/download":
                         var downloadFile = request.QueryString["file"];
                         if (string.IsNullOrEmpty(downloadFile))
@@ -2639,6 +2654,12 @@ public partial class ApiService : ModService
                         break;
                     case "/api/console/execute":
                         await HandlePostConsoleExecuteAsync(request, response);
+                        break;
+                    case "/api/mods/policy":
+                        await HandlePostModPolicyAsync(request, response);
+                        break;
+                    case "/api/mods/policy/sync-sve":
+                        await HandlePostModPolicySyncSveAsync(request, response);
                         break;
                     case "/api/admin/approve-player":
                         var approveUser = await GetUserFromRequestAsync(request);
@@ -6329,6 +6350,72 @@ public partial class ApiService : ModService
             command = commandText,
             output = output,
             timestamp = DateTime.UtcNow.ToString("o")
+        });
+    }
+
+    private async Task HandlePostModPolicyAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null || (user.Value.Role != "SUPERADMIN" && user.Value.Role != "ADMIN"))
+        {
+            response.StatusCode = 403;
+            await WriteJsonAsync(response, new { error = "Administrator role required." });
+            return;
+        }
+
+        if (_modEnforcementService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Mod enforcement service is not active." });
+            return;
+        }
+
+        try
+        {
+            using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+            var body = await reader.ReadToEndAsync();
+            var newPolicy = JsonConvert.DeserializeObject<ModManagement.ModPolicyData>(body);
+            if (newPolicy == null)
+            {
+                response.StatusCode = 400;
+                await WriteJsonAsync(response, new { error = "Invalid policy JSON payload." });
+                return;
+            }
+
+            _modEnforcementService.UpdatePolicy(newPolicy);
+            await WriteJsonAsync(response, new { success = true, policy = _modEnforcementService.GetPolicy() });
+        }
+        catch (Exception ex)
+        {
+            response.StatusCode = 500;
+            await WriteJsonAsync(response, new { error = ex.Message });
+        }
+    }
+
+    private async Task HandlePostModPolicySyncSveAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null || (user.Value.Role != "SUPERADMIN" && user.Value.Role != "ADMIN"))
+        {
+            response.StatusCode = 403;
+            await WriteJsonAsync(response, new { error = "Administrator role required." });
+            return;
+        }
+
+        if (_modEnforcementService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Mod enforcement service is not active." });
+            return;
+        }
+
+        int added = _modEnforcementService.AutoSyncServerMods();
+        await WriteJsonAsync(response, new
+        {
+            success = true,
+            addedCount = added,
+            message = $"Successfully synced {added} mod(s) to required policy.",
+            policy = _modEnforcementService.GetPolicy()
         });
     }
 

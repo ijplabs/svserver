@@ -16,6 +16,7 @@ import { LivestockDashboard } from './components/livestock/LivestockDashboard';
 import { FarmerProfileCard } from './components/farmer/FarmerProfileCard';
 import { ValleyMapCard } from './components/map/ValleyMapCard';
 import { UserManagementCard } from './components/admin/UserManagementCard';
+import { ModManagementCard } from './components/mods/ModManagementCard';
 import { Loader2 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -135,6 +136,13 @@ export const App: React.FC = () => {
         {activeTab === 'users' && isAdmin && (
           <div className="space-y-6">
             <UserManagementCard />
+          </div>
+        )}
+
+        {/* Tab: Centralized Mod Management & Policy (Admin Only) */}
+        {activeTab === 'mods' && isAdmin && (
+          <div className="space-y-6">
+            <ModManagementCard />
           </div>
         )}
       </main>

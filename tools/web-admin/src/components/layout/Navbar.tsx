@@ -19,10 +19,11 @@ import {
   Archive,
   Coins,
   Compass,
-  Users
+  Users,
+  Blocks
 } from 'lucide-react';
 
-export type NavTab = 'overview' | 'character' | 'crops' | 'animals' | 'map' | 'chat' | 'console' | 'backups' | 'economy' | 'users';
+export type NavTab = 'overview' | 'character' | 'crops' | 'animals' | 'map' | 'chat' | 'console' | 'backups' | 'economy' | 'users' | 'mods';
 
 interface NavbarProps {
   activeTab: NavTab;
@@ -73,6 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
         { id: 'backups', label: 'Cadangan (Backups)', icon: Archive },
         { id: 'economy', label: 'Bank & Ekonomi', icon: Coins },
         { id: 'users', label: 'Akses & Whitelist', icon: Users },
+        { id: 'mods', label: 'Pusat Mod', icon: Blocks },
       ]
     : [
         { id: 'character', label: 'Karakter Saya', icon: User },

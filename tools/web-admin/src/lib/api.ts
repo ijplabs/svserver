@@ -179,4 +179,20 @@ export const api = {
   map: {
     getTracking: () => request<import('../types/map').MapTrackingResponse>('/api/map/tracking'),
   },
+  mods: {
+    getInstalled: () => request<import('../types/mods').ServerInstalledMod[]>('/api/mods/installed'),
+    getPolicy: () => request<import('../types/mods').ModPolicyResponse>('/api/mods/policy'),
+    updatePolicy: (policy: import('../types/mods').ModPolicy) =>
+      request<{ success: boolean; policy: import('../types/mods').ModPolicy }>('/api/mods/policy', {
+        method: 'POST',
+        body: JSON.stringify(policy),
+      }),
+    syncSve: () =>
+      request<{ success: boolean; addedCount: number; message: string; policy: import('../types/mods').ModPolicy }>(
+        '/api/mods/policy/sync-sve',
+        {
+          method: 'POST',
+        }
+      ),
+  },
 };

@@ -1,0 +1,647 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Blocks,
+  ShieldCheck,
+  ShieldAlert,
+  CheckCircle2,
+  XCircle,
+  Plus,
+  Trash2,
+  RefreshCw,
+  AlertTriangle,
+  Users,
+  Layers
+} from 'lucide-react';
+import { api } from '../../lib/api';
+import type {
+  ServerInstalledMod,
+  ModPolicy,
+  ConnectedPeerAudit,
+  ModRejectionLog
+} from '../../types/mods';
+
+export const ModManagementCard: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [installedMods, setInstalledMods] = useState<ServerInstalledMod[]>([]);
+  const [policy, setPolicy] = useState<ModPolicy>({
+    enforcementMode: 'Disabled',
+    requiredMods: [],
+    blacklistedMods: []
+  });
+  const [rejections, setRejections] = useState<ModRejectionLog[]>([]);
+  const [connectedPeers, setConnectedPeers] = useState<ConnectedPeerAudit[]>([]);
+  const [activeSubTab, setActiveSubTab] = useState<'required' | 'blacklisted' | 'server' | 'audit'>('required');
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // New Required Mod Form State
+  const [newReqId, setNewReqId] = useState('');
+  const [newReqName, setNewReqName] = useState('');
+  const [newReqMinVer, setNewReqMinVer] = useState('');
+
+  // New Blacklisted Mod Form State
+  const [newBlackId, setNewBlackId] = useState('');
+  const [newBlackName, setNewBlackName] = useState('');
+  const [newBlackReason, setNewBlackReason] = useState('');
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [policyRes, installedRes] = await Promise.all([
+        api.mods.getPolicy(),
+        api.mods.getInstalled()
+      ]);
+      setPolicy(policyRes.policy);
+      setRejections(policyRes.rejections || []);
+      setConnectedPeers(policyRes.connectedPeers || []);
+      setInstalledMods(installedRes || []);
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Gagal memuat data kebijakan mod', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSavePolicy = async (updatedPolicy: ModPolicy) => {
+    try {
+      setSaving(true);
+      const res = await api.mods.updatePolicy(updatedPolicy);
+      setPolicy(res.policy);
+      setMessage({ text: 'Kebijakan mod berhasil disimpan', type: 'success' });
+      setTimeout(() => setMessage(null), 4000);
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Gagal menyimpan kebijakan mod', type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSyncSve = async () => {
+    try {
+      setSyncing(true);
+      const res = await api.mods.syncSve();
+      setPolicy(res.policy);
+      setMessage({ text: res.message || 'Sinkronisasi mod server berhasil', type: 'success' });
+      setTimeout(() => setMessage(null), 4000);
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Gagal menyinkronkan mod SVE', type: 'error' });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleAddRequiredMod = () => {
+    if (!newReqId.trim()) return;
+    const updated: ModPolicy = {
+      ...policy,
+      requiredMods: [
+        ...policy.requiredMods,
+        {
+          uniqueId: newReqId.trim(),
+          name: newReqName.trim() || newReqId.trim(),
+          minVersion: newReqMinVer.trim() || undefined,
+          required: true
+        }
+      ]
+    };
+    setNewReqId('');
+    setNewReqName('');
+    setNewReqMinVer('');
+    handleSavePolicy(updated);
+  };
+
+  const handleRemoveRequiredMod = (id: string) => {
+    const updated: ModPolicy = {
+      ...policy,
+      requiredMods: policy.requiredMods.filter((m) => m.uniqueId !== id)
+    };
+    handleSavePolicy(updated);
+  };
+
+  const handleAddBlacklistedMod = () => {
+    if (!newBlackId.trim()) return;
+    const updated: ModPolicy = {
+      ...policy,
+      blacklistedMods: [
+        ...policy.blacklistedMods,
+        {
+          uniqueId: newBlackId.trim(),
+          name: newBlackName.trim() || newBlackId.trim(),
+          reason: newBlackReason.trim() || 'Mod dilarang oleh peraturan server'
+        }
+      ]
+    };
+    setNewBlackId('');
+    setNewBlackName('');
+    setNewBlackReason('');
+    handleSavePolicy(updated);
+  };
+
+  const handleRemoveBlacklistedMod = (id: string) => {
+    const updated: ModPolicy = {
+      ...policy,
+      blacklistedMods: policy.blacklistedMods.filter((m) => m.uniqueId !== id)
+    };
+    handleSavePolicy(updated);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Top Banner / Actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
+            <Blocks className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-100">Pusat Mod & Validasi Klien</h2>
+            <p className="text-sm text-slate-400">
+              Validasi otomatis mod pemain langsung dari server menggunakan protokol SMAPI multiplayer.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl border border-slate-700 transition"
+            title="Muat Ulang"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={handleSyncSve}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-xl border border-slate-700 transition"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            Auto-Sync Mod Server
+          </button>
+        </div>
+      </div>
+
+      {message && (
+        <div
+          className={`flex items-center gap-2 p-4 rounded-xl text-sm font-medium ${
+            message.type === 'success'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+              : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+          }`}
+        >
+          {message.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+          {message.text}
+        </div>
+      )}
+
+      {/* Enforcement Mode Selector */}
+      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-slate-200">Mode Penegakan Kebijakan Klien</h3>
+            <p className="text-xs text-slate-400">
+              Tentukan bagaimana server memeriksa klien yang mencoba login ke multiplayer.
+            </p>
+          </div>
+          <span
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${
+              policy.enforcementMode === 'StrictRequired'
+                ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                : policy.enforcementMode === 'RequireSmapi'
+                ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                : 'bg-slate-800 border-slate-700 text-slate-400'
+            }`}
+          >
+            {policy.enforcementMode === 'StrictRequired'
+              ? 'Validasi Ketat Mod'
+              : policy.enforcementMode === 'RequireSmapi'
+              ? 'Wajib SMAPI'
+              : 'Bebas / Nonaktif'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            onClick={() => handleSavePolicy({ ...policy, enforcementMode: 'Disabled' })}
+            className={`cursor-pointer p-4 rounded-xl border transition ${
+              policy.enforcementMode === 'Disabled'
+                ? 'bg-slate-800/80 border-indigo-500/50 shadow-sm'
+                : 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2
+                className={`w-4 h-4 ${
+                  policy.enforcementMode === 'Disabled' ? 'text-indigo-400' : 'text-slate-500'
+                }`}
+              />
+              <span className="text-sm font-semibold text-slate-200">Nonaktif (Bebas)</span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Pemain vanilla maupun bermod bebas bergabung tanpa pengecekan integritas mod.
+            </p>
+          </div>
+
+          <div
+            onClick={() => handleSavePolicy({ ...policy, enforcementMode: 'RequireSmapi' })}
+            className={`cursor-pointer p-4 rounded-xl border transition ${
+              policy.enforcementMode === 'RequireSmapi'
+                ? 'bg-slate-800/80 border-amber-500/50 shadow-sm'
+                : 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldCheck
+                className={`w-4 h-4 ${
+                  policy.enforcementMode === 'RequireSmapi' ? 'text-amber-400' : 'text-slate-500'
+                }`}
+              />
+              <span className="text-sm font-semibold text-slate-200">Wajib SMAPI</span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Menolak klien vanilla murni. Pemain wajib menggunakan SMAPI untuk login.
+            </p>
+          </div>
+
+          <div
+            onClick={() => handleSavePolicy({ ...policy, enforcementMode: 'StrictRequired' })}
+            className={`cursor-pointer p-4 rounded-xl border transition ${
+              policy.enforcementMode === 'StrictRequired'
+                ? 'bg-slate-800/80 border-rose-500/50 shadow-sm'
+                : 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldAlert
+                className={`w-4 h-4 ${
+                  policy.enforcementMode === 'StrictRequired' ? 'text-rose-400' : 'text-slate-500'
+                }`}
+              />
+              <span className="text-sm font-semibold text-slate-200">Validasi Ketat Mod</span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Pemain wajib memiliki seluruh mod yang ada pada Daftar Mod Wajib dengan versi yang kompatibel.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Sub-tab Navigation */}
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+        <button
+          onClick={() => setActiveSubTab('required')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+            activeSubTab === 'required'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          Mod Wajib ({policy.requiredMods.length})
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('blacklisted')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+            activeSubTab === 'blacklisted'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+          }`}
+        >
+          <XCircle className="w-4 h-4" />
+          Mod Dilarang ({policy.blacklistedMods.length})
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('server')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+            activeSubTab === 'server'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          Mod Server ({installedMods.length})
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('audit')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+            activeSubTab === 'audit'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Audit & Log Penolakan
+        </button>
+      </div>
+
+      {/* Sub-tab 1: Mod Wajib (Required Mods) */}
+      {activeSubTab === 'required' && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-semibold text-slate-100">Daftar Mod Wajib (Required Mods)</h3>
+              <p className="text-xs text-slate-400">
+                Pemain yang tidak memasang mod-mod ini akan otomatis ditolak dan diputuskan dari server.
+              </p>
+            </div>
+          </div>
+
+          {/* Form Tambah Mod Wajib */}
+          <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Tambah Aturan Mod Wajib</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input
+                type="text"
+                placeholder="Unique ID (misal: Pathoschild.ContentPatcher)"
+                value={newReqId}
+                onChange={(e) => setNewReqId(e.target.value)}
+                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+              <input
+                type="text"
+                placeholder="Nama Mod (misal: Content Patcher)"
+                value={newReqName}
+                onChange={(e) => setNewReqName(e.target.value)}
+                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Min Versi (opsional, misal: 2.0.0)"
+                  value={newReqMinVer}
+                  onChange={(e) => setNewReqMinVer(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                />
+                <button
+                  onClick={handleAddRequiredMod}
+                  disabled={saving || !newReqId.trim()}
+                  className="flex items-center gap-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold whitespace-nowrap transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Tambah
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabel Mod Wajib */}
+          {policy.requiredMods.length === 0 ? (
+            <div className="text-center py-8 text-slate-500 text-sm">
+              Belum ada mod wajib yang dikonfigurasi. Klik tombol "Auto-Sync Mod Server" di atas untuk menambahkan mod ekspansi seperti SVE secara otomatis.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/40 text-slate-400 font-semibold border-b border-slate-800">
+                  <tr>
+                    <th className="p-3">Nama Mod</th>
+                    <th className="p-3">Unique ID</th>
+                    <th className="p-3">Versi Minimum</th>
+                    <th className="p-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                  {policy.requiredMods.map((mod) => (
+                    <tr key={mod.uniqueId} className="hover:bg-slate-800/30 transition">
+                      <td className="p-3 font-medium text-slate-100">{mod.name}</td>
+                      <td className="p-3 font-mono text-slate-400">{mod.uniqueId}</td>
+                      <td className="p-3">
+                        {mod.minVersion ? (
+                          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                            {mod.minVersion}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">Versi apa saja</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => handleRemoveRequiredMod(mod.uniqueId)}
+                          disabled={saving}
+                          className="p-1.5 hover:bg-rose-500/10 text-rose-400 rounded-lg transition"
+                          title="Hapus dari daftar wajib"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sub-tab 2: Mod Dilarang (Blacklisted Mods) */}
+      {activeSubTab === 'blacklisted' && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+          <div>
+            <h3 className="text-base font-semibold text-slate-100">Daftar Mod Dilarang (Blacklisted Mods)</h3>
+            <p className="text-xs text-slate-400">
+              Pemain yang terdeteksi membawa mod-mod ini akan langsung ditolak saat mencoba login.
+            </p>
+          </div>
+
+          {/* Form Tambah Mod Dilarang */}
+          <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Tambah Mod Terlarang</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input
+                type="text"
+                placeholder="Unique ID (misal: CJBok.CheatsMenu)"
+                value={newBlackId}
+                onChange={(e) => setNewBlackId(e.target.value)}
+                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+              <input
+                type="text"
+                placeholder="Nama Mod (misal: Cheats Menu)"
+                value={newBlackName}
+                onChange={(e) => setNewBlackName(e.target.value)}
+                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Alasan penolakan"
+                  value={newBlackReason}
+                  onChange={(e) => setNewBlackReason(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                />
+                <button
+                  onClick={handleAddBlacklistedMod}
+                  disabled={saving || !newBlackId.trim()}
+                  className="flex items-center gap-1 px-3 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold whitespace-nowrap transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Tambah
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabel Mod Terlarang */}
+          {policy.blacklistedMods.length === 0 ? (
+            <div className="text-center py-8 text-slate-500 text-sm">
+              Tidak ada mod yang dilarang saat ini.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/40 text-slate-400 font-semibold border-b border-slate-800">
+                  <tr>
+                    <th className="p-3">Nama Mod</th>
+                    <th className="p-3">Unique ID</th>
+                    <th className="p-3">Alasan Penolakan</th>
+                    <th className="p-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                  {policy.blacklistedMods.map((mod) => (
+                    <tr key={mod.uniqueId} className="hover:bg-slate-800/30 transition">
+                      <td className="p-3 font-medium text-slate-100">{mod.name}</td>
+                      <td className="p-3 font-mono text-slate-400">{mod.uniqueId}</td>
+                      <td className="p-3 text-slate-300">{mod.reason}</td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => handleRemoveBlacklistedMod(mod.uniqueId)}
+                          disabled={saving}
+                          className="p-1.5 hover:bg-rose-500/10 text-rose-400 rounded-lg transition"
+                          title="Hapus dari daftar hitam"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sub-tab 3: Mod Terpasang di Server (Server-Installed Mods) */}
+      {activeSubTab === 'server' && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-slate-100">Mod Terpasang di Server ({installedMods.length})</h3>
+              <p className="text-xs text-slate-400">
+                Daftar mod yang sedang berjalan di dalam kontainer SMAPI server host.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {installedMods.map((mod) => (
+              <div
+                key={mod.uniqueId}
+                className="p-4 bg-slate-950/50 border border-slate-800 rounded-xl space-y-2 hover:border-slate-700 transition"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <h4 className="text-sm font-semibold text-slate-200">{mod.name}</h4>
+                    <p className="text-xs font-mono text-slate-400">{mod.uniqueId}</p>
+                  </div>
+                  <span className="px-2 py-0.5 text-xs font-mono rounded bg-slate-800 text-indigo-400 border border-slate-700">
+                    v{mod.version}
+                  </span>
+                </div>
+                {mod.author && <p className="text-xs text-slate-500">Author: {mod.author}</p>}
+                {mod.description && (
+                  <p className="text-xs text-slate-400 line-clamp-2">{mod.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sub-tab 4: Audit & Log Penolakan */}
+      {activeSubTab === 'audit' && (
+        <div className="space-y-6">
+          {/* Pemain Online Mod Audit */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-100">Mod Pemain yang Sedang Online</h3>
+            {connectedPeers.length === 0 ? (
+              <p className="text-xs text-slate-500">Tidak ada pemain yang sedang terhubung.</p>
+            ) : (
+              <div className="space-y-3">
+                {connectedPeers.map((peer) => (
+                  <div key={peer.playerId} className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-indigo-400" />
+                        <span className="text-sm font-semibold text-slate-200">{peer.farmerName}</span>
+                        <span className="text-xs text-slate-400 font-mono">#{peer.playerId}</span>
+                      </div>
+                      <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                        SMAPI: {peer.smapiVersion} ({peer.modCount} mod)
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {peer.mods.map((m) => (
+                        <span
+                          key={m.uniqueId}
+                          className="px-2 py-0.5 text-xs bg-slate-800/80 text-slate-300 rounded border border-slate-700 font-mono"
+                        >
+                          {m.uniqueId} <span className="text-slate-500">v{m.version}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Riwayat Penolakan Login */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h3 className="text-base font-semibold text-slate-100">Riwayat Penolakan Login Klien</h3>
+            {rejections.length === 0 ? (
+              <p className="text-xs text-slate-500">Belum ada riwayat penolakan klien.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950/40 text-slate-400 font-semibold border-b border-slate-800">
+                    <tr>
+                      <th className="p-3">Waktu (UTC)</th>
+                      <th className="p-3">Nama Pemain</th>
+                      <th className="p-3">Alasan Penolakan</th>
+                      <th className="p-3">Target Mod</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                    {rejections.map((rej, idx) => (
+                      <tr key={idx} className="hover:bg-slate-800/30 transition">
+                        <td className="p-3 text-slate-400 font-mono">
+                          {new Date(rej.timestampUtc).toLocaleTimeString()}
+                        </td>
+                        <td className="p-3 font-semibold text-slate-100">{rej.farmerName}</td>
+                        <td className="p-3 text-rose-400">{rej.reason}</td>
+                        <td className="p-3 font-mono text-slate-400">{rej.modId || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
