@@ -177,6 +177,36 @@ public class BackupService : ModService
         return list;
     }
 
+    public string? GetBackupFilePath(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName) || fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
+        {
+            return null;
+        }
+
+        var fullPath = Path.Combine(GetBackupsDirectory(), fileName);
+        return File.Exists(fullPath) ? fullPath : null;
+    }
+
+    public bool DeleteBackup(string fileName)
+    {
+        var path = GetBackupFilePath(fileName);
+        if (path != null && File.Exists(path))
+        {
+            try
+            {
+                File.Delete(path);
+                _monitor.Log($"[Backup] Manually deleted backup archive: {fileName}", LogLevel.Info);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Backup] Failed to delete backup archive {fileName}: {ex.Message}", LogLevel.Error);
+            }
+        }
+        return false;
+    }
+
     private void PruneOldBackups()
     {
         try

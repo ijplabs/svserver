@@ -1,17 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useFarmStore } from './store/farmStore';
-import { Navbar } from './components/layout/Navbar';
+import { Navbar, NavTab } from './components/layout/Navbar';
 import { LoginForm } from './components/auth/LoginForm';
 import { ServerOverviewCard } from './components/dashboard/ServerOverviewCard';
 import { AdminControlsCard } from './components/dashboard/AdminControlsCard';
 import { CropsDashboard } from './components/crops/CropsDashboard';
 import { PlayersCard } from './components/players/PlayersCard';
+import { BackupManagerCard } from './components/backups/BackupManagerCard';
+import { EconomyCard } from './components/economy/EconomyCard';
+import { AutomationStatusCard } from './components/automation/AutomationStatusCard';
 import { Loader2 } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { user, isLoading: authLoading, checkAuth } = useAuthStore();
   const { startPolling, stopPolling, lastUpdated } = useFarmStore();
+  const [activeTab, setActiveTab] = useState<NavTab>('overview');
 
   useEffect(() => {
     checkAuth();
@@ -47,20 +51,39 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      <Navbar />
+      <Navbar activeTab={activeTab} onSelectTab={setActiveTab} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Metric Overview Row */}
-        <ServerOverviewCard />
+        {/* Tab 1: Server Overview & Automation Controls */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            <ServerOverviewCard />
+            <AutomationStatusCard />
+            {isSuperadmin && <AdminControlsCard />}
+            <PlayersCard />
+          </div>
+        )}
 
-        {/* Superadmin Quick Action Controls */}
-        {isSuperadmin && <AdminControlsCard />}
+        {/* Tab 2: Agricultural Telemetry */}
+        {activeTab === 'crops' && (
+          <div className="space-y-6">
+            <CropsDashboard />
+          </div>
+        )}
 
-        {/* Crops Monitoring & Harvest Readiness */}
-        <CropsDashboard />
+        {/* Tab 3: Persistent Backups Management */}
+        {activeTab === 'backups' && (
+          <div className="space-y-6">
+            <BackupManagerCard />
+          </div>
+        )}
 
-        {/* Connected Players & Farmhand Cabin Slots */}
-        <PlayersCard />
+        {/* Tab 4: Village Banking & Economy */}
+        {activeTab === 'economy' && (
+          <div className="space-y-6">
+            <EconomyCard />
+          </div>
+        )}
       </main>
 
       <footer className="border-t border-slate-200 bg-white py-4 mt-8">
@@ -68,7 +91,7 @@ export const App: React.FC = () => {
           <div className="flex items-center space-x-2">
             <span className="font-semibold text-slate-700">JunimoServer Enterprise</span>
             <span>•</span>
-            <span>Multi-User Telemetry Dashboard</span>
+            <span>Operations & Management Portal</span>
           </div>
           <div>
             {lastUpdated && (

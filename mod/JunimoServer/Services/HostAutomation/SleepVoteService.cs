@@ -266,4 +266,27 @@ public class SleepVoteService : ModService
         _lobbyService.ClearSleepVoteExclusions();
         _monitor.Log("[SleepVote] New day started. Reset sleep votes and exclusions.", LogLevel.Trace);
     }
+
+    public object GetStatus()
+    {
+        int eligibleCount = 0;
+        int required = 0;
+        if (Game1.hasLoadedGame)
+        {
+            var eligible = GetEligiblePlayers();
+            eligibleCount = eligible.Count;
+            required = CalculateRequiredVotes(eligibleCount);
+        }
+
+        return new
+        {
+            enabled = Env.SleepVoteEnabled,
+            thresholdPercent = Env.SleepVotePercent,
+            activeVotes = _voters.Count,
+            requiredVotes = required,
+            eligiblePlayers = eligibleCount,
+            votePassed = _votePassedForTonight,
+            isNight = Game1.hasLoadedGame && Game1.timeOfDay >= 1800
+        };
+    }
 }

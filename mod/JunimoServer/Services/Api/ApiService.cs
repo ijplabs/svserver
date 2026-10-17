@@ -1215,6 +1215,8 @@ public partial class ApiService : ModService
     private readonly CropTracker.CropTrackerService? _cropTrackerService;
     private readonly Backup.BackupService? _backupService;
     private readonly Economy.BankService? _bankService;
+    private readonly HostAutomation.SleepVoteService? _sleepVoteService;
+    private readonly HostAutomation.AfkWatchdogService? _afkWatchdogService;
 
     public ApiService(
         IModHelper helper,
@@ -1231,7 +1233,9 @@ public partial class ApiService : ModService
         AccountLinkingService? accountLinkingService = null,
         CropTracker.CropTrackerService? cropTrackerService = null,
         Backup.BackupService? backupService = null,
-        Economy.BankService? bankService = null
+        Economy.BankService? bankService = null,
+        HostAutomation.SleepVoteService? sleepVoteService = null,
+        HostAutomation.AfkWatchdogService? afkWatchdogService = null
     )
         : base(helper, monitor)
     {
@@ -1248,6 +1252,8 @@ public partial class ApiService : ModService
         _cropTrackerService = cropTrackerService;
         _backupService = backupService;
         _bankService = bankService;
+        _sleepVoteService = sleepVoteService;
+        _afkWatchdogService = afkWatchdogService;
         _instance = this;
     }
 
@@ -1965,19 +1971,25 @@ public partial class ApiService : ModService
             return true;
         }
 
+        string? providedKey = null;
         var authHeader = request.Headers["Authorization"];
-        if (string.IsNullOrEmpty(authHeader))
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            return false;
+            providedKey = authHeader.Substring(7).Trim();
+        }
+        else if (!string.IsNullOrEmpty(request.Headers["X-API-Key"]))
+        {
+            providedKey = request.Headers["X-API-Key"]?.Trim();
+        }
+        else if (!string.IsNullOrEmpty(request.QueryString["token"]))
+        {
+            providedKey = request.QueryString["token"]?.Trim();
+        }
+        else if (!string.IsNullOrEmpty(request.QueryString["key"]))
+        {
+            providedKey = request.QueryString["key"]?.Trim();
         }
 
-        // Expect "Bearer <token>" format
-        if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        var providedKey = authHeader.Substring(7).Trim();
         if (string.IsNullOrEmpty(providedKey))
         {
             return false;
@@ -2346,6 +2358,42 @@ public partial class ApiService : ModService
                     case "/api/backups":
                         await WriteJsonAsync(response, _backupService?.GetBackups() ?? new List<Backup.BackupEntry>());
                         break;
+                    case "/api/backup/download":
+                        var downloadFile = request.QueryString["file"];
+                        if (string.IsNullOrEmpty(downloadFile))
+                        {
+                            response.StatusCode = 400;
+                            await WriteJsonAsync(response, new { error = "Parameter 'file' is required" });
+                            break;
+                        }
+                        var filePath = _backupService?.GetBackupFilePath(downloadFile);
+                        if (filePath == null || !File.Exists(filePath))
+                        {
+                            response.StatusCode = 404;
+                            await WriteJsonAsync(response, new { error = "Backup archive not found" });
+                            break;
+                        }
+                        response.ContentType = "application/zip";
+                        response.Headers["Content-Disposition"] = $"attachment; filename=\"{Path.GetFileName(filePath)}\"";
+                        using (var fs = File.OpenRead(filePath))
+                        {
+                            response.ContentLength64 = fs.Length;
+                            await fs.CopyToAsync(response.OutputStream);
+                        }
+                        break;
+                    case "/api/economy/overview":
+                        var economyData = _bankService != null
+                            ? await _bankService.GetEconomyOverviewAsync()
+                            : new { useSeparateWallets = false, sharedFarmMoney = 0, accounts = new object[0] };
+                        await WriteJsonAsync(response, economyData);
+                        break;
+                    case "/api/automation/status":
+                        await WriteJsonAsync(response, new
+                        {
+                            sleepVote = _sleepVoteService?.GetStatus(),
+                            afkWatchdog = _afkWatchdogService?.GetStatus()
+                        });
+                        break;
                     default:
                         await WriteNotFoundAsync(response, path);
                         break;
@@ -2422,6 +2470,25 @@ public partial class ApiService : ModService
                             response,
                             await HandleDeleteFarmhandAsync(nameParam, farmhandIdParam)
                         );
+                        break;
+                    case "/api/backup/delete":
+                        var fileToDelete = request.QueryString["file"];
+                        if (string.IsNullOrEmpty(fileToDelete))
+                        {
+                            response.StatusCode = 400;
+                            await WriteJsonAsync(response, new { error = "Parameter 'file' is required" });
+                            break;
+                        }
+                        bool deleted = _backupService?.DeleteBackup(fileToDelete) ?? false;
+                        if (deleted)
+                        {
+                            await WriteJsonAsync(response, new { success = true, deleted = fileToDelete });
+                        }
+                        else
+                        {
+                            response.StatusCode = 404;
+                            await WriteJsonAsync(response, new { error = "Backup file not found or could not be deleted" });
+                        }
                         break;
                     default:
                         await WriteNotFoundAsync(response, path);

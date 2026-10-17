@@ -335,4 +335,45 @@ public class BankService : ModService
             $"[Bank] Anda menerima transfer dana {amount:N0}g dari {senderFarmer.Name}!"
         );
     }
+
+    public async Task<object> GetEconomyOverviewAsync()
+    {
+        bool isSeparate = Game1.hasLoadedGame && Game1.player.team.useSeparateWallets.Value;
+        int sharedMoney = Game1.hasLoadedGame ? Game1.player.team.money.Value : 0;
+
+        var accounts = new List<object>();
+
+        if (Game1.hasLoadedGame)
+        {
+            var allFarmers = Game1.getAllFarmers();
+            foreach (var farmer in allFarmers)
+            {
+                if (farmer == null || farmer.UniqueMultiplayerID == Game1.player.UniqueMultiplayerID)
+                {
+                    continue;
+                }
+
+                int bankBal = await GetBankBalanceAsync(farmer.UniqueMultiplayerID);
+                int walletBal = isSeparate ? farmer.Money : sharedMoney;
+                bool isOnline = Game1.otherFarmers.ContainsKey(farmer.UniqueMultiplayerID);
+
+                accounts.Add(new
+                {
+                    farmerId = farmer.UniqueMultiplayerID,
+                    farmerName = farmer.Name,
+                    bankBalance = bankBal,
+                    walletBalance = walletBal,
+                    totalWealth = bankBal + (isSeparate ? walletBal : 0),
+                    isOnline = isOnline
+                });
+            }
+        }
+
+        return new
+        {
+            useSeparateWallets = isSeparate,
+            sharedFarmMoney = sharedMoney,
+            accounts = accounts
+        };
+    }
 }

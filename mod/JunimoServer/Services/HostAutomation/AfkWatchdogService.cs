@@ -136,4 +136,36 @@ public class AfkWatchdogService : ModService
             _activity.Remove(id);
         }
     }
+
+    public object GetStatus()
+    {
+        var now = DateTime.UtcNow;
+        var players = new List<object>();
+
+        if (Game1.hasLoadedGame)
+        {
+            foreach (var kvp in _activity)
+            {
+                var farmer = Game1.getFarmerMaybeOffline(kvp.Key);
+                var idleSeconds = (now - kvp.Value.LastActiveTime).TotalSeconds;
+                players.Add(new
+                {
+                    farmerId = kvp.Key,
+                    farmerName = farmer?.Name ?? "Unknown",
+                    idleMinutes = Math.Round(idleSeconds / 60.0, 1),
+                    warningSent = kvp.Value.WarningSent,
+                    location = kvp.Value.LastLocation
+                });
+            }
+        }
+
+        return new
+        {
+            enabled = Env.AfkKickEnabled,
+            warningMinutes = Env.AfkWarningMinutes,
+            timeoutMinutes = Env.AfkTimeoutMinutes,
+            nightOnly = Env.AfkNightOnly,
+            trackedPlayers = players
+        };
+    }
 }

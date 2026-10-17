@@ -1,5 +1,8 @@
 import { LoginRequest, RegisterRequest, WebSessionInfo, AuthMeResponse } from '../types/auth';
 import { ServerStatus, PlayersResponse, FarmCropsSnapshot, CabinsResponse } from '../types/farm';
+import { BackupEntry } from '../types/backup';
+import { EconomyOverview } from '../types/economy';
+import { AutomationStatus } from '../types/automation';
 
 export function getApiBase(): string {
   // 1. Explicit build-time or runtime environment
@@ -113,5 +116,25 @@ export const api = {
       request<{ success: boolean }>('/reload', {
         method: 'POST',
       }),
+  },
+  backups: {
+    list: () => request<BackupEntry[]>('/api/backups'),
+    create: () => request<BackupEntry>('/api/backup/create', { method: 'POST' }),
+    delete: (file: string) =>
+      request<{ success: boolean; deleted: string }>(`/api/backup/delete?file=${encodeURIComponent(file)}`, {
+        method: 'DELETE',
+      }),
+    getDownloadUrl: (file: string) => {
+      const base = getApiBase();
+      const token = getToken();
+      const authParam = token ? `&token=${encodeURIComponent(token)}` : '';
+      return `${base}/api/backup/download?file=${encodeURIComponent(file)}${authParam}`;
+    },
+  },
+  economy: {
+    getOverview: () => request<EconomyOverview>('/api/economy/overview'),
+  },
+  automation: {
+    getStatus: () => request<AutomationStatus>('/api/automation/status'),
   },
 };
