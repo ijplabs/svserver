@@ -13,6 +13,9 @@ import { AutomationStatusCard } from './components/automation/AutomationStatusCa
 import { ChatRelayCard } from './components/chat/ChatRelayCard';
 import { ConsoleTerminalCard } from './components/console/ConsoleTerminalCard';
 import { LivestockDashboard } from './components/livestock/LivestockDashboard';
+import { FarmerProfileCard } from './components/farmer/FarmerProfileCard';
+import { ValleyMapCard } from './components/map/ValleyMapCard';
+import { UserManagementCard } from './components/admin/UserManagementCard';
 import { Loader2 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -20,16 +23,23 @@ export const App: React.FC = () => {
   const { startPolling, stopPolling, lastUpdated } = useFarmStore();
   const [activeTab, setActiveTab] = useState<NavTab>('overview');
 
+  const isSuperadmin = user?.role === 'SUPERADMIN';
+  const isAdmin = user?.role === 'ADMIN' || isSuperadmin;
+  const isPlayer = user?.role === 'PLAYER';
+
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   useEffect(() => {
     if (user) {
+      if (isPlayer && activeTab === 'overview') {
+        setActiveTab('character');
+      }
       startPolling(4000);
       return () => stopPolling();
     }
-  }, [user, startPolling, stopPolling]);
+  }, [user, startPolling, stopPolling, activeTab, isPlayer]);
 
   if (authLoading && !user) {
     return (
@@ -50,15 +60,13 @@ export const App: React.FC = () => {
     );
   }
 
-  const isSuperadmin = user.role === 'SUPERADMIN';
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
       <Navbar activeTab={activeTab} onSelectTab={setActiveTab} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Tab 1: Server Overview & Automation Controls */}
-        {activeTab === 'overview' && (
+        {/* Tab: Server Overview & Automation Controls (Admin Only) */}
+        {activeTab === 'overview' && isAdmin && (
           <div className="space-y-6">
             <ServerOverviewCard />
             <AutomationStatusCard />
@@ -67,45 +75,66 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 2: Agricultural Telemetry */}
+        {/* Tab: Personalized Character Sheet */}
+        {activeTab === 'character' && (
+          <div className="space-y-6">
+            <FarmerProfileCard />
+          </div>
+        )}
+
+        {/* Tab: Agricultural Telemetry (Shared) */}
         {activeTab === 'crops' && (
           <div className="space-y-6">
             <CropsDashboard />
           </div>
         )}
 
-        {/* Tab 3: Livestock & Farm Animals */}
+        {/* Tab: Livestock & Farm Animals (Shared) */}
         {activeTab === 'animals' && (
           <div className="space-y-6">
             <LivestockDashboard />
           </div>
         )}
 
-        {/* Tab 4: Live 2-Way Chat Relay */}
+        {/* Tab: Interactive Valley Map & Farmer Tracker (Shared) */}
+        {activeTab === 'map' && (
+          <div className="space-y-6">
+            <ValleyMapCard />
+          </div>
+        )}
+
+        {/* Tab: Live 2-Way Chat Relay (Shared) */}
         {activeTab === 'chat' && (
           <div className="space-y-6">
             <ChatRelayCard />
           </div>
         )}
 
-        {/* Tab 5: Interactive SMAPI Console (Superadmin) */}
+        {/* Tab: Interactive SMAPI Console (Superadmin Only) */}
         {activeTab === 'console' && isSuperadmin && (
           <div className="space-y-6">
             <ConsoleTerminalCard />
           </div>
         )}
 
-        {/* Tab 6: Persistent Backups Management */}
-        {activeTab === 'backups' && (
+        {/* Tab: Persistent Backups Management (Admin Only) */}
+        {activeTab === 'backups' && isAdmin && (
           <div className="space-y-6">
             <BackupManagerCard />
           </div>
         )}
 
-        {/* Tab 7: Village Banking & Economy */}
+        {/* Tab: Village Banking & Economy (Shared) */}
         {activeTab === 'economy' && (
           <div className="space-y-6">
             <EconomyCard />
+          </div>
+        )}
+
+        {/* Tab: User Management & Whitelist (Admin Only) */}
+        {activeTab === 'users' && isAdmin && (
+          <div className="space-y-6">
+            <UserManagementCard />
           </div>
         )}
       </main>

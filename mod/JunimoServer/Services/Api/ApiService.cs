@@ -614,6 +614,92 @@ public class RoleGrantResponse
     public string? Error { get; set; }
 }
 
+public class CharacterSkillInfo
+{
+    public int Level { get; set; }
+    public int Experience { get; set; }
+}
+
+public class InventoryItemInfo
+{
+    public int SlotIndex { get; set; }
+    public string ItemId { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public int Stack { get; set; }
+    public int Quality { get; set; }
+    public string CategoryName { get; set; } = "";
+}
+
+public class EquipmentItemInfo
+{
+    public string Slot { get; set; } = "";
+    public string ItemId { get; set; } = "";
+    public string Name { get; set; } = "";
+}
+
+public class FarmerProfileResponse
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    public string FarmName { get; set; } = "";
+    public string FavoriteThing { get; set; } = "";
+    public bool IsMale { get; set; }
+    public int Money { get; set; }
+    public int ClubCoins { get; set; }
+    public int QiGems { get; set; }
+    public int Health { get; set; }
+    public int MaxHealth { get; set; }
+    public float Stamina { get; set; }
+    public int MaxStamina { get; set; }
+    public string CurrentLocation { get; set; } = "";
+    public int TileX { get; set; }
+    public int TileY { get; set; }
+    public Dictionary<string, CharacterSkillInfo> Skills { get; set; } = new();
+    public List<InventoryItemInfo> Inventory { get; set; } = new();
+    public List<EquipmentItemInfo> Equipment { get; set; } = new();
+}
+
+public class PlayerMapPin
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Location { get; set; } = "";
+    public string Zone { get; set; } = "";
+    public int TileX { get; set; }
+    public int TileY { get; set; }
+    public float PixelX { get; set; }
+    public float PixelY { get; set; }
+    public int FacingDirection { get; set; }
+    public bool IsOnline { get; set; }
+}
+
+public class FarmBuildingPin
+{
+    public string Name { get; set; } = "";
+    public string Type { get; set; } = "";
+    public int TileX { get; set; }
+    public int TileY { get; set; }
+    public int TilesWide { get; set; }
+    public int TilesHigh { get; set; }
+    public bool IsCabin { get; set; }
+    public string? OwnerName { get; set; }
+    public long? OwnerId { get; set; }
+    public bool IsLobby { get; set; }
+    public int AnimalCount { get; set; }
+}
+
+public class MapTrackingResponse
+{
+    public string FarmType { get; set; } = "Standard";
+    public int FarmWidth { get; set; } = 80;
+    public int FarmHeight { get; set; } = 65;
+    public List<PlayerMapPin> Players { get; set; } = new();
+    public List<FarmBuildingPin> Buildings { get; set; } = new();
+    public Dictionary<string, int> CropCountsByLocation { get; set; } = new();
+}
+
+
 /// <summary>
 /// Current server settings (from server-settings.json).
 /// </summary>
@@ -2400,6 +2486,63 @@ public partial class ApiService : ModService
                     case "/api/farm/animals":
                         await WriteJsonAsync(response, await HandleGetFarmAnimalsAsync());
                         break;
+                    case "/api/admin/pending-players":
+                        var pendingUser = await GetUserFromRequestAsync(request);
+                        if (pendingUser == null || (pendingUser.Value.Role != "SUPERADMIN" && pendingUser.Value.Role != "ADMIN"))
+                        {
+                            response.StatusCode = 403;
+                            await WriteJsonAsync(response, new { error = "Administrator role required." });
+                            break;
+                        }
+                        var pendingPlayers = _passwordProtectionService?.GetPendingPlayers() ?? new List<PasswordProtectionService.PendingPlayerDto>();
+                        await WriteJsonAsync(response, pendingPlayers);
+                        break;
+                    case "/api/admin/users":
+                        var listUser = await GetUserFromRequestAsync(request);
+                        if (listUser == null || (listUser.Value.Role != "SUPERADMIN" && listUser.Value.Role != "ADMIN"))
+                        {
+                            response.StatusCode = 403;
+                            await WriteJsonAsync(response, new { error = "Administrator role required." });
+                            break;
+                        }
+                        if (_accountLinkingService == null)
+                        {
+                            await WriteJsonAsync(response, new List<object>());
+                            break;
+                        }
+                        var registeredUsers = await _accountLinkingService.GetRegisteredUsersAsync();
+                        var sanitizedUsers = registeredUsers.Select(u => new
+                        {
+                            farmerId = u.FarmerId,
+                            username = u.Username,
+                            role = u.Role,
+                            createdAtUtc = u.CreatedAtUtc,
+                            lastLoginUtc = u.LastLoginUtc
+                        }).ToList();
+                        await WriteJsonAsync(response, sanitizedUsers);
+                        break;
+                    case "/api/admin/available-farmers":
+                        var availUser = await GetUserFromRequestAsync(request);
+                        if (availUser == null || (availUser.Value.Role != "SUPERADMIN" && availUser.Value.Role != "ADMIN"))
+                        {
+                            response.StatusCode = 403;
+                            await WriteJsonAsync(response, new { error = "Administrator role required." });
+                            break;
+                        }
+                        if (_accountLinkingService == null)
+                        {
+                            await WriteJsonAsync(response, new List<AvailableFarmerDto>());
+                            break;
+                        }
+                        var available = await _accountLinkingService.GetAvailableFarmersAsync();
+                        await WriteJsonAsync(response, available);
+                        break;
+                    case "/api/farmer/me":
+                        await HandleGetFarmerProfileAsync(request, response);
+                        break;
+                    case "/api/map/tracking":
+                        await HandleGetMapTrackingAsync(request, response);
+                        break;
                     default:
                         await WriteNotFoundAsync(response, path);
                         break;
@@ -2466,6 +2609,77 @@ public partial class ApiService : ModService
                     case "/api/console/execute":
                         await HandlePostConsoleExecuteAsync(request, response);
                         break;
+                    case "/api/admin/approve-player":
+                        var approveUser = await GetUserFromRequestAsync(request);
+                        if (approveUser == null || (approveUser.Value.Role != "SUPERADMIN" && approveUser.Value.Role != "ADMIN"))
+                        {
+                            response.StatusCode = 403;
+                            await WriteJsonAsync(response, new { error = "Administrator role required." });
+                            break;
+                        }
+                        var approveIdStr = request.QueryString["playerId"];
+                        if (string.IsNullOrEmpty(approveIdStr) || !long.TryParse(approveIdStr, out long approveId))
+                        {
+                            response.StatusCode = 400;
+                            await WriteJsonAsync(response, new { error = "Valid 'playerId' query parameter is required." });
+                            break;
+                        }
+                        if (_passwordProtectionService == null)
+                        {
+                            response.StatusCode = 503;
+                            await WriteJsonAsync(response, new { error = "Password protection service not active." });
+                            break;
+                        }
+                        bool approved = false;
+                        await RunOnGameThreadAsync(() =>
+                        {
+                            approved = _passwordProtectionService.ManuallyApprovePlayer(approveId);
+                        });
+                        if (approved)
+                        {
+                            await WriteJsonAsync(response, new { success = true, playerId = approveId, message = $"Player {approveId} manually approved and admitted to farm." });
+                        }
+                        else
+                        {
+                            response.StatusCode = 404;
+                            await WriteJsonAsync(response, new { error = $"Player {approveId} not found in pending authentication list or already authenticated." });
+                        }
+                        break;
+                    case "/api/admin/users/create":
+                        var createUser = await GetUserFromRequestAsync(request);
+                        if (createUser == null || (createUser.Value.Role != "SUPERADMIN" && createUser.Value.Role != "ADMIN"))
+                        {
+                            response.StatusCode = 403;
+                            await WriteJsonAsync(response, new { error = "Administrator role required." });
+                            break;
+                        }
+                        if (_accountLinkingService == null)
+                        {
+                            response.StatusCode = 503;
+                            await WriteJsonAsync(response, new { error = "Account linking service unavailable." });
+                            break;
+                        }
+                        using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+                        {
+                            var bodyStr = await reader.ReadToEndAsync();
+                            var bodyObj = JObject.Parse(bodyStr);
+                            long fId = bodyObj["farmerId"]?.Value<long>() ?? 0;
+                            string uName = bodyObj["username"]?.ToString()?.Trim() ?? "";
+                            string uPass = bodyObj["password"]?.ToString()?.Trim() ?? "";
+                            string uRole = bodyObj["role"]?.ToString()?.Trim() ?? "PLAYER";
+
+                            var (createdOk, createdMsg) = await _accountLinkingService.CreateOrUpdateUserManualAsync(fId, uName, uPass, uRole);
+                            if (createdOk)
+                            {
+                                await WriteJsonAsync(response, new { success = true, message = createdMsg });
+                            }
+                            else
+                            {
+                                response.StatusCode = 400;
+                                await WriteJsonAsync(response, new { error = createdMsg });
+                            }
+                        }
+                        break;
                     default:
                         await WriteNotFoundAsync(response, path);
                         break;
@@ -2500,6 +2714,38 @@ public partial class ApiService : ModService
                         {
                             response.StatusCode = 404;
                             await WriteJsonAsync(response, new { error = "Backup file not found or could not be deleted" });
+                        }
+                        break;
+                    case "/api/admin/users/delete":
+                        var delUser = await GetUserFromRequestAsync(request);
+                        if (delUser == null || (delUser.Value.Role != "SUPERADMIN" && delUser.Value.Role != "ADMIN"))
+                        {
+                            response.StatusCode = 403;
+                            await WriteJsonAsync(response, new { error = "Administrator role required." });
+                            break;
+                        }
+                        var targetIdStr = request.QueryString["farmerId"];
+                        if (string.IsNullOrEmpty(targetIdStr) || !long.TryParse(targetIdStr, out long targetId))
+                        {
+                            response.StatusCode = 400;
+                            await WriteJsonAsync(response, new { error = "Valid 'farmerId' parameter is required." });
+                            break;
+                        }
+                        if (_accountLinkingService == null)
+                        {
+                            response.StatusCode = 503;
+                            await WriteJsonAsync(response, new { error = "Account linking service unavailable." });
+                            break;
+                        }
+                        var (delOk, delMsg) = await _accountLinkingService.DeleteUserAsync(targetId);
+                        if (delOk)
+                        {
+                            await WriteJsonAsync(response, new { success = true, message = delMsg });
+                        }
+                        else
+                        {
+                            response.StatusCode = 404;
+                            await WriteJsonAsync(response, new { error = delMsg });
                         }
                         break;
                     default:
@@ -5953,6 +6199,293 @@ public partial class ApiService : ModService
             output = output,
             timestamp = DateTime.UtcNow.ToString("o")
         });
+    }
+
+    private async Task HandleGetFarmerProfileAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null)
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        if (!Game1.hasLoadedGame)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Save game is not loaded yet." });
+            return;
+        }
+
+        FarmerProfileResponse? profile = null;
+        await RunOnGameThreadAsync(() =>
+        {
+            try
+            {
+                Farmer? target = null;
+                if (user.Value.FarmerId != 0)
+                {
+                    target = Game1.getAllFarmers().FirstOrDefault(f => f.UniqueMultiplayerID == user.Value.FarmerId);
+                }
+
+                // Fallback for Superadmin or if not found: host farmer
+                if (target == null)
+                {
+                    target = Game1.player;
+                }
+
+                if (target == null) return;
+
+                profile = new FarmerProfileResponse
+                {
+                    Id = target.UniqueMultiplayerID,
+                    Name = target.Name,
+                    FarmName = target.farmName.Value,
+                    FavoriteThing = target.favoriteThing.Value,
+                    IsMale = target.isMale.Value,
+                    Money = target.Money,
+                    ClubCoins = target.clubCoins.Value,
+                    QiGems = target.qiGems.Value,
+                    Health = target.health,
+                    MaxHealth = target.maxHealth,
+                    Stamina = (float)Math.Round(target.Stamina, 1),
+                    MaxStamina = target.MaxStamina,
+                    CurrentLocation = target.currentLocation?.NameOrUniqueName ?? "Unknown",
+                    TileX = target.TilePoint.X,
+                    TileY = target.TilePoint.Y
+                };
+
+                // Skills helper
+                int GetExp(int index)
+                {
+                    try
+                    {
+                        if (target.experiencePoints != null && index < target.experiencePoints.Count)
+                        {
+                            return target.experiencePoints[index];
+                        }
+                    }
+                    catch { }
+                    return 0;
+                }
+
+                profile.Skills["Farming"] = new CharacterSkillInfo { Level = target.FarmingLevel, Experience = GetExp(0) };
+                profile.Skills["Fishing"] = new CharacterSkillInfo { Level = target.FishingLevel, Experience = GetExp(1) };
+                profile.Skills["Foraging"] = new CharacterSkillInfo { Level = target.ForagingLevel, Experience = GetExp(2) };
+                profile.Skills["Mining"] = new CharacterSkillInfo { Level = target.MiningLevel, Experience = GetExp(3) };
+                profile.Skills["Combat"] = new CharacterSkillInfo { Level = target.CombatLevel, Experience = GetExp(4) };
+                profile.Skills["Luck"] = new CharacterSkillInfo { Level = target.LuckLevel, Experience = GetExp(5) };
+
+                // Inventory (36 slots)
+                if (target.Items != null)
+                {
+                    for (int i = 0; i < target.Items.Count && i < 36; i++)
+                    {
+                        var item = target.Items[i];
+                        if (item == null) continue;
+
+                        int q = 0;
+                        if (item is StardewValley.Object sdvObj)
+                        {
+                            q = sdvObj.Quality;
+                        }
+                        else
+                        {
+                            try { q = item.Quality; } catch { }
+                        }
+
+                        string cat = "";
+                        try { cat = item.getCategoryName(); } catch { }
+
+                        profile.Inventory.Add(new InventoryItemInfo
+                        {
+                            SlotIndex = i,
+                            ItemId = item.QualifiedItemId ?? item.ItemId ?? "",
+                            Name = item.Name ?? "",
+                            DisplayName = item.DisplayName ?? item.Name ?? "",
+                            Stack = item.Stack,
+                            Quality = q,
+                            CategoryName = cat ?? ""
+                        });
+                    }
+                }
+
+                // Equipment
+                try
+                {
+                    if (target.hat.Value != null)
+                        profile.Equipment.Add(new EquipmentItemInfo { Slot = "Hat", ItemId = target.hat.Value.QualifiedItemId ?? "", Name = target.hat.Value.DisplayName ?? "Hat" });
+                    if (target.shirtItem.Value != null)
+                        profile.Equipment.Add(new EquipmentItemInfo { Slot = "Shirt", ItemId = target.shirtItem.Value.QualifiedItemId ?? "", Name = target.shirtItem.Value.DisplayName ?? "Shirt" });
+                    if (target.pantsItem.Value != null)
+                        profile.Equipment.Add(new EquipmentItemInfo { Slot = "Pants", ItemId = target.pantsItem.Value.QualifiedItemId ?? "", Name = target.pantsItem.Value.DisplayName ?? "Pants" });
+                    if (target.boots.Value != null)
+                        profile.Equipment.Add(new EquipmentItemInfo { Slot = "Boots", ItemId = target.boots.Value.QualifiedItemId ?? "", Name = target.boots.Value.DisplayName ?? "Boots" });
+                    if (target.leftRing.Value != null)
+                        profile.Equipment.Add(new EquipmentItemInfo { Slot = "LeftRing", ItemId = target.leftRing.Value.QualifiedItemId ?? "", Name = target.leftRing.Value.DisplayName ?? "Ring" });
+                    if (target.rightRing.Value != null)
+                        profile.Equipment.Add(new EquipmentItemInfo { Slot = "RightRing", ItemId = target.rightRing.Value.QualifiedItemId ?? "", Name = target.rightRing.Value.DisplayName ?? "Ring" });
+                }
+                catch (Exception ex)
+                {
+                    Monitor.Log($"[API] Error reading equipment: {ex.Message}", LogLevel.Debug);
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[API] Error reading farmer profile: {ex.Message}", LogLevel.Error);
+            }
+        });
+
+        if (profile == null)
+        {
+            response.StatusCode = 404;
+            await WriteJsonAsync(response, new { error = "Farmer character not found in active save." });
+            return;
+        }
+
+        await WriteJsonAsync(response, profile);
+    }
+
+    private async Task HandleGetMapTrackingAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null)
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        if (!Game1.hasLoadedGame)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Save game is not loaded yet." });
+            return;
+        }
+
+        var mapData = new MapTrackingResponse();
+        await RunOnGameThreadAsync(() =>
+        {
+            try
+            {
+                var farm = Game1.getFarm();
+                mapData.FarmType = Game1.GetFarmTypeKey() ?? "Standard";
+                if (farm != null)
+                {
+                    mapData.FarmWidth = farm.Map?.Layers.Count > 0 ? farm.Map.Layers[0].LayerWidth : 80;
+                    mapData.FarmHeight = farm.Map?.Layers.Count > 0 ? farm.Map.Layers[0].LayerHeight : 65;
+
+                    // Farm buildings
+                    foreach (var b in farm.buildings)
+                    {
+                        if (b == null) continue;
+
+                        string bType = b.buildingType.Value ?? "Building";
+                        bool isCabin = b.isCabin;
+                        string? ownerName = null;
+                        long? ownerId = null;
+                        bool isLobby = LobbyService.IsLobbyCabin(b);
+                        int animalCount = 0;
+
+                        if (isCabin && b.GetIndoors<Cabin>() is Cabin cabin)
+                        {
+                            ownerName = cabin.owner?.Name;
+                            ownerId = cabin.owner?.UniqueMultiplayerID;
+                        }
+
+                        if (b.GetIndoors() is AnimalHouse ah)
+                        {
+                            animalCount = ah.animals.Count;
+                        }
+
+                        mapData.Buildings.Add(new FarmBuildingPin
+                        {
+                            Name = isCabin ? (string.IsNullOrEmpty(ownerName) ? "Unassigned Cabin" : $"{ownerName}'s Cabin") : bType,
+                            Type = bType,
+                            TileX = b.tileX.Value,
+                            TileY = b.tileY.Value,
+                            TilesWide = b.tilesWide.Value,
+                            TilesHigh = b.tilesHigh.Value,
+                            IsCabin = isCabin,
+                            OwnerName = ownerName,
+                            OwnerId = ownerId,
+                            IsLobby = isLobby,
+                            AnimalCount = animalCount
+                        });
+                    }
+                }
+
+                // Connected and saved farmers
+                foreach (var f in Game1.getAllFarmers())
+                {
+                    if (f.UniqueMultiplayerID == 0 && string.IsNullOrEmpty(f.Name)) continue;
+
+                    bool isOnline = (f.UniqueMultiplayerID == Game1.player.UniqueMultiplayerID)
+                        || Game1.otherFarmers.ContainsKey(f.UniqueMultiplayerID);
+
+                    string loc = f.currentLocation?.NameOrUniqueName ?? f.homeLocation.Value ?? "Farm";
+                    string zone = ClassifyZone(loc);
+
+                    mapData.Players.Add(new PlayerMapPin
+                    {
+                        Id = f.UniqueMultiplayerID,
+                        Name = f.Name,
+                        Location = loc,
+                        Zone = zone,
+                        TileX = f.TilePoint.X,
+                        TileY = f.TilePoint.Y,
+                        PixelX = f.Position.X,
+                        PixelY = f.Position.Y,
+                        FacingDirection = f.FacingDirection,
+                        IsOnline = isOnline
+                    });
+                }
+
+                // Crop counts by location
+                if (_cropTrackerService != null)
+                {
+                    var cropsSnap = _cropTrackerService.GetLatestSnapshot();
+                    foreach (var crop in cropsSnap.Crops)
+                    {
+                        string loc = crop.Location ?? "Farm";
+                        if (!mapData.CropCountsByLocation.ContainsKey(loc))
+                        {
+                            mapData.CropCountsByLocation[loc] = 0;
+                        }
+                        mapData.CropCountsByLocation[loc]++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[API] Error compiling map tracking: {ex.Message}", LogLevel.Error);
+            }
+        });
+
+        await WriteJsonAsync(response, mapData);
+    }
+
+    private static string ClassifyZone(string location)
+    {
+        if (string.IsNullOrEmpty(location)) return "farm";
+        var l = location.ToLowerInvariant();
+        if (l == "farm" || l.Contains("cabin") || l.Contains("farmhouse") || l.Contains("greenhouse") || l.Contains("shed") || l.Contains("barn") || l.Contains("coop"))
+            return "farm";
+        if (l == "town" || l.Contains("saloon") || l.Contains("hospital") || l.Contains("seedshop") || l.Contains("archaeology") || l.Contains("manor") || l.Contains("trailer"))
+            return "town";
+        if (l == "beach" || l.Contains("fishshop"))
+            return "beach";
+        if (l == "mountain" || l.Contains("sciencehouse") || l.Contains("adventureguild") || l.Contains("bathhouse"))
+            return "mountain";
+        if (l == "forest" || l.Contains("animalshop") || l.Contains("wizardhouse") || l.Contains("cindersap"))
+            return "forest";
+        if (l.Contains("mine") || l.Contains("skullcave") || l.Contains("undergroundmine"))
+            return "mines";
+        if (l.Contains("desert") || l.Contains("club") || l.Contains("oasis"))
+            return "desert";
+        if (l.Contains("island"))
+            return "island";
+        return "other";
     }
 
     #endregion

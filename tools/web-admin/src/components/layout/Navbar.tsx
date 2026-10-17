@@ -17,10 +17,12 @@ import {
   MessageSquare,
   Terminal,
   Archive,
-  Coins
+  Coins,
+  Compass,
+  Users
 } from 'lucide-react';
 
-export type NavTab = 'overview' | 'crops' | 'animals' | 'chat' | 'console' | 'backups' | 'economy';
+export type NavTab = 'overview' | 'character' | 'crops' | 'animals' | 'map' | 'chat' | 'console' | 'backups' | 'economy' | 'users';
 
 interface NavbarProps {
   activeTab: NavTab;
@@ -57,16 +59,29 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
 
   const isServerReady = status?.isOnline && status?.isReady;
   const isSuperadmin = user?.role === 'SUPERADMIN';
+  const isAdmin = user?.role === 'ADMIN' || isSuperadmin;
 
-  const navItems: { id: NavTab; label: string; icon: React.ElementType }[] = [
-    { id: 'overview', label: 'Ringkasan & Kontrol', icon: LayoutDashboard },
-    { id: 'crops', label: 'Tanaman & Panen', icon: Sprout },
-    { id: 'animals', label: 'Peternakan', icon: Milk },
-    { id: 'chat', label: 'Obrolan Langsung', icon: MessageSquare },
-    ...(isSuperadmin ? [{ id: 'console' as NavTab, label: 'Konsol SMAPI', icon: Terminal }] : []),
-    { id: 'backups', label: 'Cadangan (Backups)', icon: Archive },
-    { id: 'economy', label: 'Bank & Ekonomi', icon: Coins },
-  ];
+  const navItems: { id: NavTab; label: string; icon: React.ElementType }[] = isAdmin
+    ? [
+        { id: 'overview', label: 'Ringkasan & Kontrol', icon: LayoutDashboard },
+        { id: 'character', label: 'Karakter Saya', icon: User },
+        { id: 'crops', label: 'Tanaman & Panen', icon: Sprout },
+        { id: 'animals', label: 'Peternakan', icon: Milk },
+        { id: 'map', label: 'Peta Lembah', icon: Compass },
+        { id: 'chat', label: 'Obrolan Langsung', icon: MessageSquare },
+        ...(isSuperadmin ? [{ id: 'console' as NavTab, label: 'Konsol SMAPI', icon: Terminal }] : []),
+        { id: 'backups', label: 'Cadangan (Backups)', icon: Archive },
+        { id: 'economy', label: 'Bank & Ekonomi', icon: Coins },
+        { id: 'users', label: 'Akses & Whitelist', icon: Users },
+      ]
+    : [
+        { id: 'character', label: 'Karakter Saya', icon: User },
+        { id: 'crops', label: 'Tanaman Kebun (Shared)', icon: Sprout },
+        { id: 'animals', label: 'Peternakan (Shared)', icon: Milk },
+        { id: 'map', label: 'Peta Lembah (Shared)', icon: Compass },
+        { id: 'chat', label: 'Obrolan Langsung', icon: MessageSquare },
+        { id: 'economy', label: 'Bank & Tabungan', icon: Coins },
+      ];
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">

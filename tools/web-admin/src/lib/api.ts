@@ -155,4 +155,28 @@ export const api = {
         body: JSON.stringify({ command }),
       }),
   },
+  admin: {
+    getPendingPlayers: () => request<import('../types/user').PendingPlayer[]>('/api/admin/pending-players'),
+    approvePlayer: (playerId: number) =>
+      request<{ success: boolean; message: string }>(`/api/admin/approve-player?playerId=${playerId}`, {
+        method: 'POST',
+      }),
+    getUsers: () => request<import('../types/user').WebUser[]>('/api/admin/users'),
+    getAvailableFarmers: () => request<import('../types/user').AvailableFarmer[]>('/api/admin/available-farmers'),
+    createUser: (body: import('../types/user').CreateUserRequest) =>
+      request<{ success: boolean; message: string }>('/api/admin/users/create', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    deleteUser: (farmerId: number) =>
+      request<{ success: boolean; message: string }>(`/api/admin/users/delete?farmerId=${farmerId}`, {
+        method: 'DELETE',
+      }),
+  },
+  farmer: {
+    getMyProfile: () => request<import('../types/character').FarmerProfile>('/api/farmer/me'),
+  },
+  map: {
+    getTracking: () => request<import('../types/map').MapTrackingResponse>('/api/map/tracking'),
+  },
 };

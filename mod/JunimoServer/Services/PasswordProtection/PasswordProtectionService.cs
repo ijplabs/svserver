@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,6 +20,7 @@ namespace JunimoServer.Services.PasswordProtection;
 public class PasswordProtectionService : ModService
 {
     private static PasswordProtectionService _instance;
+    public static PasswordProtectionService? Instance => _instance;
 
     private readonly IModHelper _helper;
     private readonly IMonitor _monitor;
@@ -792,6 +794,79 @@ public class PasswordProtectionService : ModService
 
     public bool RequiresAuthentication(long playerId) =>
         IsEnabled && !IsPlayerAuthenticated(playerId);
+
+    public class PendingPlayerDto
+    {
+        public long PlayerId { get; set; }
+        public string FarmerName { get; set; } = "Unknown";
+        public int FailedAttempts { get; set; }
+        public double SecondsInLobby { get; set; }
+        public bool IsNewPlayer { get; set; }
+    }
+
+    public List<PendingPlayerDto> GetPendingPlayers()
+    {
+        var list = new List<PendingPlayerDto>();
+        if (!IsEnabled) return list;
+
+        var now = DateTime.UtcNow;
+        foreach (var kvp in _playerAuthData)
+        {
+            if (kvp.Value.State == AuthState.Unauthenticated)
+            {
+                string farmerName = "Unknown";
+                if (Game1.otherFarmers.TryGetValue(kvp.Key, out var farmer) && !string.IsNullOrEmpty(farmer.Name))
+                {
+                    farmerName = farmer.Name;
+                }
+                else if (Game1.netWorldState.Value.farmhandData.FieldDict.TryGetValue(kvp.Key, out var diagRef) && !string.IsNullOrEmpty(diagRef.Value?.Name))
+                {
+                    farmerName = diagRef.Value.Name;
+                }
+
+                list.Add(new PendingPlayerDto
+                {
+                    PlayerId = kvp.Key,
+                    FarmerName = farmerName,
+                    FailedAttempts = kvp.Value.FailedAttempts,
+                    SecondsInLobby = Math.Round((now - kvp.Value.JoinTime).TotalSeconds, 1),
+                    IsNewPlayer = kvp.Value.IsNewPlayer
+                });
+            }
+        }
+        return list;
+    }
+
+    public bool ManuallyApprovePlayer(long playerId)
+    {
+        if (!_playerAuthData.TryGetValue(playerId, out var authData))
+        {
+            return false;
+        }
+
+        lock (authData.StateLock)
+        {
+            if (authData.State == AuthState.Authenticated)
+            {
+                return true;
+            }
+
+            authData.State = AuthState.Authenticated;
+            _monitor.Log($"[Auth] Player {playerId} was MANUALLY APPROVED via Web Admin", LogLevel.Info);
+            Diagnostics.ModEventLog.Emit(
+                "auth_login_manual_approval",
+                new
+                {
+                    playerId,
+                    result = "manual_approved_by_admin"
+                }
+            );
+
+            _helper.SendPrivateMessage(playerId, "You have been approved by the administrator. Welcome to the farm!");
+            WarpToDestination(authData);
+            return true;
+        }
+    }
 
     #endregion
 
