@@ -12,6 +12,10 @@ RUN npm install
 # Copy application source
 COPY . .
 
+# Support build-time API URL configuration
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Build production assets
 RUN npm run build
 
