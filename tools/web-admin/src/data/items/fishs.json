@@ -1,0 +1,326 @@
+{
+  "pufferfish": {
+    "name": "Pufferfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/ba/Pufferfish.png"
+  },
+  "anchovy": {
+    "name": "Anchovy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Anchovy.png"
+  },
+  "tuna": {
+    "name": "Tuna",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c5/Tuna.png"
+  },
+  "sardine": {
+    "name": "Sardine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/04/Sardine.png"
+  },
+  "bream": {
+    "name": "Bream",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/82/Bream.png"
+  },
+  "largemouth_bass": {
+    "name": "Largemouth Bass",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/11/Largemouth_Bass.png"
+  },
+  "smallmouth_bass": {
+    "name": "Smallmouth Bass",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a5/Smallmouth_Bass.png"
+  },
+  "rainbow_trout": {
+    "name": "Rainbow Trout",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/14/Rainbow_Trout.png"
+  },
+  "salmon": {
+    "name": "Salmon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Salmon.png"
+  },
+  "walleye": {
+    "name": "Walleye",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/05/Walleye.png"
+  },
+  "perch": {
+    "name": "Perch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/43/Perch.png"
+  },
+  "carp": {
+    "name": "Carp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a8/Carp.png"
+  },
+  "catfish": {
+    "name": "Catfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/99/Catfish.png"
+  },
+  "pike": {
+    "name": "Pike",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/31/Pike.png"
+  },
+  "sunfish": {
+    "name": "Sunfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/56/Sunfish.png"
+  },
+  "red_mullet": {
+    "name": "Red Mullet",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f2/Red_Mullet.png"
+  },
+  "herring": {
+    "name": "Herring",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Herring.png"
+  },
+  "eel": {
+    "name": "Eel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/91/Eel.png"
+  },
+  "octopus": {
+    "name": "Octopus",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5a/Octopus.png"
+  },
+  "red_snapper": {
+    "name": "Red Snapper",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d3/Red_Snapper.png"
+  },
+  "squid": {
+    "name": "Squid",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/81/Squid.png"
+  },
+  "sea_cucumber": {
+    "name": "Sea Cucumber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a9/Sea_Cucumber.png"
+  },
+  "super_cucumber": {
+    "name": "Super Cucumber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d5/Super_Cucumber.png"
+  },
+  "ghostfish": {
+    "name": "Ghostfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/72/Ghostfish.png"
+  },
+  "stonefish": {
+    "name": "Stonefish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/03/Stonefish.png"
+  },
+  "ice_pip": {
+    "name": "Ice Pip",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/63/Ice_Pip.png"
+  },
+  "lava_eel": {
+    "name": "Lava Eel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/12/Lava_Eel.png"
+  },
+  "sandfish": {
+    "name": "Sandfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bb/Sandfish.png"
+  },
+  "scorpion_carp": {
+    "name": "Scorpion Carp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/76/Scorpion_Carp.png"
+  },
+  "flounder": {
+    "name": "Flounder",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/85/Flounder.png"
+  },
+  "midnight_carp": {
+    "name": "Midnight Carp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/33/Midnight_Carp.png"
+  },
+  "sturgeon": {
+    "name": "Sturgeon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/42/Sturgeon.png"
+  },
+  "tiger_trout": {
+    "name": "Tiger Trout",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/01/Tiger_Trout.png"
+  },
+  "bullhead": {
+    "name": "Bullhead",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/db/Bullhead.png"
+  },
+  "tilapia": {
+    "name": "Tilapia",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/73/Tilapia.png"
+  },
+  "chub": {
+    "name": "Chub",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bd/Chub.png"
+  },
+  "dorado": {
+    "name": "Dorado",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/18/Dorado.png"
+  },
+  "albacore": {
+    "name": "Albacore",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e1/Albacore.png"
+  },
+  "shad": {
+    "name": "Shad",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ef/Shad.png"
+  },
+  "lingcod": {
+    "name": "Lingcod",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Lingcod.png"
+  },
+  "halibut": {
+    "name": "Halibut",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/02/Halibut.png"
+  },
+  "woodskip": {
+    "name": "Woodskip",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/97/Woodskip.png"
+  },
+  "void_salmon": {
+    "name": "Void Salmon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ad/Void_Salmon.png"
+  },
+  "slimejack": {
+    "name": "Slimejack",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/34/Slimejack.png"
+  },
+  "stingray": {
+    "name": "Stingray",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3a/Stingray.png"
+  },
+  "lionfish": {
+    "name": "Lionfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bb/Lionfish.png"
+  },
+  "blue_discus": {
+    "name": "Blue Discus",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ee/Blue_Discus.png"
+  },
+  "goby": {
+    "name": "Goby",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/67/Goby.png"
+  },
+  "midnight_squid": {
+    "name": "Midnight Squid",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/83/Midnight_Squid.png"
+  },
+  "spook_fish": {
+    "name": "Spook Fish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8c/Spook_Fish.png"
+  },
+  "blobfish": {
+    "name": "Blobfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7f/Blobfish.png"
+  },
+  "crimsonfish": {
+    "name": "Crimsonfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/dc/Crimsonfish.png"
+  },
+  "angler": {
+    "name": "Angler",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bf/Angler.png"
+  },
+  "legend": {
+    "name": "Legend",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/10/Legend.png"
+  },
+  "glacierfish": {
+    "name": "Glacierfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fd/Glacierfish.png"
+  },
+  "mutant_carp": {
+    "name": "Mutant Carp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cb/Mutant_Carp.png"
+  },
+  "son_of_crimsonfish": {
+    "name": "Son of Crimsonfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/12/Son_of_Crimsonfish.png"
+  },
+  "ms._angler": {
+    "name": "Ms. Angler",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bb/Ms._Angler.png"
+  },
+  "legend_ii": {
+    "name": "Legend II",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7a/Legend_II.png"
+  },
+  "glacierfish_jr.": {
+    "name": "Glacierfish Jr.",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/db/Glacierfish_Jr..png"
+  },
+  "radioactive_carp": {
+    "name": "Radioactive Carp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/57/Radioactive_Carp.png"
+  },
+  "lobster": {
+    "name": "Lobster",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9f/Lobster.png"
+  },
+  "clam": {
+    "name": "Clam",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ed/Clam.png"
+  },
+  "crayfish": {
+    "name": "Crayfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Crayfish.png"
+  },
+  "crab": {
+    "name": "Crab",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/63/Crab.png"
+  },
+  "cockle": {
+    "name": "Cockle",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ad/Cockle.png"
+  },
+  "mussel": {
+    "name": "Mussel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/aa/Mussel.png"
+  },
+  "shrimp": {
+    "name": "Shrimp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/91/Shrimp.png"
+  },
+  "snail": {
+    "name": "Snail",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d2/Snail.png"
+  },
+  "periwinkle": {
+    "name": "Periwinkle",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1d/Periwinkle.png"
+  },
+  "oyster": {
+    "name": "Oyster",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/54/Oyster.png"
+  },
+  "seaweed": {
+    "name": "Seaweed",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/13/Seaweed.png"
+  },
+  "green_algae": {
+    "name": "Green Algae",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6d/Green_Algae.png"
+  },
+  "white_algae": {
+    "name": "White Algae",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f7/White_Algae.png"
+  },
+  "sea_jelly": {
+    "name": "Sea Jelly",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d5/Sea_Jelly.png"
+  },
+  "river_jelly": {
+    "name": "River Jelly",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/80/River_Jelly.png"
+  },
+  "cave_jelly": {
+    "name": "Cave Jelly",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0a/Cave_Jelly.png"
+  },
+  "maki_roll": {
+    "name": "Maki Roll",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b6/Maki_Roll.png"
+  },
+  "the_queen_of_sauce": {
+    "name": "The Queen of Sauce",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d6/Cooking_Channel.png"
+  },
+  "quality_fertilizer": {
+    "name": "Quality Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a0/Quality_Fertilizer.png"
+  },
+  "sashimi": {
+    "name": "Sashimi",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/41/Sashimi.png"
+  }
+}

@@ -1,0 +1,654 @@
+{
+  "fried_egg": {
+    "name": "Fried Egg",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/18/Fried_Egg.png"
+  },
+  "omelet": {
+    "name": "Omelet",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/12/Omelet.png"
+  },
+  "the_queen_of_sauce": {
+    "name": "The Queen of Sauce",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d6/Cooking_Channel.png"
+  },
+  "salad": {
+    "name": "Salad",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7e/Salad.png"
+  },
+  "cheese_cauliflower": {
+    "name": "Cheese Cauliflower",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Cheese_Cauliflower.png"
+  },
+  "baked_fish": {
+    "name": "Baked Fish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/94/Baked_Fish.png"
+  },
+  "parsnip_soup": {
+    "name": "Parsnip Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/76/Parsnip_Soup.png"
+  },
+  "vegetable_medley": {
+    "name": "Vegetable Medley",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0a/Vegetable_Medley.png"
+  },
+  "complete_breakfast": {
+    "name": "Complete Breakfast",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3d/Complete_Breakfast.png"
+  },
+  "fried_calamari": {
+    "name": "Fried Calamari",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/25/Fried_Calamari.png"
+  },
+  "strange_bun": {
+    "name": "Strange Bun",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5e/Strange_Bun.png"
+  },
+  "lucky_lunch": {
+    "name": "Lucky Lunch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Lucky_Lunch.png"
+  },
+  "fried_mushroom": {
+    "name": "Fried Mushroom",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4a/Fried_Mushroom.png"
+  },
+  "pizza": {
+    "name": "Pizza",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f4/Pizza.png"
+  },
+  "bean_hotpot": {
+    "name": "Bean Hotpot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/24/Bean_Hotpot.png"
+  },
+  "glazed_yams": {
+    "name": "Glazed Yams",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/30/Glazed_Yams.png"
+  },
+  "carp_surprise": {
+    "name": "Carp Surprise",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cc/Carp_Surprise.png"
+  },
+  "hashbrowns": {
+    "name": "Hashbrowns",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8f/Hashbrowns.png"
+  },
+  "pancakes": {
+    "name": "Pancakes",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6b/Pancakes.png"
+  },
+  "salmon_dinner": {
+    "name": "Salmon Dinner",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8b/Salmon_Dinner.png"
+  },
+  "fish_taco": {
+    "name": "Fish Taco",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d5/Fish_Taco.png"
+  },
+  "crispy_bass": {
+    "name": "Crispy Bass",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Crispy_Bass.png"
+  },
+  "pepper_poppers": {
+    "name": "Pepper Poppers",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/08/Pepper_Poppers.png"
+  },
+  "bread": {
+    "name": "Bread",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e1/Bread.png"
+  },
+  "tom_kha_soup": {
+    "name": "Tom Kha Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3b/Tom_Kha_Soup.png"
+  },
+  "trout_soup": {
+    "name": "Trout Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/48/Trout_Soup.png"
+  },
+  "chocolate_cake": {
+    "name": "Chocolate Cake",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Chocolate_Cake.png"
+  },
+  "pink_cake": {
+    "name": "Pink Cake",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/32/Pink_Cake.png"
+  },
+  "rhubarb_pie": {
+    "name": "Rhubarb Pie",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/21/Rhubarb_Pie.png"
+  },
+  "cookie": {
+    "name": "Cookie",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/70/Cookie.png"
+  },
+  "spaghetti": {
+    "name": "Spaghetti",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/08/Spaghetti.png"
+  },
+  "fried_eel": {
+    "name": "Fried Eel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/84/Fried_Eel.png"
+  },
+  "spicy_eel": {
+    "name": "Spicy Eel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f2/Spicy_Eel.png"
+  },
+  "sashimi": {
+    "name": "Sashimi",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/41/Sashimi.png"
+  },
+  "maki_roll": {
+    "name": "Maki Roll",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b6/Maki_Roll.png"
+  },
+  "tortilla": {
+    "name": "Tortilla",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d7/Tortilla.png"
+  },
+  "red_plate": {
+    "name": "Red Plate",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/45/Red_Plate.png"
+  },
+  "eggplant_parmesan": {
+    "name": "Eggplant Parmesan",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/73/Eggplant_Parmesan.png"
+  },
+  "rice_pudding": {
+    "name": "Rice Pudding",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Rice_Pudding.png"
+  },
+  "ice_cream": {
+    "name": "Ice Cream",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Ice_Cream.png"
+  },
+  "blueberry_tart": {
+    "name": "Blueberry Tart",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Blueberry_Tart.png"
+  },
+  "autumn's_bounty": {
+    "name": "Autumn's Bounty",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f4/Autumn%27s_Bounty.png"
+  },
+  "pumpkin_soup": {
+    "name": "Pumpkin Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/59/Pumpkin_Soup.png"
+  },
+  "super_meal": {
+    "name": "Super Meal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d2/Super_Meal.png"
+  },
+  "cranberry_sauce": {
+    "name": "Cranberry Sauce",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0b/Cranberry_Sauce.png"
+  },
+  "stuffing": {
+    "name": "Stuffing",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9a/Stuffing.png"
+  },
+  "farmer's_lunch": {
+    "name": "Farmer's Lunch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Farmer%27s_Lunch.png"
+  },
+  "survival_burger": {
+    "name": "Survival Burger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Survival_Burger.png"
+  },
+  "dish_o'_the_sea": {
+    "name": "Dish O' The Sea",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/ff/Dish_O%27_The_Sea.png"
+  },
+  "miner's_treat": {
+    "name": "Miner's Treat",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/12/Miner%27s_Treat.png"
+  },
+  "roots_platter": {
+    "name": "Roots Platter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Roots_Platter.png"
+  },
+  "triple_shot_espresso": {
+    "name": "Triple Shot Espresso",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/36/Triple_Shot_Espresso.png"
+  },
+  "seafoam_pudding": {
+    "name": "Seafoam Pudding",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/33/Seafoam_Pudding.png"
+  },
+  "algae_soup": {
+    "name": "Algae Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Algae_Soup.png"
+  },
+  "pale_broth": {
+    "name": "Pale Broth",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7e/Pale_Broth.png"
+  },
+  "plum_pudding": {
+    "name": "Plum Pudding",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a0/Plum_Pudding.png"
+  },
+  "artichoke_dip": {
+    "name": "Artichoke Dip",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/77/Artichoke_Dip.png"
+  },
+  "stir_fry": {
+    "name": "Stir Fry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ed/Stir_Fry.png"
+  },
+  "roasted_hazelnuts": {
+    "name": "Roasted Hazelnuts",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/18/Roasted_Hazelnuts.png"
+  },
+  "pumpkin_pie": {
+    "name": "Pumpkin Pie",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7d/Pumpkin_Pie.png"
+  },
+  "radish_salad": {
+    "name": "Radish Salad",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b9/Radish_Salad.png"
+  },
+  "fruit_salad": {
+    "name": "Fruit Salad",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9e/Fruit_Salad.png"
+  },
+  "blackberry_cobbler": {
+    "name": "Blackberry Cobbler",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/70/Blackberry_Cobbler.png"
+  },
+  "cranberry_candy": {
+    "name": "Cranberry Candy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9d/Cranberry_Candy.png"
+  },
+  "bruschetta": {
+    "name": "Bruschetta",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/ca/Bruschetta.png"
+  },
+  "coleslaw": {
+    "name": "Coleslaw",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e1/Coleslaw.png"
+  },
+  "fiddlehead_risotto": {
+    "name": "Fiddlehead Risotto",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2d/Fiddlehead_Risotto.png"
+  },
+  "poppyseed_muffin": {
+    "name": "Poppyseed Muffin",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8e/Poppyseed_Muffin.png"
+  },
+  "chowder": {
+    "name": "Chowder",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/95/Chowder.png"
+  },
+  "fish_stew": {
+    "name": "Fish Stew",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6f/Fish_Stew.png"
+  },
+  "escargot": {
+    "name": "Escargot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/78/Escargot.png"
+  },
+  "lobster_bisque": {
+    "name": "Lobster Bisque",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0a/Lobster_Bisque.png"
+  },
+  "maple_bar": {
+    "name": "Maple Bar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/18/Maple_Bar.png"
+  },
+  "crab_cakes": {
+    "name": "Crab Cakes",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/70/Crab_Cakes.png"
+  },
+  "shrimp_cocktail": {
+    "name": "Shrimp Cocktail",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8e/Shrimp_Cocktail.png"
+  },
+  "ginger_ale": {
+    "name": "Ginger Ale",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1a/Ginger_Ale.png"
+  },
+  "banana_pudding": {
+    "name": "Banana Pudding",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/40/Banana_Pudding.png"
+  },
+  "mango_sticky_rice": {
+    "name": "Mango Sticky Rice",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Mango_Sticky_Rice.png"
+  },
+  "poi": {
+    "name": "Poi",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Poi.png"
+  },
+  "tropical_curry": {
+    "name": "Tropical Curry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/32/Tropical_Curry.png"
+  },
+  "squid_ink_ravioli": {
+    "name": "Squid Ink Ravioli",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/86/Squid_Ink_Ravioli.png"
+  },
+  "moss_soup": {
+    "name": "Moss Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/df/Moss_Soup.png"
+  },
+  "parsnip": {
+    "name": "Parsnip",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/db/Parsnip.png"
+  },
+  "kale": {
+    "name": "Kale",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d1/Kale.png"
+  },
+  "potato": {
+    "name": "Potato",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c2/Potato.png"
+  },
+  "blue_jazz": {
+    "name": "Blue Jazz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2f/Blue_Jazz.png"
+  },
+  "green_bean": {
+    "name": "Green Bean",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5c/Green_Bean.png"
+  },
+  "cauliflower": {
+    "name": "Cauliflower",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/aa/Cauliflower.png"
+  },
+  "rhubarb": {
+    "name": "Rhubarb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Rhubarb.png"
+  },
+  "garlic": {
+    "name": "Garlic",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cc/Garlic.png"
+  },
+  "hot_pepper": {
+    "name": "Hot Pepper",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Hot_Pepper.png"
+  },
+  "radish": {
+    "name": "Radish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d5/Radish.png"
+  },
+  "poppy": {
+    "name": "Poppy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/37/Poppy.png"
+  },
+  "tomato": {
+    "name": "Tomato",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9d/Tomato.png"
+  },
+  "melon": {
+    "name": "Melon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/19/Melon.png"
+  },
+  "blueberry": {
+    "name": "Blueberry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9e/Blueberry.png"
+  },
+  "corn": {
+    "name": "Corn",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f8/Corn.png"
+  },
+  "red_cabbage": {
+    "name": "Red Cabbage",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2d/Red_Cabbage.png"
+  },
+  "bok_choy": {
+    "name": "Bok Choy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/40/Bok_Choy.png"
+  },
+  "eggplant": {
+    "name": "Eggplant",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8f/Eggplant.png"
+  },
+  "amaranth": {
+    "name": "Amaranth",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f6/Amaranth.png"
+  },
+  "cranberries": {
+    "name": "Cranberries",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Cranberries.png"
+  },
+  "yam": {
+    "name": "Yam",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/52/Yam.png"
+  },
+  "pumpkin": {
+    "name": "Pumpkin",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/64/Pumpkin.png"
+  },
+  "beet": {
+    "name": "Beet",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a4/Beet.png"
+  },
+  "artichoke": {
+    "name": "Artichoke",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/dd/Artichoke.png"
+  },
+  "pineapple": {
+    "name": "Pineapple",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fb/Pineapple.png"
+  },
+  "taro_root": {
+    "name": "Taro Root",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/01/Taro_Root.png"
+  },
+  "blackberry": {
+    "name": "Blackberry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/25/Blackberry.png"
+  },
+  "cave_carrot": {
+    "name": "Cave Carrot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/34/Cave_Carrot.png"
+  },
+  "common_mushroom": {
+    "name": "Common Mushroom",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2e/Common_Mushroom.png"
+  },
+  "dandelion": {
+    "name": "Dandelion",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b1/Dandelion.png"
+  },
+  "coconut": {
+    "name": "Coconut",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2f/Coconut.png"
+  },
+  "fiddlehead_fern": {
+    "name": "Fiddlehead Fern",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/48/Fiddlehead_Fern.png"
+  },
+  "hazelnut": {
+    "name": "Hazelnut",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/31/Hazelnut.png"
+  },
+  "wild_horseradish": {
+    "name": "Wild Horseradish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/90/Wild_Horseradish.png"
+  },
+  "leek": {
+    "name": "Leek",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/57/Leek.png"
+  },
+  "morel": {
+    "name": "Morel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b1/Morel.png"
+  },
+  "wild_plum": {
+    "name": "Wild Plum",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3b/Wild_Plum.png"
+  },
+  "winter_root": {
+    "name": "Winter Root",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/11/Winter_Root.png"
+  },
+  "ginger": {
+    "name": "Ginger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/85/Ginger.png"
+  },
+  "apple": {
+    "name": "Apple",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7d/Apple.png"
+  },
+  "apricot": {
+    "name": "Apricot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fc/Apricot.png"
+  },
+  "banana": {
+    "name": "Banana",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/69/Banana.png"
+  },
+  "mango": {
+    "name": "Mango",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/38/Mango.png"
+  },
+  "egg": {
+    "name": "Egg",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/26/Egg.png"
+  },
+  "milk": {
+    "name": "Milk",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/92/Milk.png"
+  },
+  "cheese": {
+    "name": "Cheese",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a5/Cheese.png"
+  },
+  "mayonnaise": {
+    "name": "Mayonnaise",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4e/Mayonnaise.png"
+  },
+  "void_mayonnaise": {
+    "name": "Void Mayonnaise",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f3/Void_Mayonnaise.png"
+  },
+  "coffee": {
+    "name": "Coffee",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e9/Coffee.png"
+  },
+  "maple_syrup": {
+    "name": "Maple Syrup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6a/Maple_Syrup.png"
+  },
+  "squid_ink": {
+    "name": "Squid Ink",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ac/Squid_Ink.png"
+  },
+  "moss": {
+    "name": "Moss",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/64/Moss.png"
+  },
+  "tuna": {
+    "name": "Tuna",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c5/Tuna.png"
+  },
+  "sardine": {
+    "name": "Sardine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/04/Sardine.png"
+  },
+  "bream": {
+    "name": "Bream",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/82/Bream.png"
+  },
+  "largemouth_bass": {
+    "name": "Largemouth Bass",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/11/Largemouth_Bass.png"
+  },
+  "rainbow_trout": {
+    "name": "Rainbow Trout",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/14/Rainbow_Trout.png"
+  },
+  "salmon": {
+    "name": "Salmon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Salmon.png"
+  },
+  "flounder": {
+    "name": "Flounder",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/85/Flounder.png"
+  },
+  "midnight_carp": {
+    "name": "Midnight Carp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/33/Midnight_Carp.png"
+  },
+  "carp": {
+    "name": "Carp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a8/Carp.png"
+  },
+  "sunfish": {
+    "name": "Sunfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/56/Sunfish.png"
+  },
+  "eel": {
+    "name": "Eel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/91/Eel.png"
+  },
+  "squid": {
+    "name": "Squid",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/81/Squid.png"
+  },
+  "sea_cucumber": {
+    "name": "Sea Cucumber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a9/Sea_Cucumber.png"
+  },
+  "seaweed": {
+    "name": "Seaweed",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/13/Seaweed.png"
+  },
+  "green_algae": {
+    "name": "Green Algae",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6d/Green_Algae.png"
+  },
+  "white_algae": {
+    "name": "White Algae",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f7/White_Algae.png"
+  },
+  "lobster": {
+    "name": "Lobster",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9f/Lobster.png"
+  },
+  "clam": {
+    "name": "Clam",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ed/Clam.png"
+  },
+  "crayfish": {
+    "name": "Crayfish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Crayfish.png"
+  },
+  "crab": {
+    "name": "Crab",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/63/Crab.png"
+  },
+  "mussel": {
+    "name": "Mussel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/aa/Mussel.png"
+  },
+  "shrimp": {
+    "name": "Shrimp",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/91/Shrimp.png"
+  },
+  "snail": {
+    "name": "Snail",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d2/Snail.png"
+  },
+  "periwinkle": {
+    "name": "Periwinkle",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1d/Periwinkle.png"
+  },
+  "sugar": {
+    "name": "Sugar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a9/Sugar.png"
+  },
+  "wheat_flour": {
+    "name": "Wheat Flour",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2c/Wheat_Flour.png"
+  },
+  "rice": {
+    "name": "Rice",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Rice.png"
+  },
+  "oil": {
+    "name": "Oil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/06/Oil.png"
+  },
+  "vinegar": {
+    "name": "Vinegar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fe/Vinegar.png"
+  }
+}

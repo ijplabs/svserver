@@ -1,0 +1,414 @@
+{
+  "green_slime": {
+    "name": "Green Slime",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7b/Green_Slime.png"
+  },
+  "weeds": {
+    "name": "Weeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/ba/Red_Sludge.png"
+  },
+  "bug": {
+    "name": "Bug",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7d/Bug.png"
+  },
+  "frost_jelly": {
+    "name": "Frost Jelly",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9d/Frost_Jelly.png"
+  },
+  "red_sludge": {
+    "name": "Red Sludge",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/ba/Red_Sludge.png"
+  },
+  "leather_boots": {
+    "name": "Leather Boots",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fd/Leather_Boots.png"
+  },
+  "steel_smallsword": {
+    "name": "Steel Smallsword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Steel_Smallsword.png"
+  },
+  "slingshot": {
+    "name": "Slingshot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3f/Slingshot.png"
+  },
+  "tundra_boots": {
+    "name": "Tundra Boots",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/93/Tundra_Boots.png"
+  },
+  "crystal_dagger": {
+    "name": "Crystal Dagger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8a/Crystal_Dagger.png"
+  },
+  "master_slingshot": {
+    "name": "Master Slingshot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/63/Master_Slingshot.png"
+  },
+  "firewalker_boots": {
+    "name": "Firewalker Boots",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fa/Firewalker_Boots.png"
+  },
+  "obsidian_edge": {
+    "name": "Obsidian Edge",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/73/Obsidian_Edge.png"
+  },
+  "stardrop": {
+    "name": "Stardrop",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a5/Stardrop.png"
+  },
+  "space_boots": {
+    "name": "Space Boots",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Space_Boots.png"
+  },
+  "skull_key": {
+    "name": "Skull Key",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d3/Skull_Key.png"
+  },
+  "stone": {
+    "name": "Stone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d4/Stone.png"
+  },
+  "wood": {
+    "name": "Wood",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/df/Wood.png"
+  },
+  "hardwood": {
+    "name": "Hardwood",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ed/Hardwood.png"
+  },
+  "sap": {
+    "name": "Sap",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/73/Sap.png"
+  },
+  "mixed_seed": {
+    "name": "Mixed Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2e/Mixed_Seeds.png"
+  },
+  "coal": {
+    "name": "Coal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a7/Coal.png"
+  },
+  "copper_ore": {
+    "name": "Copper Ore",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/78/Copper_Ore.png"
+  },
+  "iron_ore": {
+    "name": "Iron Ore",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Iron_Ore.png"
+  },
+  "gold_ore": {
+    "name": "Gold Ore",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f7/Gold_Ore.png"
+  },
+  "iridium_ore": {
+    "name": "Iridium Ore",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e9/Iridium_Ore.png"
+  },
+  "cave_carrot": {
+    "name": "Cave Carrot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/34/Cave_Carrot.png"
+  },
+  "geode": {
+    "name": "Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/43/Geode.png"
+  },
+  "frozen_geode": {
+    "name": "Frozen Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bf/Frozen_Geode.png"
+  },
+  "magma_geode": {
+    "name": "Magma Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/89/Magma_Geode.png"
+  },
+  "omni_geode": {
+    "name": "Omni Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/09/Omni_Geode.png"
+  },
+  "amethyst": {
+    "name": "Amethyst",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2e/Amethyst.png"
+  },
+  "topaz": {
+    "name": "Topaz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a5/Topaz.png"
+  },
+  "aquamarine": {
+    "name": "Aquamarine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a2/Aquamarine.png"
+  },
+  "jade": {
+    "name": "Jade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7e/Jade.png"
+  },
+  "emerald": {
+    "name": "Emerald",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6a/Emerald.png"
+  },
+  "ruby": {
+    "name": "Ruby",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a9/Ruby.png"
+  },
+  "bone_fragment": {
+    "name": "Bone Fragment",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/97/Bone_Fragment.png"
+  },
+  "warp_totem:_farm": {
+    "name": "Warp Totem: Farm",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e4/Warp_Totem_Farm.png"
+  },
+  "quartz": {
+    "name": "Quartz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cf/Quartz.png"
+  },
+  "frozen_tear": {
+    "name": "Frozen Tear",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Frozen_Tear.png"
+  },
+  "fire_quartz": {
+    "name": "Fire Quartz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5b/Fire_Quartz.png"
+  },
+  "basic_retaining_soil": {
+    "name": "Basic Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c7/Basic_Retaining_Soil.png"
+  },
+  "quality_retaining_soil": {
+    "name": "Quality Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0a/Quality_Retaining_Soil.png"
+  },
+  "deluxe_retaining_soil": {
+    "name": "Deluxe Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c3/Deluxe_Retaining_Soil.png"
+  },
+  "hyper_speed-gro": {
+    "name": "Hyper Speed-Gro",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Hyper_Speed-Gro.png"
+  },
+  "deluxe_fertilizer": {
+    "name": "Deluxe Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1c/Deluxe_Fertilizer.png"
+  },
+  "cherry_bomb": {
+    "name": "Cherry Bomb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1b/Cherry_Bomb.png"
+  },
+  "bomb": {
+    "name": "Bomb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3b/Bomb.png"
+  },
+  "tom_kha_soup": {
+    "name": "Tom Kha Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3b/Tom_Kha_Soup.png"
+  },
+  "trout_soup": {
+    "name": "Trout Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/48/Trout_Soup.png"
+  },
+  "chocolate_cake": {
+    "name": "Chocolate Cake",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Chocolate_Cake.png"
+  },
+  "pink_cake": {
+    "name": "Pink Cake",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/32/Pink_Cake.png"
+  },
+  "rhubarb_pie": {
+    "name": "Rhubarb Pie",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/21/Rhubarb_Pie.png"
+  },
+  "cookie": {
+    "name": "Cookie",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/70/Cookie.png"
+  },
+  "spaghetti": {
+    "name": "Spaghetti",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/08/Spaghetti.png"
+  },
+  "fried_eel": {
+    "name": "Fried Eel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/84/Fried_Eel.png"
+  },
+  "spicy_eel": {
+    "name": "Spicy Eel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f2/Spicy_Eel.png"
+  },
+  "sashimi": {
+    "name": "Sashimi",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/41/Sashimi.png"
+  },
+  "maki_roll": {
+    "name": "Maki Roll",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b6/Maki_Roll.png"
+  },
+  "tortilla": {
+    "name": "Tortilla",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d7/Tortilla.png"
+  },
+  "red_plate": {
+    "name": "Red Plate",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/45/Red_Plate.png"
+  },
+  "eggplant_parmesan": {
+    "name": "Eggplant Parmesan",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/73/Eggplant_Parmesan.png"
+  },
+  "rice_pudding": {
+    "name": "Rice Pudding",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Rice_Pudding.png"
+  },
+  "ice_cream": {
+    "name": "Ice Cream",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Ice_Cream.png"
+  },
+  "blueberry_tart": {
+    "name": "Blueberry Tart",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Blueberry_Tart.png"
+  },
+  "autumn's_bounty": {
+    "name": "Autumn's Bounty",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f4/Autumn%27s_Bounty.png"
+  },
+  "pumpkin_soup": {
+    "name": "Pumpkin Soup",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/59/Pumpkin_Soup.png"
+  },
+  "super_meal": {
+    "name": "Super Meal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d2/Super_Meal.png"
+  },
+  "cranberry_sauce": {
+    "name": "Cranberry Sauce",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0b/Cranberry_Sauce.png"
+  },
+  "stuffing": {
+    "name": "Stuffing",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9a/Stuffing.png"
+  },
+  "farmer's_lunch": {
+    "name": "Farmer's Lunch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Farmer%27s_Lunch.png"
+  },
+  "survival_burger": {
+    "name": "Survival Burger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Survival_Burger.png"
+  },
+  "dish_o'_the_sea": {
+    "name": "Dish O' The Sea",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/ff/Dish_O%27_The_Sea.png"
+  },
+  "miner's_treat": {
+    "name": "Miner's Treat",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/12/Miner%27s_Treat.png"
+  },
+  "roots_platter": {
+    "name": "Roots Platter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Roots_Platter.png"
+  },
+  "qi_gem": {
+    "name": "Qi Gem",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/78/Qi_Gem.png"
+  },
+  "trimmed_lucky_purple_shorts": {
+    "name": "Trimmed Lucky Purple Shorts",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e7/Springobjects071.png"
+  },
+  "mystery_box": {
+    "name": "Mystery Box",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Mystery_Box.png"
+  },
+  "clay": {
+    "name": "Clay",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a2/Clay.png"
+  },
+  "lost_book": {
+    "name": "Lost Book",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f3/Lost_Book.png"
+  },
+  "dwarf_scroll_i": {
+    "name": "Dwarf Scroll I",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b9/Dwarf_Scroll_I.png"
+  },
+  "rusty_spoon": {
+    "name": "Rusty Spoon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4e/Rusty_Spoon.png"
+  },
+  "rusty_cog": {
+    "name": "Rusty Cog",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/74/Rusty_Cog.png"
+  },
+  "skeletal_tail": {
+    "name": "Skeletal Tail",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/29/Skeletal_Tail.png"
+  },
+  "dwarvish_helm": {
+    "name": "Dwarvish Helm",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8b/Dwarvish_Helm.png"
+  },
+  "dwarf_scroll_ii": {
+    "name": "Dwarf Scroll II",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/ca/Dwarf_Scroll_II.png"
+  },
+  "dwarf_gadget": {
+    "name": "Dwarf Gadget",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/58/Dwarf_Gadget.png"
+  },
+  "gold_bar": {
+    "name": "Gold Bar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4e/Gold_Bar.png"
+  },
+  "dwarf_scroll_iv": {
+    "name": "Dwarf Scroll IV",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/85/Dwarf_Scroll_IV.png"
+  },
+  "strange_doll_(yellow)": {
+    "name": "Strange Doll (yellow)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ef/Strange_Doll_%28yellow%29.png"
+  },
+  "strange_doll_(green)": {
+    "name": "Strange Doll (green)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/39/Strange_Doll_%28green%29.png"
+  },
+  "coffee": {
+    "name": "Coffee",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e9/Coffee.png"
+  },
+  "crab_cakes": {
+    "name": "Crab Cakes",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/70/Crab_Cakes.png"
+  },
+  "fried_mushroom": {
+    "name": "Fried Mushroom",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4a/Fried_Mushroom.png"
+  },
+  "ginger_ale": {
+    "name": "Ginger Ale",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1a/Ginger_Ale.png"
+  },
+  "lucky_lunch": {
+    "name": "Lucky Lunch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Lucky_Lunch.png"
+  },
+  "magic_rock_candy": {
+    "name": "Magic Rock Candy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/25/Magic_Rock_Candy.png"
+  },
+  "maple_bar": {
+    "name": "Maple Bar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/18/Maple_Bar.png"
+  },
+  "pepper_poppers": {
+    "name": "Pepper Poppers",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/08/Pepper_Poppers.png"
+  },
+  "triple_shot_espresso": {
+    "name": "Triple Shot Espresso",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/36/Triple_Shot_Espresso.png"
+  },
+  "mystery_box": {
+    "name": "Mystery Box",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Mystery_Box.png"
+  },
+  "golden_mystery_box": {
+    "name": "Golden Mystery Box",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fb/Golden_Mystery_Box.png"
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "quartz": {
+    "name": "Quartz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cf/Quartz.png"
+  },
+  "earth_crystal": {
+    "name": "Earth Crystal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/74/Earth_Crystal.png"
+  },
+  "frozen_tear": {
+    "name": "Frozen Tear",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Frozen_Tear.png"
+  },
+  "fire_quartz": {
+    "name": "Fire Quartz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5b/Fire_Quartz.png"
+  },
+  "emerald": {
+    "name": "Emerald",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6a/Emerald.png"
+  },
+  "aquamarine": {
+    "name": "Aquamarine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a2/Aquamarine.png"
+  },
+  "ruby": {
+    "name": "Ruby",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a9/Ruby.png"
+  },
+  "amethyst": {
+    "name": "Amethyst",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2e/Amethyst.png"
+  },
+  "topaz": {
+    "name": "Topaz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a5/Topaz.png"
+  },
+  "jade": {
+    "name": "Jade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7e/Jade.png"
+  },
+  "diamond": {
+    "name": "Diamond",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ea/Diamond.png"
+  },
+  "prismatic_shard": {
+    "name": "Prismatic Shard",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/56/Prismatic_Shard.png"
+  },
+  "tigerseye": {
+    "name": "Tigerseye",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Tigerseye.png"
+  },
+  "opal": {
+    "name": "Opal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3c/Opal.png"
+  },
+  "fire_opal": {
+    "name": "Fire Opal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/60/Fire_Opal.png"
+  },
+  "alamite": {
+    "name": "Alamite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7c/Alamite.png"
+  },
+  "bixite": {
+    "name": "Bixite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/98/Bixite.png"
+  },
+  "baryte": {
+    "name": "Baryte",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/aa/Baryte.png"
+  },
+  "aerinite": {
+    "name": "Aerinite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6b/Aerinite.png"
+  },
+  "calcite": {
+    "name": "Calcite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/97/Calcite.png"
+  },
+  "dolomite": {
+    "name": "Dolomite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d4/Dolomite.png"
+  },
+  "esperite": {
+    "name": "Esperite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/aa/Esperite.png"
+  },
+  "fluorapatite": {
+    "name": "Fluorapatite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4a/Fluorapatite.png"
+  },
+  "geminite": {
+    "name": "Geminite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/54/Geminite.png"
+  },
+  "helvite": {
+    "name": "Helvite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3f/Helvite.png"
+  },
+  "jamborite": {
+    "name": "Jamborite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4b/Jamborite.png"
+  },
+  "jagoite": {
+    "name": "Jagoite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c3/Jagoite.png"
+  },
+  "kyanite": {
+    "name": "Kyanite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e4/Kyanite.png"
+  },
+  "lunarite": {
+    "name": "Lunarite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/06/Lunarite.png"
+  },
+  "malachite": {
+    "name": "Malachite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ad/Malachite.png"
+  },
+  "neptunite": {
+    "name": "Neptunite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/05/Neptunite.png"
+  },
+  "lemon_stone": {
+    "name": "Lemon Stone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/31/Lemon_Stone.png"
+  },
+  "nekoite": {
+    "name": "Nekoite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Nekoite.png"
+  },
+  "orpiment": {
+    "name": "Orpiment",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/41/Orpiment.png"
+  },
+  "petrified_slime": {
+    "name": "Petrified Slime",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/24/Petrified_Slime.png"
+  },
+  "thunder_egg": {
+    "name": "Thunder Egg",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/14/Thunder_Egg.png"
+  },
+  "pyrite": {
+    "name": "Pyrite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/64/Pyrite.png"
+  },
+  "ocean_stone": {
+    "name": "Ocean Stone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Ocean_Stone.png"
+  },
+  "ghost_crystal": {
+    "name": "Ghost Crystal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d0/Ghost_Crystal.png"
+  },
+  "jasper": {
+    "name": "Jasper",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Jasper.png"
+  },
+  "celestine": {
+    "name": "Celestine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/19/Celestine.png"
+  },
+  "marble": {
+    "name": "Marble",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/82/Marble.png"
+  },
+  "sandstone": {
+    "name": "Sandstone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d6/Sandstone.png"
+  },
+  "granite": {
+    "name": "Granite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4a/Granite.png"
+  },
+  "basalt": {
+    "name": "Basalt",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/22/Basalt.png"
+  },
+  "limestone": {
+    "name": "Limestone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4e/Limestone.png"
+  },
+  "soapstone": {
+    "name": "Soapstone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/81/Soapstone.png"
+  },
+  "hematite": {
+    "name": "Hematite",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b1/Hematite.png"
+  },
+  "mudstone": {
+    "name": "Mudstone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/52/Mudstone.png"
+  },
+  "obsidian": {
+    "name": "Obsidian",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/23/Obsidian.png"
+  },
+  "slate": {
+    "name": "Slate",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/97/Slate.png"
+  },
+  "fairy_stone": {
+    "name": "Fairy Stone",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d9/Fairy_Stone.png"
+  },
+  "star_shards": {
+    "name": "Star Shards",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3f/Star_Shards.png"
+  },
+  "geode": {
+    "name": "Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/43/Geode.png"
+  },
+  "frozen_geode": {
+    "name": "Frozen Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bf/Frozen_Geode.png"
+  },
+  "magma_geode": {
+    "name": "Magma Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/89/Magma_Geode.png"
+  },
+  "omni_geode": {
+    "name": "Omni Geode",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/09/Omni_Geode.png"
+  }
+}

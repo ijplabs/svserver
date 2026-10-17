@@ -127,6 +127,22 @@ services:
     depends_on:
       - server
 
+  # Web Admin Dashboard (React 19 + Tailwind CSS v4 + Lucide)
+  web-admin:
+    build:
+      context: ./tools/web-admin
+      dockerfile: Dockerfile
+    container_name: sdvd-web-admin
+    restart: unless-stopped
+    ports:
+      - "${WEB_ADMIN_PORT:-3000}:80"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-}
+    depends_on:
+      - server
+    healthcheck:
+      disable: true
+
 volumes:
   steam-session:
   game-data:

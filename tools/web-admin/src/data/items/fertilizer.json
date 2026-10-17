@@ -1,0 +1,42 @@
+{
+  "basic_fertilizer": {
+    "name": "Basic Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Basic_Fertilizer.png"
+  },
+  "quality_fertilizer": {
+    "name": "Quality Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a0/Quality_Fertilizer.png"
+  },
+  "deluxe_fertilizer": {
+    "name": "Deluxe Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1c/Deluxe_Fertilizer.png"
+  },
+  "basic_retaining_soil": {
+    "name": "Basic Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c7/Basic_Retaining_Soil.png"
+  },
+  "quality_retaining_soil": {
+    "name": "Quality Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0a/Quality_Retaining_Soil.png"
+  },
+  "deluxe_retaining_soil": {
+    "name": "Deluxe Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c3/Deluxe_Retaining_Soil.png"
+  },
+  "speed-gro": {
+    "name": "Speed-Gro",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/94/Speed-Gro.png"
+  },
+  "deluxe_speed-gro": {
+    "name": "Deluxe Speed-Gro",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6d/Deluxe_Speed-Gro.png"
+  },
+  "hyper_speed-gro": {
+    "name": "Hyper Speed-Gro",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Hyper_Speed-Gro.png"
+  },
+  "tree_fertilizer": {
+    "name": "Tree Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Tree_Fertilizer.png"
+  }
+}

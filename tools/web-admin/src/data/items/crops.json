@@ -1,0 +1,526 @@
+{
+  "blue_jazz": {
+    "name": "Blue Jazz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2f/Blue_Jazz.png"
+  },
+  "carrot": {
+    "name": "Carrot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c3/Carrot.png"
+  },
+  "cauliflower": {
+    "name": "Cauliflower",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/aa/Cauliflower.png"
+  },
+  "coffee_bean": {
+    "name": "Coffee Bean",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/33/Coffee_Bean.png"
+  },
+  "garlic": {
+    "name": "Garlic",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cc/Garlic.png"
+  },
+  "green_bean": {
+    "name": "Green Bean",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5c/Green_Bean.png"
+  },
+  "kale": {
+    "name": "Kale",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d1/Kale.png"
+  },
+  "parsnip": {
+    "name": "Parsnip",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/db/Parsnip.png"
+  },
+  "potato": {
+    "name": "Potato",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c2/Potato.png"
+  },
+  "rhubarb": {
+    "name": "Rhubarb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Rhubarb.png"
+  },
+  "strawberry": {
+    "name": "Strawberry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6d/Strawberry.png"
+  },
+  "tulip": {
+    "name": "Tulip",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cf/Tulip.png"
+  },
+  "unmilled_rice": {
+    "name": "Unmilled Rice",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fe/Unmilled_Rice.png"
+  },
+  "blueberry": {
+    "name": "Blueberry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9e/Blueberry.png"
+  },
+  "corn": {
+    "name": "Corn",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f8/Corn.png"
+  },
+  "hops": {
+    "name": "Hops",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/59/Hops.png"
+  },
+  "hot_pepper": {
+    "name": "Hot Pepper",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Hot_Pepper.png"
+  },
+  "melon": {
+    "name": "Melon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/19/Melon.png"
+  },
+  "poppy": {
+    "name": "Poppy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/37/Poppy.png"
+  },
+  "radish": {
+    "name": "Radish",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d5/Radish.png"
+  },
+  "red_cabbage": {
+    "name": "Red Cabbage",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2d/Red_Cabbage.png"
+  },
+  "starfruit": {
+    "name": "Starfruit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/db/Starfruit.png"
+  },
+  "summer_spangle": {
+    "name": "Summer Spangle",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9f/Summer_Spangle.png"
+  },
+  "summer_squash": {
+    "name": "Summer Squash",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/43/Summer_Squash.png"
+  },
+  "sunflower": {
+    "name": "Sunflower",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/81/Sunflower.png"
+  },
+  "tomato": {
+    "name": "Tomato",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9d/Tomato.png"
+  },
+  "wheat": {
+    "name": "Wheat",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e2/Wheat.png"
+  },
+  "amaranth": {
+    "name": "Amaranth",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f6/Amaranth.png"
+  },
+  "artichoke": {
+    "name": "Artichoke",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/dd/Artichoke.png"
+  },
+  "beet": {
+    "name": "Beet",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a4/Beet.png"
+  },
+  "bok_choy": {
+    "name": "Bok Choy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/40/Bok_Choy.png"
+  },
+  "broccoli": {
+    "name": "Broccoli",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Broccoli.png"
+  },
+  "cranberries": {
+    "name": "Cranberries",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Cranberries.png"
+  },
+  "eggplant": {
+    "name": "Eggplant",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8f/Eggplant.png"
+  },
+  "fairy_rose": {
+    "name": "Fairy Rose",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5c/Fairy_Rose.png"
+  },
+  "grape": {
+    "name": "Grape",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c2/Grape.png"
+  },
+  "pumpkin": {
+    "name": "Pumpkin",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/64/Pumpkin.png"
+  },
+  "yam": {
+    "name": "Yam",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/52/Yam.png"
+  },
+  "powdermelon": {
+    "name": "Powdermelon",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/aa/Powdermelon.png"
+  },
+  "ancient_fruit": {
+    "name": "Ancient Fruit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/01/Ancient_Fruit.png"
+  },
+  "cactus_fruit": {
+    "name": "Cactus Fruit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/32/Cactus_Fruit.png"
+  },
+  "fiber": {
+    "name": "Fiber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/45/Fiber.png"
+  },
+  "mixed_flower_seeds": {
+    "name": "Mixed Flower Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/76/Mixed_Flower_Seeds.png"
+  },
+  "mixed_seeds": {
+    "name": "Mixed Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2e/Mixed_Seeds.png"
+  },
+  "pineapple": {
+    "name": "Pineapple",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fb/Pineapple.png"
+  },
+  "taro_root": {
+    "name": "Taro Root",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/01/Taro_Root.png"
+  },
+  "sweet_gem_berry": {
+    "name": "Sweet Gem Berry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/88/Sweet_Gem_Berry.png"
+  },
+  "tea_leaves": {
+    "name": "Tea Leaves",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5b/Tea_Leaves.png"
+  },
+  "wild_seeds": {
+    "name": "Wild Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/3/39/Spring_Seeds.png/36px-Spring_Seeds.png"
+  },
+  "jazz_seeds": {
+    "name": "Jazz Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/95/Jazz_Seeds.png"
+  },
+  "lucky_lunch": {
+    "name": "Lucky Lunch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/5/5d/Lucky_Lunch.png/24px-Lucky_Lunch.png"
+  },
+  "carrot_seeds": {
+    "name": "Carrot Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1f/Carrot_Seeds.png"
+  },
+  "cauliflower_seeds": {
+    "name": "Cauliflower Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bb/Cauliflower_Seeds.png"
+  },
+  "cheese_cauliflower": {
+    "name": "Cheese Cauliflower",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/6/6e/Cheese_Cauliflower.png/24px-Cheese_Cauliflower.png"
+  },
+  "coffee": {
+    "name": "Coffee",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/e/e9/Coffee.png/24px-Coffee.png"
+  },
+  "garlic_seeds": {
+    "name": "Garlic Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d5/Garlic_Seeds.png"
+  },
+  "escargot": {
+    "name": "Escargot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/7/78/Escargot.png/24px-Escargot.png"
+  },
+  "bean_starter": {
+    "name": "Bean Starter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/26/Bean_Starter.png"
+  },
+  "bean_hotpot": {
+    "name": "Bean Hotpot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/2/24/Bean_Hotpot.png/24px-Bean_Hotpot.png"
+  },
+  "kale_seeds": {
+    "name": "Kale Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/00/Kale_Seeds.png"
+  },
+  "salmon_dinner": {
+    "name": "Salmon Dinner",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/8/8b/Salmon_Dinner.png/24px-Salmon_Dinner.png"
+  },
+  "parsnip_seeds": {
+    "name": "Parsnip Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d3/Parsnip_Seeds.png"
+  },
+  "farmer's_lunch": {
+    "name": "Farmer's Lunch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/7/79/Farmer%27s_Lunch.png/24px-Farmer%27s_Lunch.png"
+  },
+  "potato_seeds": {
+    "name": "Potato Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/44/Potato_Seeds.png"
+  },
+  "hashbrowns": {
+    "name": "Hashbrowns",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/8/8f/Hashbrowns.png/24px-Hashbrowns.png"
+  },
+  "rhubarb_seeds": {
+    "name": "Rhubarb Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/47/Rhubarb_Seeds.png"
+  },
+  "rhubarb_pie": {
+    "name": "Rhubarb Pie",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/2/21/Rhubarb_Pie.png/24px-Rhubarb_Pie.png"
+  },
+  "strawberry_seeds": {
+    "name": "Strawberry Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f2/Strawberry_Seeds.png"
+  },
+  "demetrius": {
+    "name": "Demetrius",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0b/Demetrius_Icon.png"
+  },
+  "tulip_bulb": {
+    "name": "Tulip Bulb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/42/Tulip_Bulb.png"
+  },
+  "evelyn": {
+    "name": "Evelyn",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/54/Evelyn_Icon.png"
+  },
+  "rice_shoot": {
+    "name": "Rice Shoot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/84/Rice_Shoot.png"
+  },
+  "rice": {
+    "name": "Rice",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/d/da/Rice.png/24px-Rice.png"
+  },
+  "blueberry_seeds": {
+    "name": "Blueberry Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/81/Blueberry_Seeds.png"
+  },
+  "blueberry_tart": {
+    "name": "Blueberry Tart",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/9/9b/Blueberry_Tart.png/24px-Blueberry_Tart.png"
+  },
+  "corn_seeds": {
+    "name": "Corn Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d1/Corn_Seeds.png"
+  },
+  "tortilla": {
+    "name": "Tortilla",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/d/d7/Tortilla.png/24px-Tortilla.png"
+  },
+  "hops_starter": {
+    "name": "Hops Starter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Hops_Starter.png"
+  },
+  "pale_ale": {
+    "name": "Pale Ale",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/7/78/Pale_Ale.png/24px-Pale_Ale.png"
+  },
+  "pepper_seeds": {
+    "name": "Pepper Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/67/Pepper_Seeds.png"
+  },
+  "pepper_poppers": {
+    "name": "Pepper Poppers",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/0/08/Pepper_Poppers.png/24px-Pepper_Poppers.png"
+  },
+  "melon_seeds": {
+    "name": "Melon Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5e/Melon_Seeds.png"
+  },
+  "fruit_salad": {
+    "name": "Fruit Salad",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/9/9e/Fruit_Salad.png/24px-Fruit_Salad.png"
+  },
+  "poppy_seeds": {
+    "name": "Poppy Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a2/Poppy_Seeds.png"
+  },
+  "poppyseed_muffin": {
+    "name": "Poppyseed Muffin",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/8/8e/Poppyseed_Muffin.png/24px-Poppyseed_Muffin.png"
+  },
+  "radish_seeds": {
+    "name": "Radish Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b1/Radish_Seeds.png"
+  },
+  "radish_salad": {
+    "name": "Radish Salad",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/b/b9/Radish_Salad.png/24px-Radish_Salad.png"
+  },
+  "red_cabbage_seeds": {
+    "name": "Red Cabbage Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Red_Cabbage_Seeds.png"
+  },
+  "coleslaw": {
+    "name": "Coleslaw",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/e/e1/Coleslaw.png/24px-Coleslaw.png"
+  },
+  "starfruit_seeds": {
+    "name": "Starfruit Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Starfruit_Seeds.png"
+  },
+  "junimo_hut": {
+    "name": "Junimo Hut",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/7/73/Junimo_Hut.png/24px-Junimo_Hut.png"
+  },
+  "spangle_seeds": {
+    "name": "Spangle Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/85/Spangle_Seeds.png"
+  },
+  "caroline": {
+    "name": "Caroline",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d4/Caroline_Icon.png"
+  },
+  "summer_squash_seeds": {
+    "name": "Summer Squash Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fd/Summer_Squash_Seeds.png"
+  },
+  "sunflower_seeds": {
+    "name": "Sunflower Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1f/Sunflower_Seeds.png"
+  },
+  "oil": {
+    "name": "Oil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/0/06/Oil.png/24px-Oil.png"
+  },
+  "tomato_seeds": {
+    "name": "Tomato Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e3/Tomato_Seeds.png"
+  },
+  "bruschetta": {
+    "name": "Bruschetta",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/c/ca/Bruschetta.png/24px-Bruschetta.png"
+  },
+  "wheat_seeds": {
+    "name": "Wheat Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2b/Wheat_Seeds.png"
+  },
+  "beer": {
+    "name": "Beer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/b/b3/Beer.png/24px-Beer.png"
+  },
+  "amaranth_seeds": {
+    "name": "Amaranth Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/ca/Amaranth_Seeds.png"
+  },
+  "artichoke_seeds": {
+    "name": "Artichoke Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/71/Artichoke_Seeds.png"
+  },
+  "artichoke_dip": {
+    "name": "Artichoke Dip",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/7/77/Artichoke_Dip.png/24px-Artichoke_Dip.png"
+  },
+  "beet_seeds": {
+    "name": "Beet Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a8/Beet_Seeds.png"
+  },
+  "vegetable_medley": {
+    "name": "Vegetable Medley",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/0/0a/Vegetable_Medley.png/24px-Vegetable_Medley.png"
+  },
+  "bok_choy_seeds": {
+    "name": "Bok Choy Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/21/Bok_Choy_Seeds.png"
+  },
+  "super_meal": {
+    "name": "Super Meal",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/d/d2/Super_Meal.png/24px-Super_Meal.png"
+  },
+  "broccoli_seeds": {
+    "name": "Broccoli Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/97/Broccoli_Seeds.png"
+  },
+  "cranberry_seeds": {
+    "name": "Cranberry Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Cranberry_Seeds.png"
+  },
+  "cranberry_candy": {
+    "name": "Cranberry Candy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/9/9d/Cranberry_Candy.png/24px-Cranberry_Candy.png"
+  },
+  "eggplant_seeds": {
+    "name": "Eggplant Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f9/Eggplant_Seeds.png"
+  },
+  "eggplant_parmesan": {
+    "name": "Eggplant Parmesan",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/7/73/Eggplant_Parmesan.png/24px-Eggplant_Parmesan.png"
+  },
+  "fairy_seeds": {
+    "name": "Fairy Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8e/Fairy_Seeds.png"
+  },
+  "fairy_dust": {
+    "name": "Fairy Dust",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/f/fc/Fairy_Dust.png/24px-Fairy_Dust.png"
+  },
+  "grape_starter": {
+    "name": "Grape Starter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/de/Grape_Starter.png"
+  },
+  "summer_seeds": {
+    "name": "Summer Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/c/c4/Summer_Seeds.png/24px-Summer_Seeds.png"
+  },
+  "pumpkin_seeds": {
+    "name": "Pumpkin Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/99/Pumpkin_Seeds.png"
+  },
+  "autumn's_bounty": {
+    "name": "Autumn's Bounty",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/f/f4/Autumn%27s_Bounty.png/24px-Autumn%27s_Bounty.png"
+  },
+  "yam_seeds": {
+    "name": "Yam Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e9/Yam_Seeds.png"
+  },
+  "powdermelon_seeds": {
+    "name": "Powdermelon Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/de/Powdermelon_Seeds.png"
+  },
+  "ancient_seeds": {
+    "name": "Ancient Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Ancient_Seeds.png"
+  },
+  "cactus_seeds": {
+    "name": "Cactus Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/09/Cactus_Seeds.png"
+  },
+  "exotic_foraging_bundle": {
+    "name": "Exotic Foraging Bundle",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/a/a1/Bundle_Purple.png/24px-Bundle_Purple.png"
+  },
+  "fiber_seeds": {
+    "name": "Fiber Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/05/Fiber_Seeds.png"
+  },
+  "pineapple_seeds": {
+    "name": "Pineapple Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/17/Pineapple_Seeds.png"
+  },
+  "tropical_curry": {
+    "name": "Tropical Curry",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/3/32/Tropical_Curry.png/24px-Tropical_Curry.png"
+  },
+  "taro_tuber": {
+    "name": "Taro Tuber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/57/Taro_Tuber.png"
+  },
+  "poi": {
+    "name": "Poi",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/f/f1/Poi.png/24px-Poi.png"
+  },
+  "rare_seeds": {
+    "name": "Rare Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5b/Rare_Seed.png"
+  },
+  "tea_sapling": {
+    "name": "Tea Sapling",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/12/Tea_Sapling.png"
+  },
+  "green_tea": {
+    "name": "Green Tea",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/thumb/8/8f/Green_Tea.png/24px-Green_Tea.png"
+  }
+}

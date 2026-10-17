@@ -1,0 +1,142 @@
+{
+  "honey": {
+    "name": "Honey",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c6/Honey.png"
+  },
+  "spring": {
+    "name": "Spring",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9c/Spring.png"
+  },
+  "blue_jazz": {
+    "name": "Blue Jazz",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2f/Blue_Jazz.png"
+  },
+  "summer": {
+    "name": "Summer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/85/Summer.png"
+  },
+  "summer_spangle": {
+    "name": "Summer Spangle",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9f/Summer_Spangle.png"
+  },
+  "poppy": {
+    "name": "Poppy",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/37/Poppy.png"
+  },
+  "fall": {
+    "name": "Fall",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Fall.png"
+  },
+  "fairy_rose": {
+    "name": "Fairy Rose",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5c/Fairy_Rose.png"
+  },
+  "wine": {
+    "name": "Wine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/69/Wine.png"
+  },
+  "fruit": {
+    "name": "Fruit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/69/Wine.png"
+  },
+  "pale_ale": {
+    "name": "Pale Ale",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/78/Pale_Ale.png"
+  },
+  "beer": {
+    "name": "Beer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b3/Beer.png"
+  },
+  "mead": {
+    "name": "Mead",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/84/Mead.png"
+  },
+  "cheese": {
+    "name": "Cheese",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a5/Cheese.png"
+  },
+  "goat_cheese": {
+    "name": "Goat Cheese",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c8/Goat_Cheese.png"
+  },
+  "vinegar": {
+    "name": "Vinegar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fe/Vinegar.png"
+  },
+  "coffee": {
+    "name": "Coffee",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e9/Coffee.png"
+  },
+  "green_tea": {
+    "name": "Green Tea",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8f/Green_Tea.png"
+  },
+  "juice": {
+    "name": "Juice",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Juice.png"
+  },
+  "cloth": {
+    "name": "Cloth",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/51/Cloth.png"
+  },
+  "mayonnaise": {
+    "name": "Mayonnaise",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4e/Mayonnaise.png"
+  },
+  "duck_mayonnaise": {
+    "name": "Duck Mayonnaise",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/23/Duck_Mayonnaise.png"
+  },
+  "void_mayonnaise": {
+    "name": "Void Mayonnaise",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f3/Void_Mayonnaise.png"
+  },
+  "dinosaur_mayonnaise": {
+    "name": "Dinosaur Mayonnaise",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c3/Dinosaur_Mayonnaise.png"
+  },
+  "truffle_oil": {
+    "name": "Truffle Oil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3d/Truffle_Oil.png"
+  },
+  "oil": {
+    "name": "Oil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/06/Oil.png"
+  },
+  "sunflower_seed": {
+    "name": "Sunflower Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1f/Sunflower_Seeds.png"
+  },
+  "sunflower": {
+    "name": "Sunflower",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/81/Sunflower.png"
+  },
+  "pickles": {
+    "name": "Pickles",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c7/Pickles.png"
+  },
+  "jelly": {
+    "name": "Jelly",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/05/Jelly.png"
+  },
+  "caviar": {
+    "name": "Caviar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/89/Caviar.png"
+  },
+  "aged_roe": {
+    "name": "Aged Roe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0e/Aged_Roe.png"
+  },
+  "dried_mushrooms": {
+    "name": "Dried Mushrooms",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1a/Dried_Mushrooms.png"
+  },
+  "dried_fruit": {
+    "name": "Dried Fruit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/66/Dried_Fruit.png"
+  },
+  "raisins": {
+    "name": "Raisins",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/06/Raisins.png"
+  }
+}

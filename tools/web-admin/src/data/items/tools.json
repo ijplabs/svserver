@@ -1,0 +1,178 @@
+{
+  "hoe": {
+    "name": "Hoe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Hoe.png"
+  },
+  "copper_hoe": {
+    "name": "Copper Hoe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8f/Copper_Hoe.png"
+  },
+  "steel_hoe": {
+    "name": "Steel Hoe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f5/Steel_Hoe.png"
+  },
+  "gold_hoe": {
+    "name": "Gold Hoe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d3/Gold_Hoe.png"
+  },
+  "iridium_hoe": {
+    "name": "Iridium Hoe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5f/Iridium_Hoe.png"
+  },
+  "pickaxe": {
+    "name": "Pickaxe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b7/Pickaxe.png"
+  },
+  "copper_pickaxe": {
+    "name": "Copper Pickaxe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d7/Copper_Pickaxe.png"
+  },
+  "steel_pickaxe": {
+    "name": "Steel Pickaxe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d1/Steel_Pickaxe.png"
+  },
+  "gold_pickaxe": {
+    "name": "Gold Pickaxe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d3/Gold_Pickaxe.png"
+  },
+  "iridium_pickaxe": {
+    "name": "Iridium Pickaxe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/ca/Iridium_Pickaxe.png"
+  },
+  "axe": {
+    "name": "Axe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fb/Axe.png"
+  },
+  "copper_axe": {
+    "name": "Copper Axe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/21/Copper_Axe.png"
+  },
+  "steel_axe": {
+    "name": "Steel Axe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/ce/Steel_Axe.png"
+  },
+  "gold_axe": {
+    "name": "Gold Axe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/29/Gold_Axe.png"
+  },
+  "iridium_axe": {
+    "name": "Iridium Axe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8b/Iridium_Axe.png"
+  },
+  "watering_can": {
+    "name": "Watering Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/51/Watering_Can.png"
+  },
+  "copper_watering_can": {
+    "name": "Copper Watering Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0d/Copper_Watering_Can.png"
+  },
+  "steel_watering_can": {
+    "name": "Steel Watering Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/66/Steel_Watering_Can.png"
+  },
+  "gold_watering_can": {
+    "name": "Gold Watering Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/74/Gold_Watering_Can.png"
+  },
+  "iridium_watering_can": {
+    "name": "Iridium Watering Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5e/Iridium_Watering_Can.png"
+  },
+  "copper_trash_can": {
+    "name": "Copper Trash Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6f/Trash_Can_Copper.png"
+  },
+  "steel_trash_can": {
+    "name": "Steel Trash Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b9/Trash_Can_Steel.png"
+  },
+  "gold_trash_can": {
+    "name": "Gold Trash Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Trash_Can_Gold.png"
+  },
+  "iridium_trash_can": {
+    "name": "Iridium Trash Can",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ad/Trash_Can_Iridium.png"
+  },
+  "training_rod": {
+    "name": "Training Rod",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/00/Training_Rod.png"
+  },
+  "bamboo_pole": {
+    "name": "Bamboo Pole",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Bamboo_Pole.png"
+  },
+  "fiberglass_rod": {
+    "name": "Fiberglass Rod",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5e/Fiberglass_Rod.png"
+  },
+  "iridium_rod": {
+    "name": "Iridium Rod",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/05/Iridium_Rod.png"
+  },
+  "advanced_iridium_rod": {
+    "name": "Advanced Iridium Rod",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f1/Advanced_Iridium_Rod.png"
+  },
+  "copper_pan": {
+    "name": "Copper Pan",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/71/Copper_Pan.png"
+  },
+  "steel_pan": {
+    "name": "Steel Pan",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/49/Steel_Pan.png"
+  },
+  "gold_pan": {
+    "name": "Gold Pan",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Gold_Pan.png"
+  },
+  "iridium_pan": {
+    "name": "Iridium Pan",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/66/Iridium_Pan.png"
+  },
+  "large_pack_(24_slots)": {
+    "name": "Large Pack (24 slots)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b1/Backpack.png"
+  },
+  "deluxe_pack_(36_slots)": {
+    "name": "Deluxe Pack (36 slots)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/36/36_Backpack.png"
+  },
+  "scythe": {
+    "name": "Scythe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cd/Scythe.png"
+  },
+  "golden_scythe": {
+    "name": "Golden Scythe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/33/Golden_Scythe.png"
+  },
+  "iridium_scythe": {
+    "name": "Iridium Scythe",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f9/Iridium_Scythe.png"
+  },
+  "milk_pail": {
+    "name": "Milk Pail",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c8/Milk_Pail.png"
+  },
+  "shears": {
+    "name": "Shears",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d1/Shears.png"
+  },
+  "heater": {
+    "name": "Heater",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/93/Heater.png"
+  },
+  "auto-grabber": {
+    "name": "Auto-Grabber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0a/Auto-Grabber.png"
+  },
+  "auto-petter": {
+    "name": "Auto-Petter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9c/Auto-Petter.png"
+  },
+  "return_scepter": {
+    "name": "Return Scepter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f3/Return_Scepter.png"
+  }
+}

@@ -1,0 +1,278 @@
+{
+  "speed": {
+    "name": "Speed",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/26/Speed_w.png"
+  },
+  "defense": {
+    "name": "Defense",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/66/Defense.png"
+  },
+  "weight": {
+    "name": "Weight",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6f/Weight.png"
+  },
+  "crit._chance": {
+    "name": "Crit. Chance",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a9/Crit._Chance.png"
+  },
+  "crit._power": {
+    "name": "Crit. Power",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/06/Crit._Power.png"
+  },
+  "rusty_sword": {
+    "name": "Rusty Sword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d7/Rusty_Sword.png"
+  },
+  "steel_smallsword": {
+    "name": "Steel Smallsword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Steel_Smallsword.png"
+  },
+  "wooden_blade": {
+    "name": "Wooden Blade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/06/Wooden_Blade.png"
+  },
+  "pirate's_sword": {
+    "name": "Pirate's Sword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/19/Pirate%27s_Sword.png"
+  },
+  "silver_saber": {
+    "name": "Silver Saber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b0/Silver_Saber.png"
+  },
+  "cutlass": {
+    "name": "Cutlass",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1e/Cutlass.png"
+  },
+  "forest_sword": {
+    "name": "Forest Sword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/17/Forest_Sword.png"
+  },
+  "iron_edge": {
+    "name": "Iron Edge",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3c/Iron_Edge.png"
+  },
+  "insect_head": {
+    "name": "Insect Head",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/35/Insect_Head.png"
+  },
+  "bone_sword": {
+    "name": "Bone Sword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/29/Bone_Sword.png"
+  },
+  "claymore": {
+    "name": "Claymore",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0c/Claymore.png"
+  },
+  "neptune's_glaive": {
+    "name": "Neptune's Glaive",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/26/Neptune%27s_Glaive.png"
+  },
+  "templar's_blade": {
+    "name": "Templar's Blade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e4/Templar%27s_Blade.png"
+  },
+  "obsidian_edge": {
+    "name": "Obsidian Edge",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/73/Obsidian_Edge.png"
+  },
+  "ossified_blade": {
+    "name": "Ossified Blade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/30/Ossified_Blade.png"
+  },
+  "holy_blade": {
+    "name": "Holy Blade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ab/Holy_Blade.png"
+  },
+  "tempered_broadsword": {
+    "name": "Tempered Broadsword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/51/Tempered_Broadsword.png"
+  },
+  "yeti_tooth": {
+    "name": "Yeti Tooth",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4d/Yeti_Tooth.png"
+  },
+  "steel_falchion": {
+    "name": "Steel Falchion",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ee/Steel_Falchion.png"
+  },
+  "dark_sword": {
+    "name": "Dark Sword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2e/Dark_Sword.png"
+  },
+  "lava_katana": {
+    "name": "Lava Katana",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a0/Lava_Katana.png"
+  },
+  "dragontooth_cutlass": {
+    "name": "Dragontooth Cutlass",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e8/Dragontooth_Cutlass.png"
+  },
+  "dwarf_sword": {
+    "name": "Dwarf Sword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/38/Dwarf_Sword.png"
+  },
+  "galaxy_sword": {
+    "name": "Galaxy Sword",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/44/Galaxy_Sword.png"
+  },
+  "infinity_blade": {
+    "name": "Infinity Blade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/40/Infinity_Blade.png"
+  },
+  "haley's_iron": {
+    "name": "Haley's Iron",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/66/Haley%27s_Iron.png"
+  },
+  "leah's_whittler": {
+    "name": "Leah's Whittler",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/69/Leah%27s_Whittler.png"
+  },
+  "meowmere": {
+    "name": "Meowmere",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/63/Meowmere.png"
+  },
+  "carving_knife": {
+    "name": "Carving Knife",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6d/Carving_Knife.png"
+  },
+  "iron_dirk": {
+    "name": "Iron Dirk",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/bb/Iron_Dirk.png"
+  },
+  "wind_spire": {
+    "name": "Wind Spire",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/00/Wind_Spire.png"
+  },
+  "elf_blade": {
+    "name": "Elf Blade",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f2/Elf_Blade.png"
+  },
+  "burglar's_shank": {
+    "name": "Burglar's Shank",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7c/Burglar%27s_Shank.png"
+  },
+  "crystal_dagger": {
+    "name": "Crystal Dagger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8a/Crystal_Dagger.png"
+  },
+  "shadow_dagger": {
+    "name": "Shadow Dagger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/47/Shadow_Dagger.png"
+  },
+  "broken_trident": {
+    "name": "Broken Trident",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3f/Broken_Trident.png"
+  },
+  "wicked_kris": {
+    "name": "Wicked Kris",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/94/Wicked_Kris.png"
+  },
+  "galaxy_dagger": {
+    "name": "Galaxy Dagger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/68/Galaxy_Dagger.png"
+  },
+  "dwarf_dagger": {
+    "name": "Dwarf Dagger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/99/Dwarf_Dagger.png"
+  },
+  "dragontooth_shiv": {
+    "name": "Dragontooth Shiv",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/95/Dragontooth_Shiv.png"
+  },
+  "iridium_needle": {
+    "name": "Iridium Needle",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/62/Iridium_Needle.png"
+  },
+  "infinity_dagger": {
+    "name": "Infinity Dagger",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d6/Infinity_Dagger.png"
+  },
+  "elliott's_pencil": {
+    "name": "Elliott's Pencil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/70/Elliott%27s_Pencil.png"
+  },
+  "abby's_planchette": {
+    "name": "Abby's Planchette",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/72/Abby%27s_Planchette.png"
+  },
+  "femur": {
+    "name": "Femur",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e4/Femur.png"
+  },
+  "wood_club": {
+    "name": "Wood Club",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/51/Wood_Club.png"
+  },
+  "wood_mallet": {
+    "name": "Wood Mallet",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ac/Wood_Mallet.png"
+  },
+  "lead_rod": {
+    "name": "Lead Rod",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/36/Lead_Rod.png"
+  },
+  "kudgel": {
+    "name": "Kudgel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Kudgel.png"
+  },
+  "the_slammer": {
+    "name": "The Slammer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c7/The_Slammer.png"
+  },
+  "galaxy_hammer": {
+    "name": "Galaxy Hammer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8a/Galaxy_Hammer.png"
+  },
+  "dwarf_hammer": {
+    "name": "Dwarf Hammer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d5/Dwarf_Hammer.png"
+  },
+  "dragontooth_club": {
+    "name": "Dragontooth Club",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/18/Dragontooth_Club.png"
+  },
+  "infinity_gavel": {
+    "name": "Infinity Gavel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/87/Infinity_Gavel.png"
+  },
+  "alex's_bat": {
+    "name": "Alex's Bat",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/17/Alex%27s_Bat.png"
+  },
+  "harvey's_mallet": {
+    "name": "Harvey's Mallet",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/09/Harvey%27s_Mallet.png"
+  },
+  "maru's_wrench": {
+    "name": "Maru's Wrench",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6f/Maru%27s_Wrench.png"
+  },
+  "penny's_fryer": {
+    "name": "Penny's Fryer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9c/Penny%27s_Fryer.png"
+  },
+  "sam's_old_guitar": {
+    "name": "Sam's Old Guitar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/dc/Sam%27s_Old_Guitar.png"
+  },
+  "seb's_lost_mace": {
+    "name": "Seb's Lost Mace",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/37/Seb%27s_Lost_Mace.png"
+  },
+  "slingshot": {
+    "name": "Slingshot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3f/Slingshot.png"
+  },
+  "master_slingshot": {
+    "name": "Master Slingshot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/63/Master_Slingshot.png"
+  },
+  "rapier": {
+    "name": "Rapier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7b/Rapier.png"
+  },
+  "galaxy_slingshot": {
+    "name": "Galaxy Slingshot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4c/Galaxy_Slingshot.png"
+  }
+}

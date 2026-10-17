@@ -1,0 +1,46 @@
+{
+  "chicken": {
+    "name": "Chicken",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/61/Blue_Chicken.png"
+  },
+  "void_chicken": {
+    "name": "Void Chicken",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/67/Void_Chicken.png"
+  },
+  "golden_chicken": {
+    "name": "Golden Chicken",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3c/Golden_Chicken.png"
+  },
+  "duck": {
+    "name": "Duck",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/38/Duck.png"
+  },
+  "rabbit": {
+    "name": "Rabbit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fd/Rabbit.png"
+  },
+  "dinosaur": {
+    "name": "Dinosaur",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/89/Dinosaur.png"
+  },
+  "cow": {
+    "name": "Cow",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3e/Brown_Cow.png"
+  },
+  "goat": {
+    "name": "Goat",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/52/Goat.png"
+  },
+  "sheep": {
+    "name": "Sheep",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cc/Sheep.png"
+  },
+  "pig": {
+    "name": "Pig",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/30/Pig.png"
+  },
+  "ostrich": {
+    "name": "Ostrich",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/ad/Ostrich.png"
+  }
+}

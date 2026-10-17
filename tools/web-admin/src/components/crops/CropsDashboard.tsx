@@ -1,0 +1,429 @@
+import React, { useState, useMemo } from 'react';
+import { useFarmStore } from '../../store/farmStore';
+import { getCropImage, getFertilizerImage } from '../../lib/items';
+import { CropTileState } from '../../types/farm';
+import { 
+  Sprout, 
+  Droplets, 
+  Sparkles, 
+  MapPin, 
+  Search, 
+  AlertCircle
+} from 'lucide-react';
+
+export const CropsDashboard: React.FC = () => {
+  const { cropsSnapshot } = useFarmStore();
+
+  const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'ready' | 'unwatered' | 'growing'>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'grouped' | 'tiles'>('grouped');
+
+  const allCrops = cropsSnapshot?.crops || [];
+
+  // Extract unique locations
+  const availableLocations = useMemo(() => {
+    const locSet = new Set<string>();
+    for (const crop of allCrops) {
+      if (crop.location) {
+        locSet.add(crop.location);
+      }
+    }
+    return Array.from(locSet).sort();
+  }, [allCrops]);
+
+  // Filter crops
+  const filteredCrops = useMemo(() => {
+    return allCrops.filter((c) => {
+      // Location filter
+      if (selectedLocation !== 'all' && c.location !== selectedLocation) {
+        return false;
+      }
+      // Status filter
+      if (selectedFilter === 'ready' && !c.isReadyForHarvest) {
+        return false;
+      }
+      if (selectedFilter === 'unwatered' && (c.isWatered || c.isDead)) {
+        return false;
+      }
+      if (selectedFilter === 'growing' && (c.isReadyForHarvest || c.isDead)) {
+        return false;
+      }
+      // Search query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const nameMatch = (c.harvestItemName || c.cropId).toLowerCase().includes(query);
+        const locMatch = c.location.toLowerCase().includes(query);
+        if (!nameMatch && !locMatch) return false;
+      }
+      return true;
+    });
+  }, [allCrops, selectedLocation, selectedFilter, searchQuery]);
+
+  // Grouped crop aggregates
+  const groupedCrops = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        total: number;
+        ready: number;
+        watered: number;
+        dead: number;
+        minDays: number;
+        maxDays: number;
+        regrowDays: number;
+        tiles: CropTileState[];
+      }
+    >();
+
+    for (const crop of filteredCrops) {
+      const key = crop.harvestItemName || crop.cropId || 'Unknown Crop';
+      const existing = map.get(key);
+      if (existing) {
+        existing.total += 1;
+        if (crop.isReadyForHarvest) existing.ready += 1;
+        if (crop.isWatered) existing.watered += 1;
+        if (crop.isDead) existing.dead += 1;
+        existing.minDays = Math.min(existing.minDays, crop.daysUntilHarvest);
+        existing.maxDays = Math.max(existing.maxDays, crop.daysUntilHarvest);
+        existing.tiles.push(crop);
+      } else {
+        map.set(key, {
+          id: crop.cropId,
+          name: key,
+          total: 1,
+          ready: crop.isReadyForHarvest ? 1 : 0,
+          watered: crop.isWatered ? 1 : 0,
+          dead: crop.isDead ? 1 : 0,
+          minDays: crop.daysUntilHarvest,
+          maxDays: crop.daysUntilHarvest,
+          regrowDays: crop.regrowDays,
+          tiles: [crop],
+        });
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => b.ready - a.ready || b.total - a.total);
+  }, [filteredCrops]);
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-5">
+      {/* Top Header & Metrics */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div>
+          <div className="flex items-center space-x-2">
+            <Sprout className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              Agricultural Monitoring & Harvest Tracker
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Real-time crop growth telemetry synced across all farm plots and green houses
+          </p>
+        </div>
+
+        {/* View Toggle */}
+        <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setViewMode('grouped')}
+            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
+              viewMode === 'grouped'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Grouped Crops
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('tiles')}
+            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
+              viewMode === 'tiles'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Tile Matrix ({filteredCrops.length})
+          </button>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+        {/* Search */}
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search crops or location..."
+            className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-slate-400 focus:bg-white transition-colors"
+          />
+        </div>
+
+        {/* Location Dropdown */}
+        <div className="relative">
+          <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <select
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+            className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-hidden focus:border-slate-400 focus:bg-white transition-colors cursor-pointer appearance-none"
+          >
+            <option value="all">All Locations ({allCrops.length} tiles)</option>
+            {availableLocations.map((loc) => {
+              const count = allCrops.filter((c) => c.location === loc).length;
+              return (
+                <option key={loc} value={loc}>
+                  {loc} ({count} crops)
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        {/* Status Filter Tabs */}
+        <div className="sm:col-span-1 lg:col-span-2 flex items-center space-x-1.5 overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setSelectedFilter('all')}
+            className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
+              selectedFilter === 'all'
+                ? 'bg-slate-900 text-white'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedFilter('ready')}
+            className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer flex items-center space-x-1 ${
+              selectedFilter === 'ready'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+            }`}
+          >
+            <Sparkles className="w-3 h-3" />
+            <span>Ready to Harvest</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedFilter('unwatered')}
+            className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer flex items-center space-x-1 ${
+              selectedFilter === 'unwatered'
+                ? 'bg-amber-600 text-white'
+                : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+            }`}
+          >
+            <Droplets className="w-3 h-3" />
+            <span>Needs Water</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedFilter('growing')}
+            className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
+              selectedFilter === 'growing'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+            }`}
+          >
+            Growing
+          </button>
+        </div>
+      </div>
+
+      {/* Main View: Grouped vs Detailed Tiles */}
+      {filteredCrops.length === 0 ? (
+        <div className="py-12 text-center">
+          <Sprout className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+          <p className="text-sm font-semibold text-slate-700">No crops found</p>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {allCrops.length === 0
+              ? 'No crops currently planted on the farm.'
+              : 'Try clearing your filters or search query.'}
+          </p>
+        </div>
+      ) : viewMode === 'grouped' ? (
+        /* Grouped Crops Grid */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {groupedCrops.map((item) => {
+            const imgUrl = getCropImage(item.name);
+            const waterPercent = Math.round((item.watered / item.total) * 100);
+
+            return (
+              <div
+                key={item.name}
+                className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-slate-300 transition-colors"
+              >
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        {imgUrl ? (
+                          <img
+                            src={imgUrl}
+                            alt={item.name}
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Sprout className="w-5 h-5 text-emerald-600" />
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                          {item.name}
+                        </h3>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {item.total} planted
+                        </span>
+                      </div>
+                    </div>
+
+                    {item.ready > 0 && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        {item.ready} Ready
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Harvest / Regrow Info */}
+                  <div className="mt-4 pt-3 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block uppercase font-medium">
+                        Harvest Time
+                      </span>
+                      <span className="font-semibold text-slate-700">
+                        {item.ready === item.total
+                          ? 'Ready now'
+                          : item.minDays === item.maxDays
+                          ? `${item.minDays} days`
+                          : `${item.minDays}-${item.maxDays} days`}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-400 block uppercase font-medium">
+                        Regrow Cycle
+                      </span>
+                      <span className="font-semibold text-slate-700">
+                        {item.regrowDays > 0 ? `Every ${item.regrowDays} days` : 'Single harvest'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Watering Bar */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[11px] font-medium mb-1">
+                    <span className="text-slate-600 flex items-center space-x-1">
+                      <Droplets className="w-3 h-3 text-sky-500" />
+                      <span>{item.watered} of {item.total} watered</span>
+                    </span>
+                    <span className="text-slate-500">{waterPercent}%</span>
+                  </div>
+                  <div className="w-full bg-slate-200/70 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-sky-500 h-1.5 rounded-full"
+                      style={{ width: `${waterPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Detailed Tile Matrix Table */
+        <div className="overflow-x-auto border border-slate-200 rounded-xl">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+              <tr>
+                <th className="py-2.5 px-3">Crop</th>
+                <th className="py-2.5 px-3">Location</th>
+                <th className="py-2.5 px-3">Coordinates</th>
+                <th className="py-2.5 px-3">Growth Stage</th>
+                <th className="py-2.5 px-3">Harvest Days</th>
+                <th className="py-2.5 px-3">Watered</th>
+                <th className="py-2.5 px-3">Fertilizer</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {filteredCrops.map((c, i) => {
+                const img = getCropImage(c.harvestItemName || c.cropId);
+                const fertImg = getFertilizerImage(c.fertilizerName || c.fertilizerId || '');
+
+                return (
+                  <tr key={`${c.location}-${c.x}-${c.y}-${i}`} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-2.5 px-3 font-semibold text-slate-900 flex items-center space-x-2">
+                      <div className="w-6 h-6 rounded bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                        {img ? (
+                          <img src={img} alt="" className="w-full h-full object-contain" />
+                        ) : (
+                          <Sprout className="w-3.5 h-3.5 text-emerald-600" />
+                        )}
+                      </div>
+                      <span>{c.harvestItemName || c.cropId || 'Unknown'}</span>
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-600">{c.location}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-500">
+                      ({c.x}, {c.y})
+                    </td>
+                    <td className="py-2.5 px-3">
+                      {c.isReadyForHarvest ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                          Ready
+                        </span>
+                      ) : (
+                        <span className="text-slate-600">
+                          Phase {c.currentPhase} / {c.totalPhases}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 font-medium">
+                      {c.isReadyForHarvest ? (
+                        <span className="text-emerald-600 font-semibold">Today</span>
+                      ) : (
+                        <span>{c.daysUntilHarvest} days</span>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      {c.isWatered ? (
+                        <span className="inline-flex items-center text-sky-700 space-x-1 font-medium">
+                          <Droplets className="w-3.5 h-3.5 text-sky-500" />
+                          <span>Watered</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center text-amber-700 space-x-1 font-medium">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Dry</span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      {c.fertilizerName ? (
+                        <div className="flex items-center space-x-1 text-slate-600">
+                          {fertImg && (
+                            <img src={fertImg} alt="" className="w-4 h-4 object-contain" />
+                          )}
+                          <span>{c.fertilizerName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 font-normal">None</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};

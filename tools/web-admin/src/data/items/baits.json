@@ -1,0 +1,30 @@
+{
+  "bait": {
+    "name": "Bait",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/ff/Bait.png"
+  },
+  "magnet": {
+    "name": "Magnet",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8c/Magnet.png"
+  },
+  "wild_bait": {
+    "name": "Wild Bait",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Wild_Bait.png"
+  },
+  "magic_bait": {
+    "name": "Magic Bait",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/58/Magic_Bait.png"
+  },
+  "deluxe_bait": {
+    "name": "Deluxe Bait",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/43/Deluxe_Bait.png"
+  },
+  "challenge_bait": {
+    "name": "Challenge Bait",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/96/Challenge_Bait.png"
+  },
+  "targeted_bait": {
+    "name": "Targeted Bait",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Pink_Bait.png"
+  }
+}

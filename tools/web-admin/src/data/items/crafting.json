@@ -1,0 +1,602 @@
+{
+  "cherry_bomb": {
+    "name": "Cherry Bomb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1b/Cherry_Bomb.png"
+  },
+  "bomb": {
+    "name": "Bomb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3b/Bomb.png"
+  },
+  "mega_bomb": {
+    "name": "Mega Bomb",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4f/Mega_Bomb.png"
+  },
+  "gate": {
+    "name": "Gate",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/94/Gate.png"
+  },
+  "wood_fence": {
+    "name": "Wood Fence",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1e/Wood_Fence.png"
+  },
+  "stone_fence": {
+    "name": "Stone Fence",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2d/Stone_Fence.png"
+  },
+  "iron_fence_(10)": {
+    "name": "Iron Fence (10)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9d/Iron_Fence.png"
+  },
+  "hardwood_fence": {
+    "name": "Hardwood Fence",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5c/Hardwood_Fence.png"
+  },
+  "sprinkler": {
+    "name": "Sprinkler",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/08/Sprinkler.png"
+  },
+  "quality_sprinkler": {
+    "name": "Quality Sprinkler",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/af/Quality_Sprinkler.png"
+  },
+  "iridium_sprinkler": {
+    "name": "Iridium Sprinkler",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/90/Iridium_Sprinkler.png"
+  },
+  "mayonnaise_machine": {
+    "name": "Mayonnaise Machine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ef/Mayonnaise_Machine.png"
+  },
+  "bee_house": {
+    "name": "Bee House",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/ce/Bee_House.png"
+  },
+  "preserves_jar": {
+    "name": "Preserves Jar",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1e/Preserves_Jar.png"
+  },
+  "cheese_press": {
+    "name": "Cheese Press",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Cheese_Press.png"
+  },
+  "loom": {
+    "name": "Loom",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3b/Loom.png"
+  },
+  "keg": {
+    "name": "Keg",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7c/Keg.png"
+  },
+  "oil_maker": {
+    "name": "Oil Maker",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c5/Oil_Maker.png"
+  },
+  "cask": {
+    "name": "Cask",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7c/Cask.png"
+  },
+  "fish_smoker": {
+    "name": "Fish Smoker",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Fish_Smoker.png"
+  },
+  "dehydrator": {
+    "name": "Dehydrator",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/02/Dehydrator.png"
+  },
+  "basic_fertilizer": {
+    "name": "Basic Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Basic_Fertilizer.png"
+  },
+  "quality_fertilizer_(2)": {
+    "name": "Quality Fertilizer (2)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a0/Quality_Fertilizer.png"
+  },
+  "deluxe_fertilizer_(5)": {
+    "name": "Deluxe Fertilizer (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1c/Deluxe_Fertilizer.png"
+  },
+  "speed-gro_(5)": {
+    "name": "Speed-Gro (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/94/Speed-Gro.png"
+  },
+  "deluxe_speed-gro_(5)": {
+    "name": "Deluxe Speed-Gro (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6d/Deluxe_Speed-Gro.png"
+  },
+  "hyper_speed-gro": {
+    "name": "Hyper Speed-Gro",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/53/Hyper_Speed-Gro.png"
+  },
+  "basic_retaining_soil": {
+    "name": "Basic Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c7/Basic_Retaining_Soil.png"
+  },
+  "quality_retaining_soil_(2)": {
+    "name": "Quality Retaining Soil (2)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0a/Quality_Retaining_Soil.png"
+  },
+  "deluxe_retaining_soil": {
+    "name": "Deluxe Retaining Soil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c3/Deluxe_Retaining_Soil.png"
+  },
+  "tree_fertilizer": {
+    "name": "Tree Fertilizer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Tree_Fertilizer.png"
+  },
+  "wild_seeds_(sp)_(spring_seeds)": {
+    "name": "Wild Seeds (Sp)\n(Spring Seeds)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/39/Spring_Seeds.png"
+  },
+  "wild_seeds_(su)_(summer_seeds)": {
+    "name": "Wild Seeds (Su)\n(Summer Seeds)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c4/Summer_Seeds.png"
+  },
+  "wild_seeds_(fa)_(fall_seeds)": {
+    "name": "Wild Seeds (Fa)\n(Fall Seeds)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/55/Fall_Seeds.png"
+  },
+  "wild_seeds_(wi)_(winter_seeds)": {
+    "name": "Wild Seeds (Wi)\n(Winter Seeds)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/dd/Winter_Seeds.png"
+  },
+  "ancient_seeds": {
+    "name": "Ancient Seeds",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ec/Ancient_Seeds.png"
+  },
+  "grass_starter": {
+    "name": "Grass Starter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/14/Grass_Starter.png"
+  },
+  "blue_grass_starter": {
+    "name": "Blue Grass Starter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/18/Blue_Grass_Starter.png"
+  },
+  "tea_sapling": {
+    "name": "Tea Sapling",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/12/Tea_Sapling.png"
+  },
+  "fiber_seeds_(4)": {
+    "name": "Fiber Seeds (4)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/05/Fiber_Seeds.png"
+  },
+  "mystic_tree_seed": {
+    "name": "Mystic Tree Seed",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/ff/Mystic_Tree_Seed.png"
+  },
+  "wood_floor": {
+    "name": "Wood Floor",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/58/Wood_Floor.png"
+  },
+  "rustic_plank_floor": {
+    "name": "Rustic Plank Floor",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9e/Rustic_Plank_Floor.png"
+  },
+  "straw_floor": {
+    "name": "Straw Floor",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/85/Straw_Floor.png"
+  },
+  "weathered_floor": {
+    "name": "Weathered Floor",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2a/Weathered_Floor.png"
+  },
+  "crystal_floor_(5)": {
+    "name": "Crystal Floor (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a4/Crystal_Floor.png"
+  },
+  "stone_floor": {
+    "name": "Stone Floor",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4e/Stone_Floor.png"
+  },
+  "stone_walkway_floor": {
+    "name": "Stone Walkway Floor",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/51/Stone_Walkway_Floor.png"
+  },
+  "brick_floor_(5)": {
+    "name": "Brick Floor (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/29/Brick_Floor.png"
+  },
+  "wood_path": {
+    "name": "Wood Path",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e3/Wood_Path.png"
+  },
+  "gravel_path": {
+    "name": "Gravel Path",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/15/Gravel_Path.png"
+  },
+  "cobblestone_path": {
+    "name": "Cobblestone Path",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/90/Cobblestone_Path.png"
+  },
+  "stepping_stone_path": {
+    "name": "Stepping Stone Path",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1b/Stepping_Stone_Path.png"
+  },
+  "crystal_path_(5)": {
+    "name": "Crystal Path (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/9b/Crystal_Path.png"
+  },
+  "spinner": {
+    "name": "Spinner",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7b/Spinner.png"
+  },
+  "trap_bobber": {
+    "name": "Trap Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Trap_Bobber.png"
+  },
+  "sonar_bobber": {
+    "name": "Sonar Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/33/Sonar_Bobber.png"
+  },
+  "cork_bobber": {
+    "name": "Cork Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0b/Cork_Bobber.png"
+  },
+  "quality_bobber": {
+    "name": "Quality Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/01/Quality_Bobber.png"
+  },
+  "treasure_hunter": {
+    "name": "Treasure Hunter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Treasure_Hunter.png"
+  },
+  "dressed_spinner": {
+    "name": "Dressed Spinner",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e8/Dressed_Spinner.png"
+  },
+  "barbed_hook": {
+    "name": "Barbed Hook",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4f/Barbed_Hook.png"
+  },
+  "magnet_(3)": {
+    "name": "Magnet (3)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8c/Magnet.png"
+  },
+  "bait_(5)": {
+    "name": "Bait (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/ff/Bait.png"
+  },
+  "deluxe_bait_(5)": {
+    "name": "Deluxe Bait (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/43/Deluxe_Bait.png"
+  },
+  "wild_bait_(5)": {
+    "name": "Wild Bait (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Wild_Bait.png"
+  },
+  "magic_bait_(5)": {
+    "name": "Magic Bait (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/58/Magic_Bait.png"
+  },
+  "challenge_bait_(5)": {
+    "name": "Challenge Bait (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/96/Challenge_Bait.png"
+  },
+  "crab_pot": {
+    "name": "Crab Pot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/92/Crab_Pot.png"
+  },
+  "sturdy_ring": {
+    "name": "Sturdy Ring",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7e/Sturdy_Ring.png"
+  },
+  "warrior_ring": {
+    "name": "Warrior Ring",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/13/Warrior_Ring.png"
+  },
+  "ring_of_yoba": {
+    "name": "Ring of Yoba",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/21/Ring_of_Yoba.png"
+  },
+  "thorns_ring": {
+    "name": "Thorns Ring",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5b/Thorns_Ring.png"
+  },
+  "glowstone_ring": {
+    "name": "Glowstone Ring",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/65/Glowstone_Ring.png"
+  },
+  "iridium_band": {
+    "name": "Iridium Band",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/77/Iridium_Band.png"
+  },
+  "wedding_ring": {
+    "name": "Wedding Ring",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fe/Wedding_Ring.png"
+  },
+  "field_snack": {
+    "name": "Field Snack",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1b/Field_Snack.png"
+  },
+  "bug_steak": {
+    "name": "Bug Steak",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b7/Bug_Steak.png"
+  },
+  "life_elixir": {
+    "name": "Life Elixir",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6e/Life_Elixir.png"
+  },
+  "oil_of_garlic": {
+    "name": "Oil of Garlic",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4b/Oil_of_Garlic.png"
+  },
+  "monster_musk": {
+    "name": "Monster Musk",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/af/Monster_Musk.png"
+  },
+  "fairy_dust": {
+    "name": "Fairy Dust",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/fc/Fairy_Dust.png"
+  },
+  "warp_totem:_beach": {
+    "name": "Warp Totem: Beach",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2f/Warp_Totem_Beach.png"
+  },
+  "warp_totem:_mountains": {
+    "name": "Warp Totem: Mountains",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d8/Warp_Totem_Mountains.png"
+  },
+  "warp_totem:_farm": {
+    "name": "Warp Totem: Farm",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e4/Warp_Totem_Farm.png"
+  },
+  "warp_totem:_desert": {
+    "name": "Warp Totem: Desert",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/83/Warp_Totem_Desert.png"
+  },
+  "warp_totem:_island": {
+    "name": "Warp Totem: Island",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b9/Warp_Totem_Island.png"
+  },
+  "rain_totem": {
+    "name": "Rain Totem",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f7/Rain_Totem.png"
+  },
+  "treasure_totem": {
+    "name": "Treasure Totem",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/06/Treasure_Totem.png"
+  },
+  "torch": {
+    "name": "Torch",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b2/Torch.png"
+  },
+  "campfire": {
+    "name": "Campfire",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/01/Campfire.png"
+  },
+  "wooden_brazier": {
+    "name": "Wooden Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/34/Wooden_Brazier.png"
+  },
+  "stone_brazier": {
+    "name": "Stone Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1a/Stone_Brazier.png"
+  },
+  "gold_brazier": {
+    "name": "Gold Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b7/Gold_Brazier.png"
+  },
+  "carved_brazier": {
+    "name": "Carved Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/3c/Carved_Brazier.png"
+  },
+  "stump_brazier": {
+    "name": "Stump Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f2/Stump_Brazier.png"
+  },
+  "barrel_brazier": {
+    "name": "Barrel Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/78/Barrel_Brazier.png"
+  },
+  "skull_brazier": {
+    "name": "Skull Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e6/Skull_Brazier.png"
+  },
+  "marble_brazier": {
+    "name": "Marble Brazier",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e0/Marble_Brazier.png"
+  },
+  "wood_lamp-post": {
+    "name": "Wood Lamp-post",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c8/Wood_Lamp-post.png"
+  },
+  "iron_lamp-post": {
+    "name": "Iron Lamp-post",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b0/Iron_Lamp-post.png"
+  },
+  "jack-o-lantern": {
+    "name": "Jack-O-Lantern",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/17/Jack-O-Lantern.png"
+  },
+  "charcoal_kiln": {
+    "name": "Charcoal Kiln",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/76/Charcoal_Kiln.png"
+  },
+  "crystalarium": {
+    "name": "Crystalarium",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/63/Crystalarium.png"
+  },
+  "furnace": {
+    "name": "Furnace",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0f/Furnace.png"
+  },
+  "heavy_furnace": {
+    "name": "Heavy Furnace",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a9/Heavy_Furnace.png"
+  },
+  "lightning_rod": {
+    "name": "Lightning Rod",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/62/Lightning_Rod.png"
+  },
+  "solar_panel": {
+    "name": "Solar Panel",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/5d/Solar_Panel.png"
+  },
+  "recycling_machine": {
+    "name": "Recycling Machine",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/26/Recycling_Machine.png"
+  },
+  "seed_maker": {
+    "name": "Seed Maker",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/19/Seed_Maker.png"
+  },
+  "slime_incubator": {
+    "name": "Slime Incubator",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c0/Slime_Incubator.png"
+  },
+  "ostrich_incubator": {
+    "name": "Ostrich Incubator",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/51/Ostrich_Incubator.png"
+  },
+  "slime_egg-press": {
+    "name": "Slime Egg-Press",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Slime_Egg-Press.png"
+  },
+  "tapper": {
+    "name": "Tapper",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Tapper.png"
+  },
+  "heavy_tapper": {
+    "name": "Heavy Tapper",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0c/Heavy_Tapper.png"
+  },
+  "worm_bin": {
+    "name": "Worm Bin",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/71/Worm_Bin.png"
+  },
+  "deluxe_worm_bin": {
+    "name": "Deluxe Worm Bin",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/ea/Deluxe_Worm_Bin.png"
+  },
+  "bone_mill": {
+    "name": "Bone Mill",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cc/Bone_Mill.png"
+  },
+  "geode_crusher": {
+    "name": "Geode Crusher",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/02/Geode_Crusher.png"
+  },
+  "mushroom_log": {
+    "name": "Mushroom Log",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/39/Mushroom_Log.png"
+  },
+  "bait_maker": {
+    "name": "Bait Maker",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c0/Bait_Maker.png"
+  },
+  "tub_o'_flowers": {
+    "name": "Tub o' Flowers",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/d9/Tub_o%27_Flowers.png"
+  },
+  "wicked_statue": {
+    "name": "Wicked Statue",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4a/Wicked_Statue.png"
+  },
+  "flute_block": {
+    "name": "Flute Block",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/31/Flute_Block.png"
+  },
+  "drum_block": {
+    "name": "Drum Block",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/dc/Drum_Block.png"
+  },
+  "chest": {
+    "name": "Chest",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/b/b3/Chest.png"
+  },
+  "stone_chest": {
+    "name": "Stone Chest",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/1/1b/Stone_Chest.png"
+  },
+  "big_chest": {
+    "name": "Big Chest",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/89/Big_Chest.png"
+  },
+  "big_stone_chest": {
+    "name": "Big Stone Chest",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/a/a6/Big_Stone_Chest.png"
+  },
+  "wood_sign": {
+    "name": "Wood Sign",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/ce/Wood_Sign.png"
+  },
+  "stone_sign": {
+    "name": "Stone Sign",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f3/Stone_Sign.png"
+  },
+  "dark_sign": {
+    "name": "Dark Sign",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/72/Dark_Sign.png"
+  },
+  "text_sign": {
+    "name": "Text Sign",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/93/Text_Sign.png"
+  },
+  "garden_pot": {
+    "name": "Garden Pot",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/2c/Garden_Pot.png"
+  },
+  "scarecrow": {
+    "name": "Scarecrow",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/75/Scarecrow.png"
+  },
+  "deluxe_scarecrow": {
+    "name": "Deluxe Scarecrow",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/5/59/Deluxe_Scarecrow.png"
+  },
+  "staircase": {
+    "name": "Staircase",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/8c/Staircase.png"
+  },
+  "explosive_ammo_(5)": {
+    "name": "Explosive Ammo (5)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f3/Explosive_Ammo.png"
+  },
+  "transmute_(fe)": {
+    "name": "Transmute (Fe)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6c/Iron_Bar.png"
+  },
+  "transmute_(au)": {
+    "name": "Transmute (Au)",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4e/Gold_Bar.png"
+  },
+  "mini-jukebox": {
+    "name": "Mini-Jukebox",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/02/Mini-Jukebox.png"
+  },
+  "mini-obelisk": {
+    "name": "Mini-Obelisk",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/c9/Mini-Obelisk.png"
+  },
+  "farm_computer": {
+    "name": "Farm Computer",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/f/f8/Farm_Computer.png"
+  },
+  "hopper": {
+    "name": "Hopper",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/8/81/Hopper.png"
+  },
+  "cookout_kit": {
+    "name": "Cookout Kit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/9/91/Cookout_Kit.png"
+  },
+  "tent_kit": {
+    "name": "Tent Kit",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/05/Tent_Kit.png"
+  },
+  "statue_of_the_dwarf_king": {
+    "name": "Statue Of The Dwarf King",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e4/Statue_Of_The_Dwarf_King.png"
+  },
+  "statue_of_blessings": {
+    "name": "Statue Of Blessings",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e9/Statue_Of_Blessings.png"
+  },
+  "anvil": {
+    "name": "Anvil",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/dd/Anvil.png"
+  },
+  "mini-forge": {
+    "name": "Mini-Forge",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/6/6c/Mini-Forge.png"
+  }
+}

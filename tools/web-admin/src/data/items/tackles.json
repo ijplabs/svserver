@@ -1,0 +1,42 @@
+{
+  "spinner": {
+    "name": "Spinner",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/7b/Spinner.png"
+  },
+  "dressed_spinner": {
+    "name": "Dressed Spinner",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/e/e8/Dressed_Spinner.png"
+  },
+  "trap_bobber": {
+    "name": "Trap Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/d/da/Trap_Bobber.png"
+  },
+  "cork_bobber": {
+    "name": "Cork Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/0b/Cork_Bobber.png"
+  },
+  "lead_bobber": {
+    "name": "Lead Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/c/cb/Lead_Bobber.png"
+  },
+  "treasure_hunter": {
+    "name": "Treasure Hunter",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/7/79/Treasure_Hunter.png"
+  },
+  "barbed_hook": {
+    "name": "Barbed Hook",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/4/4f/Barbed_Hook.png"
+  },
+  "curiosity_lure": {
+    "name": "Curiosity Lure",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/2/26/Curiosity_Lure.png"
+  },
+  "quality_bobber": {
+    "name": "Quality Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/0/01/Quality_Bobber.png"
+  },
+  "sonar_bobber": {
+    "name": "Sonar Bobber",
+    "url": "https://stardewvalleywiki.com/mediawiki/images/3/33/Sonar_Bobber.png"
+  }
+}
