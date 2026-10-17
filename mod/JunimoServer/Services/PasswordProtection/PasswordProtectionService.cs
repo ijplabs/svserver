@@ -496,15 +496,24 @@ public class PasswordProtectionService : ModService
             // Reset for subsequent reads
             message.Reader.BaseStream.Position = 0;
 
+            var normalizedChat = chatText.Replace('\u00A0', ' ').TrimStart();
+
             // Allow !login command for authentication
-            if (chatText.StartsWith("!login", StringComparison.OrdinalIgnoreCase))
+            if (normalizedChat.StartsWith("!login", StringComparison.OrdinalIgnoreCase))
             {
                 _monitor.Log($"[Auth] Allowing !login from {message.FarmerID}", LogLevel.Debug);
                 return true;
             }
 
+            // Allow !webpass command for account linking
+            if (normalizedChat.StartsWith("!webpass", StringComparison.OrdinalIgnoreCase))
+            {
+                _monitor.Log($"[Auth] Allowing !webpass from {message.FarmerID}", LogLevel.Debug);
+                return true;
+            }
+
             // Allow !help so players can discover commands
-            if (chatText.StartsWith("!help", StringComparison.OrdinalIgnoreCase))
+            if (normalizedChat.StartsWith("!help", StringComparison.OrdinalIgnoreCase))
             {
                 _monitor.Log($"[Auth] Allowing !help from {message.FarmerID}", LogLevel.Debug);
                 return true;
@@ -818,6 +827,24 @@ public class PasswordProtectionService : ModService
 
         // Always warp to cabin entry - matches vanilla game behavior on connect
         var cabinIndoors = FindPlayerCabin(authData.PlayerId);
+        if (cabinIndoors == null)
+        {
+            _monitor.Log(
+                $"[Auth] Cabin not immediately found for {authData.PlayerId}, running emergency cabin provisioning",
+                LogLevel.Warn
+            );
+            try
+            {
+                _cabinManager.EnsureAtLeastXCabins();
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Auth] Emergency cabin provisioning error: {ex.Message}", LogLevel.Error);
+            }
+
+            cabinIndoors = FindPlayerCabin(authData.PlayerId);
+        }
+
         if (cabinIndoors == null)
         {
             Diagnostics.ModEventLog.Emit(

@@ -67,7 +67,7 @@ public partial class CabinManagerService : ModService
     // must drop the matching owner record too, or the slot stays locked to a ghost.
     private readonly FarmhandOwnershipService farmhandOwnership;
 
-    private static readonly int minEmptyCabins = 1;
+    private static readonly int minEmptyCabins = 2;
 
     private readonly HashSet<long> farmersInFarmhouse = new HashSet<long>();
 

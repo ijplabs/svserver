@@ -48,10 +48,20 @@ public class LoginCommand
                 }
 
                 // Combine all args in case password contains spaces
-                string password = string.Join(" ", args);
+                string rawPassword = string.Join(" ", args);
+                string cleanPassword = rawPassword
+                    .Trim()
+                    .Replace('\u00A0', ' ')
+                    .Replace('\u200B', ' ')
+                    .Trim('"', '\'', '“', '”', '‘', '’');
 
-                // Attempt authentication
-                var result = passwordProtectionService.TryAuthenticate(msg.SourceFarmer, password);
+                // Attempt authentication with sanitized password first
+                var result = passwordProtectionService.TryAuthenticate(msg.SourceFarmer, cleanPassword);
+                // If sanitized failed but rawPassword differed, attempt rawPassword before giving up
+                if (!result.Success && !result.ShouldKick && cleanPassword != rawPassword)
+                {
+                    result = passwordProtectionService.TryAuthenticate(msg.SourceFarmer, rawPassword);
+                }
 
                 // Send result message (if player wasn't kicked)
                 if (!result.ShouldKick)

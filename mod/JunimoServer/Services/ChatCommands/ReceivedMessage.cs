@@ -1,4 +1,3 @@
-using System;
 using StardewValley;
 
 namespace JunimoServer.Services.ChatCommands;
@@ -20,15 +19,25 @@ public class ReceivedMessage
 
     public bool IsCommand
     {
-        get { return !String.IsNullOrEmpty(Message) && Message[0] == '!' && Message.Length > 1; }
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Message))
+            {
+                return false;
+            }
+
+            var trimmed = Message.TrimStart().Replace('\u00A0', ' ');
+            return trimmed.StartsWith("!") && trimmed.Length > 1;
+        }
     }
 
     public ChatCommandMessage Command
     {
         get
         {
+            var trimmed = Message.TrimStart().Replace('\u00A0', ' ');
             // Remove prefix and command name with ranges
-            var commandParts = ArgUtility.SplitBySpace(Message[1..]);
+            var commandParts = ArgUtility.SplitBySpace(trimmed[1..]);
             var commandName = commandParts[0];
             var commandArgs = commandParts[1..];
 
