@@ -200,6 +200,12 @@ public class LobbyService : ModService
     /// </summary>
     private readonly ConcurrentDictionary<long, bool> _unauthenticatedPlayers = new();
 
+    /// <summary>
+    /// Player IDs excluded from sleep ready-checks due to a passed sleep vote.
+    /// Thread-safe: modified by SleepVoteService, read during ready-check updates.
+    /// </summary>
+    private readonly ConcurrentDictionary<long, bool> _sleepVoteExcludedPlayers = new();
+
     private readonly CabinManager.CabinManagerService _cabinManager;
 
     public LobbyMode Mode => _settings.LobbyMode;
@@ -1020,16 +1026,17 @@ public class LobbyService : ModService
 
     private bool HasPlayersToExclude()
     {
-        return !_unauthenticatedPlayers.IsEmpty || !_layoutEditingSessions.IsEmpty;
+        return !_unauthenticatedPlayers.IsEmpty || !_layoutEditingSessions.IsEmpty || !_sleepVoteExcludedPlayers.IsEmpty;
     }
 
     /// <summary>
-    /// Updates the ready-checks to exclude lobby players from day transition.
+    /// Updates the ready-checks to exclude lobby players and sleep-voted players from day transition.
     /// Players to exclude:
     /// - Layout editors (in _layoutEditingSessions)
     /// - Unauthenticated players (in _unauthenticatedPlayers)
+    /// - Sleep vote excluded players (in _sleepVoteExcludedPlayers)
     ///
-    /// This allows the day to end while these players remain isolated.
+    /// This allows the day to end while these players remain isolated or inactive.
     /// Guards against edge cases: if all players are excluded, reset to require all.
     ///
     /// Modifies all three ready-checks atomically:
@@ -1041,17 +1048,21 @@ public class LobbyService : ModService
     /// </summary>
     private void UpdateSleepReadyCheckExclusion()
     {
-        // Nothing to exclude if no editors and no unauthenticated players
-        if (_layoutEditingSessions.Count == 0 && _unauthenticatedPlayers.Count == 0)
+        // Nothing to exclude if no editors, no unauthenticated players, and no sleep vote exclusions
+        if (_layoutEditingSessions.Count == 0 && _unauthenticatedPlayers.Count == 0 && _sleepVoteExcludedPlayers.Count == 0)
         {
             return;
         }
 
         try
         {
-            // Build set of player IDs to exclude (editors + unauthenticated)
+            // Build set of player IDs to exclude (editors + unauthenticated + sleep vote exclusions)
             var excludedPlayerIds = new HashSet<long>(_layoutEditingSessions.Keys);
             foreach (var playerId in _unauthenticatedPlayers.Keys)
+            {
+                excludedPlayerIds.Add(playerId);
+            }
+            foreach (var playerId in _sleepVoteExcludedPlayers.Keys)
             {
                 excludedPlayerIds.Add(playerId);
             }
@@ -1302,8 +1313,8 @@ public class LobbyService : ModService
 
         _isEditingModeActive = false;
 
-        // If unauthenticated players remain, update exclusion (don't clear it entirely)
-        if (!_unauthenticatedPlayers.IsEmpty)
+        // If unauthenticated or sleep-voted players remain, update exclusion (don't clear it entirely)
+        if (!_unauthenticatedPlayers.IsEmpty || !_sleepVoteExcludedPlayers.IsEmpty)
         {
             UpdateSleepReadyCheckExclusion();
         }
@@ -1892,7 +1903,7 @@ public class LobbyService : ModService
             );
 
             // Update ready-check exclusion immediately
-            if (_unauthenticatedPlayers.IsEmpty && _layoutEditingSessions.IsEmpty)
+            if (_unauthenticatedPlayers.IsEmpty && _layoutEditingSessions.IsEmpty && _sleepVoteExcludedPlayers.IsEmpty)
             {
                 ClearSleepReadyCheckExclusion();
             }
@@ -1920,7 +1931,7 @@ public class LobbyService : ModService
     }
 
     /// <summary>
-    /// Returns player IDs excluded from day-transition checks (unauthenticated + editors).
+    /// Returns player IDs excluded from day-transition checks (unauthenticated + editors + sleep vote).
     /// Thread-safe: reads from ConcurrentDictionaries.
     /// </summary>
     public HashSet<long> GetExcludedPlayerIds()
@@ -1930,8 +1941,68 @@ public class LobbyService : ModService
         {
             excluded.Add(playerId);
         }
+        foreach (var playerId in _sleepVoteExcludedPlayers.Keys)
+        {
+            excluded.Add(playerId);
+        }
 
         return excluded;
+    }
+
+    /// <summary>
+    /// Adds a player to the sleep vote exclusion list so day transition is not blocked by them.
+    /// </summary>
+    public void AddSleepVoteExclusion(long playerId)
+    {
+        _sleepVoteExcludedPlayers[playerId] = true;
+        _monitor.Log($"[Lobby] Excluded player {playerId} from sleep ready-check via sleep vote", LogLevel.Info);
+        UpdateSleepReadyCheckExclusion();
+    }
+
+    /// <summary>
+    /// Removes a player from the sleep vote exclusion list.
+    /// </summary>
+    public void RemoveSleepVoteExclusion(long playerId)
+    {
+        _sleepVoteExcludedPlayers.TryRemove(playerId, out _);
+        if (_unauthenticatedPlayers.IsEmpty && _layoutEditingSessions.IsEmpty && _sleepVoteExcludedPlayers.IsEmpty)
+        {
+            ClearSleepReadyCheckExclusion();
+        }
+        else
+        {
+            UpdateSleepReadyCheckExclusion();
+        }
+    }
+
+    /// <summary>
+    /// Clears all sleep vote exclusions (called upon morning DayStarted).
+    /// </summary>
+    public void ClearSleepVoteExclusions()
+    {
+        if (_sleepVoteExcludedPlayers.IsEmpty)
+        {
+            return;
+        }
+
+        _sleepVoteExcludedPlayers.Clear();
+        _monitor.Log("[Lobby] Cleared all sleep vote exclusions", LogLevel.Trace);
+        if (_unauthenticatedPlayers.IsEmpty && _layoutEditingSessions.IsEmpty)
+        {
+            ClearSleepReadyCheckExclusion();
+        }
+        else
+        {
+            UpdateSleepReadyCheckExclusion();
+        }
+    }
+
+    /// <summary>
+    /// Checks if a player is currently excluded via sleep voting.
+    /// </summary>
+    public bool IsSleepVoteExcluded(long playerId)
+    {
+        return _sleepVoteExcludedPlayers.ContainsKey(playerId);
     }
 
     #endregion

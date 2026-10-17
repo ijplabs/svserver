@@ -191,6 +191,55 @@ internal class Env
 
     #endregion
 
+    #region AFK & Sleep Voting Settings (Phase 5)
+
+    /// <summary>
+    /// Enable automatic kicking for inactive (AFK) players.
+    /// Default: true
+    /// </summary>
+    public static readonly bool AfkKickEnabled = ParseBool("AFK_KICK_ENABLED", true);
+
+    /// <summary>
+    /// Inactivity timeout in minutes before kicking an AFK player.
+    /// Default: 10
+    /// </summary>
+    public static readonly int AfkTimeoutMinutes = Math.Max(2, ParseInt("AFK_TIMEOUT_MINUTES", 10));
+
+    /// <summary>
+    /// Inactivity warning lead time in minutes (when warning message is sent).
+    /// Default: AfkTimeoutMinutes - 2 (minimum 1 minute)
+    /// </summary>
+    public static readonly int AfkWarningMinutes = Math.Clamp(
+        ParseInt("AFK_WARNING_MINUTES", Math.Max(1, AfkTimeoutMinutes - 2)),
+        1,
+        AfkTimeoutMinutes - 1
+    );
+
+    /// <summary>
+    /// If true, AFK kick only applies during late evening/night (>= 22:00 in-game)
+    /// or when someone is waiting in bed, so daytime crafting/idling is not interrupted.
+    /// Default: true
+    /// </summary>
+    public static readonly bool AfkNightOnly = ParseBool("AFK_NIGHT_ONLY", true);
+
+    /// <summary>
+    /// Enable in-game sleep voting command (!votesleep / !vs).
+    /// Default: true
+    /// </summary>
+    public static readonly bool SleepVoteEnabled = ParseBool("SLEEP_VOTE_ENABLED", true);
+
+    /// <summary>
+    /// Percentage of active farmhands required to pass a sleep vote (1-100%).
+    /// Default: 50
+    /// </summary>
+    public static readonly int SleepVoteThresholdPercent = Math.Clamp(
+        ParseInt("SLEEP_VOTE_PERCENT", 50),
+        1,
+        100
+    );
+
+    #endregion
+
     private static int ParseInt(string envVar, int defaultValue)
     {
         var value = Environment.GetEnvironmentVariable(envVar);

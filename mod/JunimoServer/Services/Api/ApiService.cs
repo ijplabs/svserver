@@ -1213,6 +1213,8 @@ public partial class ApiService : ModService
 
     private readonly AccountLinkingService? _accountLinkingService;
     private readonly CropTracker.CropTrackerService? _cropTrackerService;
+    private readonly Backup.BackupService? _backupService;
+    private readonly Economy.BankService? _bankService;
 
     public ApiService(
         IModHelper helper,
@@ -1227,7 +1229,9 @@ public partial class ApiService : ModService
         GameThreadDispatcher dispatcher,
         PasswordProtectionService? passwordProtectionService = null,
         AccountLinkingService? accountLinkingService = null,
-        CropTracker.CropTrackerService? cropTrackerService = null
+        CropTracker.CropTrackerService? cropTrackerService = null,
+        Backup.BackupService? backupService = null,
+        Economy.BankService? bankService = null
     )
         : base(helper, monitor)
     {
@@ -1242,6 +1246,8 @@ public partial class ApiService : ModService
         _passwordProtectionService = passwordProtectionService;
         _accountLinkingService = accountLinkingService;
         _cropTrackerService = cropTrackerService;
+        _backupService = backupService;
+        _bankService = bankService;
         _instance = this;
     }
 
@@ -2337,6 +2343,9 @@ public partial class ApiService : ModService
                     case "/farm/crops":
                         await WriteJsonAsync(response, HandleGetFarmCrops());
                         break;
+                    case "/api/backups":
+                        await WriteJsonAsync(response, _backupService?.GetBackups() ?? new List<Backup.BackupEntry>());
+                        break;
                     default:
                         await WriteNotFoundAsync(response, path);
                         break;
@@ -2384,6 +2393,18 @@ public partial class ApiService : ModService
                         break;
                     case "/api/auth/login":
                         await HandlePostAuthLoginAsync(request, response);
+                        break;
+                    case "/api/backup/create":
+                        var newBackup = _backupService?.CreateBackup();
+                        if (newBackup != null)
+                        {
+                            await WriteJsonAsync(response, newBackup);
+                        }
+                        else
+                        {
+                            response.StatusCode = 500;
+                            await WriteJsonAsync(response, new { error = "Backup creation failed or no active save loaded" });
+                        }
                         break;
                     default:
                         await WriteNotFoundAsync(response, path);
