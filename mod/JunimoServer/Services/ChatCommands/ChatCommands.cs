@@ -18,9 +18,10 @@ namespace JunimoServer.Services.ChatCommands;
 /// </summary>
 public class ChatCommandsService : ModService, IChatCommandApi
 {
+    public event Action<string, string>? OnPlayerChatMessage;
+
     private readonly IMonitor _monitor;
     private readonly IModHelper _helper;
-    private readonly ApiService _apiService;
     private readonly RoleService _roleService;
 
     private readonly List<ChatCommand> _registeredCommands = new List<ChatCommand>();
@@ -31,13 +32,11 @@ public class ChatCommandsService : ModService, IChatCommandApi
         IMonitor monitor,
         Harmony harmony,
         IModHelper helper,
-        RoleService roleService,
-        ApiService apiService
+        RoleService roleService
     )
     {
         _monitor = monitor;
         _helper = helper;
-        _apiService = apiService;
         _roleService = roleService;
 
         // Enable cheat/debug commands work (https://stardewvalleywiki.com/Modding:Console_commands#Debug_commands)
@@ -54,9 +53,6 @@ public class ChatCommandsService : ModService, IChatCommandApi
         );
 
         RegisterCommand(new ChatCommand("help", "Displays available commands.", HelpCommand));
-
-        // Subscribe to chat messages from WebSocket clients (e.g., Discord bot)
-        _apiService.OnExternalChatMessage += HandleExternalChatMessage;
     }
 
     /// <summary>
@@ -160,7 +156,7 @@ public class ChatCommandsService : ModService, IChatCommandApi
             {
                 var playerName =
                     _helper.GetFarmerNameById(receivedMessage.SourceFarmer) ?? "Unknown";
-                _apiService.BroadcastChatMessage(playerName, receivedMessage.Message);
+                OnPlayerChatMessage?.Invoke(playerName, receivedMessage.Message);
             }
             return;
         }

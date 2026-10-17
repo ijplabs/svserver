@@ -1332,6 +1332,7 @@ public partial class ApiService : ModService
     private readonly HostAutomation.AfkWatchdogService? _afkWatchdogService;
     private readonly ModManagement.ModEnforcementService? _modEnforcementService;
     private readonly ModManagement.ModDistributionService? _modDistributionService;
+    private readonly ChatCommands.ChatCommandsService? _chatCommandsService;
 
     public ApiService(
         IModHelper helper,
@@ -1352,7 +1353,8 @@ public partial class ApiService : ModService
         HostAutomation.SleepVoteService? sleepVoteService = null,
         HostAutomation.AfkWatchdogService? afkWatchdogService = null,
         ModManagement.ModEnforcementService? modEnforcementService = null,
-        ModManagement.ModDistributionService? modDistributionService = null
+        ModManagement.ModDistributionService? modDistributionService = null,
+        ChatCommands.ChatCommandsService? chatCommandsService = null
     )
         : base(helper, monitor)
     {
@@ -1373,6 +1375,14 @@ public partial class ApiService : ModService
         _afkWatchdogService = afkWatchdogService;
         _modEnforcementService = modEnforcementService;
         _modDistributionService = modDistributionService;
+        _chatCommandsService = chatCommandsService;
+
+        if (_chatCommandsService != null)
+        {
+            _chatCommandsService.OnPlayerChatMessage += (player, msg) => BroadcastChatMessage(player, msg);
+            OnExternalChatMessage += _chatCommandsService.SendExternalMessage;
+        }
+
         _instance = this;
     }
 
