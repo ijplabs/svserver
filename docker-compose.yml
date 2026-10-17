@@ -40,6 +40,12 @@ services:
       - SERVER_PASSWORD
       - MAX_LOGIN_ATTEMPTS
       - AUTH_TIMEOUT_SECONDS
+      - ADMIN_USERNAME
+      - ADMIN_PASSWORD
+      - JWT_SECRET
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_PASSWORD
       - ENABLE_MOD_INCOMPATIBLE_OPTIMIZATIONS
       - HEALTH_CHECK_SECONDS
       - CROP_SAVER_LIGHTNING_IMMUNITY
@@ -48,6 +54,8 @@ services:
     depends_on:
       steam-auth:
         condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
 
   steam-auth:
@@ -69,6 +77,20 @@ services:
       - STEAM_REFRESH_TOKEN
       - STEAM_KEEP_LANGUAGES
       - VALIDATE_ON_BOOT
+    restart: unless-stopped
+
+  # Redis cache, session state, and event pub/sub
+  redis:
+    image: redis:7-alpine
+    container_name: sdvd-redis
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-svserver_redis_secret}
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
     restart: unless-stopped
 
   # Discord bot for server status display and chat relay
@@ -119,3 +141,4 @@ volumes:
   saves:
   discord-bot-data:
   proxy-data:
+  redis-data:

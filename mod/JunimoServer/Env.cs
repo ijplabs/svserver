@@ -109,7 +109,7 @@ internal class Env
     /// </summary>
     public static readonly bool? VerboseLogging = ParseNullableBool("VERBOSE_LOGGING");
 
-    #region API Authentication
+    #region API & Web Authentication
 
     /// <summary>
     /// API key for authenticating requests to protected endpoints.
@@ -119,6 +119,51 @@ internal class Env
     /// Generate securely: bun -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
     /// </summary>
     public static readonly string ApiKey = Environment.GetEnvironmentVariable("API_KEY") ?? "";
+
+    /// <summary>
+    /// Superadmin username for web dashboard login. Default: "admin".
+    /// </summary>
+    public static readonly string AdminUsername =
+        Environment.GetEnvironmentVariable("ADMIN_USERNAME")?.Trim() ?? "admin";
+
+    /// <summary>
+    /// Superadmin password for web dashboard login. If unset, falls back to API_KEY or VNC_PASSWORD.
+    /// </summary>
+    public static readonly string AdminPassword =
+        Environment.GetEnvironmentVariable("ADMIN_PASSWORD")
+        ?? Environment.GetEnvironmentVariable("VNC_PASSWORD")
+        ?? "";
+
+    /// <summary>
+    /// Secret key used to sign and verify web admin session tokens / JWTs.
+    /// </summary>
+    public static readonly string JwtSecret =
+        Environment.GetEnvironmentVariable("JWT_SECRET")
+        ?? "default_jwt_secret_change_me_in_production_32_chars";
+
+    #endregion
+
+    #region Redis Configuration
+
+    /// <summary>
+    /// Hostname or IP of the Redis server.
+    /// Default: "redis"
+    /// </summary>
+    public static readonly string RedisHost =
+        Environment.GetEnvironmentVariable("REDIS_HOST")?.Trim() ?? "redis";
+
+    /// <summary>
+    /// Port of the Redis server.
+    /// Default: 6379
+    /// </summary>
+    public static readonly int RedisPort = ParseInt("REDIS_PORT", 6379);
+
+    /// <summary>
+    /// Password for authenticating with Redis.
+    /// Default: "svserver_redis_secret"
+    /// </summary>
+    public static readonly string RedisPassword =
+        Environment.GetEnvironmentVariable("REDIS_PASSWORD") ?? "svserver_redis_secret";
 
     #endregion
 

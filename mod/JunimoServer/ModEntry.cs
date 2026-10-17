@@ -354,6 +354,10 @@ internal class ModEntry : Mod
         LoginCommand.Register(Helper, Monitor, chatCommandsService, passwordProtectionService);
         AuthStatusCommand.Register(Helper, Monitor, chatCommandsService, passwordProtectionService);
         LobbyCommands.Register(Helper, Monitor, chatCommandsService, lobbyService);
+
+        // Web admin linking command
+        var accountLinkingService = _services.GetRequiredService<AccountLinkingService>();
+        WebpassCommand.Register(Helper, Monitor, chatCommandsService, accountLinkingService);
     }
 
     /// <summary>

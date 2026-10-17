@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<AssemblyName>JunimoServer</AssemblyName>
 		<RootNamespace>JunimoServer</RootNamespace>
@@ -48,6 +48,7 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
         <PackageReference Include="NSwag.Core" Version="14.2.0"/>
         <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0"/>
+        <PackageReference Include="StackExchange.Redis" Version="2.6.122"/>
         <PackageReference Include="Websocket.Client" Version="4.7.0"/>
     </ItemGroup>
 

@@ -896,6 +896,30 @@ public class ReloadResponse
     public string? Error { get; set; }
 }
 
+/// <summary>
+/// Request body for POST /api/auth/register.
+/// </summary>
+public class RegisterRequest
+{
+    /// <summary>6-digit OTP code generated in-game via !webpass.</summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>Desired web dashboard password.</summary>
+    public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request body for POST /api/auth/login.
+/// </summary>
+public class LoginRequest
+{
+    /// <summary>Farmer character name or superadmin username.</summary>
+    public string Username { get; set; } = string.Empty;
+
+    /// <summary>Password.</summary>
+    public string Password { get; set; } = string.Empty;
+}
+
 #endregion
 
 /// <summary>
@@ -1187,6 +1211,9 @@ public partial class ApiService : ModService
             .Select(ep => (ep!.Method, ep.Path))
             .ToHashSet();
 
+    private readonly AccountLinkingService? _accountLinkingService;
+    private readonly CropTracker.CropTrackerService? _cropTrackerService;
+
     public ApiService(
         IModHelper helper,
         IMonitor monitor,
@@ -1198,7 +1225,9 @@ public partial class ApiService : ModService
         NpcIntegrity.NpcSpriteIntegrityService npcSpriteIntegrity,
         Auth.FarmhandOwnershipService farmhandOwnership,
         GameThreadDispatcher dispatcher,
-        PasswordProtectionService? passwordProtectionService = null
+        PasswordProtectionService? passwordProtectionService = null,
+        AccountLinkingService? accountLinkingService = null,
+        CropTracker.CropTrackerService? cropTrackerService = null
     )
         : base(helper, monitor)
     {
@@ -1211,6 +1240,8 @@ public partial class ApiService : ModService
         _npcSpriteIntegrity = npcSpriteIntegrity;
         _farmhandOwnership = farmhandOwnership;
         _passwordProtectionService = passwordProtectionService;
+        _accountLinkingService = accountLinkingService;
+        _cropTrackerService = cropTrackerService;
         _instance = this;
     }
 
@@ -1917,11 +1948,11 @@ public partial class ApiService : ModService
     }
 
     /// <summary>
-    /// Validates the API key from the Authorization header.
-    /// Expects format: "Bearer &lt;api-key&gt;"
-    /// Returns true if authentication passes (no key required or valid key provided).
+    /// Validates authentication from the Authorization header.
+    /// Supports both direct master API_KEY and user session tokens.
+    /// Expects format: "Bearer &lt;token&gt;"
     /// </summary>
-    private bool ValidateApiKey(HttpListenerRequest request)
+    private async Task<bool> ValidateAuthAsync(HttpListenerRequest request)
     {
         if (!_authEnabled)
         {
@@ -1941,7 +1972,28 @@ public partial class ApiService : ModService
         }
 
         var providedKey = authHeader.Substring(7).Trim();
-        return !string.IsNullOrEmpty(providedKey) && providedKey == Env.ApiKey;
+        if (string.IsNullOrEmpty(providedKey))
+        {
+            return false;
+        }
+
+        // Master API Key check
+        if (providedKey == Env.ApiKey)
+        {
+            return true;
+        }
+
+        // Web user session check
+        if (_accountLinkingService != null)
+        {
+            var session = await _accountLinkingService.ValidateSessionAsync(providedKey);
+            if (session != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -2187,7 +2239,18 @@ public partial class ApiService : ModService
                 return;
             }
 
-            if (!_publicEndpoints.Contains((method, path)) && !ValidateApiKey(request))
+            // Handle CORS preflight
+            if (method == "OPTIONS")
+            {
+                response.StatusCode = 204;
+                response.Headers.Add("Access-Control-Allow-Origin", "*");
+                response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-Request-Id");
+                response.Close();
+                return;
+            }
+
+            if (!_publicEndpoints.Contains((method, path)) && !await ValidateAuthAsync(request))
             {
                 await WriteUnauthorizedAsync(response);
                 return;
@@ -2268,6 +2331,12 @@ public partial class ApiService : ModService
                     case "/docs":
                         await WriteHtmlAsync(response, HandleGetDocs());
                         break;
+                    case "/api/auth/me":
+                        await HandleGetAuthMeAsync(request, response);
+                        break;
+                    case "/farm/crops":
+                        await WriteJsonAsync(response, HandleGetFarmCrops());
+                        break;
                     default:
                         await WriteNotFoundAsync(response, path);
                         break;
@@ -2309,6 +2378,12 @@ public partial class ApiService : ModService
                         break;
                     case "/reload":
                         await HandlePostReloadAsync(response);
+                        break;
+                    case "/api/auth/register":
+                        await HandlePostAuthRegisterAsync(request, response);
+                        break;
+                    case "/api/auth/login":
+                        await HandlePostAuthLoginAsync(request, response);
                         break;
                     default:
                         await WriteNotFoundAsync(response, path);
@@ -5262,10 +5337,174 @@ public partial class ApiService : ModService
 
     #endregion
 
+    #region Web Admin & Farm Endpoints
+
+    [ApiEndpoint(
+        "POST",
+        "/api/auth/register",
+        Public = true,
+        Summary = "Registers or links a player account using an in-game OTP code.",
+        Tag = "Auth"
+    )]
+    [ApiResponse(typeof(Auth.WebSessionInfo), 200, Description = "Registration successful.")]
+    private async Task HandlePostAuthRegisterAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        if (_accountLinkingService == null)
+        {
+            await WriteJsonAsync(response, new { error = "Auth service unavailable." }, statusCode: 503);
+            return;
+        }
+
+        try
+        {
+            using var reader = new System.IO.StreamReader(request.InputStream, request.ContentEncoding);
+            var json = await reader.ReadToEndAsync();
+            var body = JsonConvert.DeserializeObject<RegisterRequest>(json);
+
+            if (body == null || string.IsNullOrWhiteSpace(body.Code) || string.IsNullOrWhiteSpace(body.Password))
+            {
+                await WriteJsonAsync(response, new { error = "Both 'code' and 'password' are required." }, statusCode: 400);
+                return;
+            }
+
+            var (success, message, session) = await _accountLinkingService.RegisterWithOtpAsync(body.Code, body.Password);
+            if (!success || session == null)
+            {
+                await WriteJsonAsync(response, new { error = message }, statusCode: 400);
+                return;
+            }
+
+            await WriteJsonAsync(response, session);
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"[API] Register error: {ex.Message}", LogLevel.Error);
+            await WriteJsonAsync(response, new { error = "Internal server error." }, statusCode: 500);
+        }
+    }
+
+    [ApiEndpoint(
+        "POST",
+        "/api/auth/login",
+        Public = true,
+        Summary = "Authenticates a web user or superadmin and returns a session token.",
+        Tag = "Auth"
+    )]
+    [ApiResponse(typeof(Auth.WebSessionInfo), 200, Description = "Login successful.")]
+    private async Task HandlePostAuthLoginAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        if (_accountLinkingService == null)
+        {
+            await WriteJsonAsync(response, new { error = "Auth service unavailable." }, statusCode: 503);
+            return;
+        }
+
+        try
+        {
+            using var reader = new System.IO.StreamReader(request.InputStream, request.ContentEncoding);
+            var json = await reader.ReadToEndAsync();
+            var body = JsonConvert.DeserializeObject<LoginRequest>(json);
+
+            if (body == null || string.IsNullOrWhiteSpace(body.Username) || string.IsNullOrWhiteSpace(body.Password))
+            {
+                await WriteJsonAsync(response, new { error = "Both 'username' and 'password' are required." }, statusCode: 400);
+                return;
+            }
+
+            var (success, message, session) = await _accountLinkingService.LoginAsync(body.Username, body.Password);
+            if (!success || session == null)
+            {
+                await WriteJsonAsync(response, new { error = message }, statusCode: 401);
+                return;
+            }
+
+            await WriteJsonAsync(response, session);
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"[API] Login error: {ex.Message}", LogLevel.Error);
+            await WriteJsonAsync(response, new { error = "Internal server error." }, statusCode: 500);
+        }
+    }
+
+    [ApiEndpoint(
+        "GET",
+        "/api/auth/me",
+        Summary = "Returns authenticated user identity and role.",
+        Tag = "Auth"
+    )]
+    private async Task HandleGetAuthMeAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var authHeader = request.Headers["Authorization"];
+        var token = authHeader?.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) == true
+            ? authHeader.Substring(7).Trim()
+            : null;
+
+        if (string.IsNullOrEmpty(token))
+        {
+            await WriteUnauthorizedAsync(response);
+            return;
+        }
+
+        if (token == Env.ApiKey)
+        {
+            await WriteJsonAsync(response, new
+            {
+                authenticated = true,
+                farmerId = 0,
+                username = Env.AdminUsername,
+                role = "SUPERADMIN"
+            });
+            return;
+        }
+
+        if (_accountLinkingService != null)
+        {
+            var session = await _accountLinkingService.ValidateSessionAsync(token);
+            if (session != null)
+            {
+                await WriteJsonAsync(response, new
+                {
+                    authenticated = true,
+                    farmerId = session.FarmerId,
+                    username = session.Username,
+                    role = session.Role
+                });
+                return;
+            }
+        }
+
+        await WriteUnauthorizedAsync(response);
+    }
+
+    [ApiEndpoint(
+        "GET",
+        "/farm/crops",
+        Public = true,
+        Summary = "Returns real-time cached crop state across the farm.",
+        Tag = "Farm"
+    )]
+    [ApiResponse(typeof(CropTracker.FarmCropsSnapshot), 200, Description = "Snapshot of all crops currently planted.")]
+    private CropTracker.FarmCropsSnapshot HandleGetFarmCrops()
+    {
+        if (_cropTrackerService != null)
+        {
+            return _cropTrackerService.GetLatestSnapshot();
+        }
+
+        return new CropTracker.FarmCropsSnapshot
+        {
+            CapturedAtUtc = DateTime.UtcNow
+        };
+    }
+
+    #endregion
+
     #region Response Helpers
 
-    private static async Task WriteJsonAsync(HttpListenerResponse response, object data)
+    private static async Task WriteJsonAsync(HttpListenerResponse response, object data, int statusCode = 200)
     {
+        response.StatusCode = statusCode;
         var json = JsonConvert.SerializeObject(data, JsonSettings);
         await WriteJsonRawAsync(response, json);
     }
@@ -5274,6 +5513,8 @@ public partial class ApiService : ModService
     {
         response.ContentType = "application/json";
         response.Headers.Add("Access-Control-Allow-Origin", "*");
+        response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-Request-Id");
         var buffer = Encoding.UTF8.GetBytes(json);
         response.ContentLength64 = buffer.Length;
         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);

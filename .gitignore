@@ -79,3 +79,7 @@ tests/test-ui/dist/
 
 # Extra mods
 /mods
+
+# Local build artifacts
+/.game_libs/
+/.smapi_extracted/
