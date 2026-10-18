@@ -20,6 +20,8 @@ public class CropTileState
     public bool IsReadyForHarvest { get; set; }
     public bool IsDead { get; set; }
     public int RegrowDays { get; set; }
+    public long? OwnerId { get; set; }
+    public string? OwnerName { get; set; }
 }
 
 public class FarmCropsSnapshot

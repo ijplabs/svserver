@@ -8,7 +8,8 @@ import {
   AlertCircle, 
   RefreshCw, 
   Home, 
-  Milk
+  Milk,
+  User
 } from 'lucide-react';
 
 export const LivestockDashboard: React.FC = () => {
@@ -146,6 +147,7 @@ export const LivestockDashboard: React.FC = () => {
                   <th className="px-6 py-3">Nama Hewan</th>
                   <th className="px-6 py-3">Jenis &amp; Umur</th>
                   <th className="px-6 py-3">Lokasi / Kandang</th>
+                  <th className="px-6 py-3">Pemilik</th>
                   <th className="px-6 py-3">Tingkat Kasih Sayang</th>
                   <th className="px-6 py-3">Status Hari Ini</th>
                   <th className="px-6 py-3 text-right">Hasil Panen</th>
@@ -168,6 +170,12 @@ export const LivestockDashboard: React.FC = () => {
                         <Home className="w-3.5 h-3.5 text-slate-400" />
                         <span>{a.homeBuilding}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-[#162035] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#1e2a42]">
+                        <User className="w-3 h-3 text-slate-400" />
+                        <span>{a.ownerName || 'Bersama'}</span>
+                      </span>
                     </td>
                     <td className="px-6 py-3.5">
                       <div className="flex items-center space-x-1">

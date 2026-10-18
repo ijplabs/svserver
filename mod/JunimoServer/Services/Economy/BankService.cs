@@ -87,6 +87,12 @@ public class BankService : ModService
             "Mentransfer uang ke pemain lain (!pay <nama_pemain> <jumlah>)",
             HandlePayCommand
         );
+
+        _chatCommandsService.RegisterCommand(
+            "kas",
+            "Akses rekening Kas Pembangunan Desa (!kas, !kas setor <jumlah>, !kas target <nama> <biaya>)",
+            HandleVillageTreasuryCommand
+        );
     }
 
     private void HandleBankCommand(string[] args, ReceivedMessage msg)
@@ -148,7 +154,7 @@ public class BankService : ModService
 
     private void HandleBalance(long farmerId)
     {
-        var farmer = Game1.getFarmerMaybeOffline(farmerId);
+        var farmer = Game1.GetPlayer(farmerId);
         if (farmer == null)
         {
             _helper.SendPrivateMessage(farmerId, "Profil karakter tidak ditemukan.");
@@ -177,7 +183,7 @@ public class BankService : ModService
             return;
         }
 
-        var farmer = Game1.getFarmerMaybeOffline(farmerId);
+        var farmer = Game1.GetPlayer(farmerId);
         if (farmer == null)
         {
             _helper.SendPrivateMessage(farmerId, "[Bank] Karakter tidak ditemukan.");
@@ -227,7 +233,7 @@ public class BankService : ModService
             return;
         }
 
-        var farmer = Game1.getFarmerMaybeOffline(farmerId);
+        var farmer = Game1.GetPlayer(farmerId);
         if (farmer == null)
         {
             _helper.SendPrivateMessage(farmerId, "[Bank] Karakter tidak ditemukan.");
@@ -281,7 +287,7 @@ public class BankService : ModService
             return;
         }
 
-        var senderFarmer = Game1.getFarmerMaybeOffline(msg.SourceFarmer);
+        var senderFarmer = Game1.GetPlayer(msg.SourceFarmer);
         if (senderFarmer == null)
         {
             _helper.SendPrivateMessage(msg.SourceFarmer, "[Bank] Karakter pengirim tidak ditemukan.");
@@ -337,10 +343,182 @@ public class BankService : ModService
         );
     }
 
+    private const string VillageTreasuryKey = "economy:village_treasury";
+    private const string VillageTargetKey = "economy:village_target";
+    private const string VillageTargetCostKey = "economy:village_target_cost";
+
+    public async Task<int> GetVillageTreasuryAsync()
+    {
+        string? val = await _redis.GetStringAsync(VillageTreasuryKey);
+        return int.TryParse(val, out int amount) ? amount : 0;
+    }
+
+    public async Task<bool> SetVillageTreasuryAsync(int amount)
+    {
+        return await _redis.SetStringAsync(VillageTreasuryKey, amount.ToString());
+    }
+
+    public async Task<(string targetName, int targetCost)> GetVillageTargetAsync()
+    {
+        string? name = await _redis.GetStringAsync(VillageTargetKey);
+        string? costStr = await _redis.GetStringAsync(VillageTargetCostKey);
+        int cost = int.TryParse(costStr, out int c) ? c : 10000;
+        return (string.IsNullOrEmpty(name) ? "Pembangunan Silo / Fasilitas Desa" : name, cost);
+    }
+
+    public async Task SetVillageTargetAsync(string targetName, int targetCost)
+    {
+        await _redis.SetStringAsync(VillageTargetKey, targetName);
+        await _redis.SetStringAsync(VillageTargetCostKey, targetCost.ToString());
+    }
+
+    private void HandleVillageTreasuryCommand(string[] args, ReceivedMessage msg)
+    {
+        long farmerId = msg.SourceFarmer;
+        var farmer = Game1.GetPlayer(farmerId);
+        if (farmer == null)
+        {
+            _helper.SendPrivateMessage(farmerId, "[Kas Desa] Profil karakter tidak ditemukan.");
+            return;
+        }
+
+        if (args.Length == 0 || args[0].Equals("balance", StringComparison.OrdinalIgnoreCase) || args[0].Equals("saldo", StringComparison.OrdinalIgnoreCase))
+        {
+            Task.Run(async () =>
+            {
+                int treasury = await GetVillageTreasuryAsync();
+                var (targetName, targetCost) = await GetVillageTargetAsync();
+                _helper.SendPrivateMessage(farmerId, $"[Kas Desa] Saldo Kas Pembangunan: {treasury:N0}g");
+                _helper.SendPrivateMessage(farmerId, $"[Kas Desa] Target Proyek: {targetName} ({treasury:N0} / {targetCost:N0}g)");
+                _helper.SendPrivateMessage(farmerId, "[Kas Desa] Perintah: !kas setor <jumlah> | !kas target <nama> <biaya>");
+            });
+            return;
+        }
+
+        string action = args[0].ToLowerInvariant();
+        if (action == "setor" || action == "deposit")
+        {
+            if (args.Length < 2 || !int.TryParse(args[1], out int amount) || amount <= 0)
+            {
+                _helper.SendPrivateMessage(farmerId, "Penggunaan: !kas setor <jumlah>");
+                return;
+            }
+
+            bool isSeparate = Game1.player.team.useSeparateWallets.Value;
+            int currentWallet = isSeparate ? farmer.Money : Game1.player.team.money.Value;
+
+            if (currentWallet < amount)
+            {
+                _helper.SendPrivateMessage(farmerId, $"[Kas Desa] Uang di dompet Anda tidak cukup ({currentWallet:N0}g).");
+                return;
+            }
+
+            if (isSeparate)
+            {
+                farmer.Money -= amount;
+            }
+            else
+            {
+                Game1.player.team.money.Value -= amount;
+            }
+
+            Task.Run(async () =>
+            {
+                int oldTreasury = await GetVillageTreasuryAsync();
+                int newTreasury = oldTreasury + amount;
+                await SetVillageTreasuryAsync(newTreasury);
+
+                var (targetName, targetCost) = await GetVillageTargetAsync();
+
+                _monitor.Log($"[Economy] {farmer.Name} contributed {amount}g to village treasury. Total: {newTreasury}g", LogLevel.Info);
+
+                foreach (var f in Game1.getAllFarmers())
+                {
+                    if (f != null)
+                    {
+                        _helper.SendPrivateMessage(
+                            f.UniqueMultiplayerID,
+                            $"[Kas Desa] {farmer.Name} menyetor {amount:N0}g ke Kas Desa! Total: {newTreasury:N0} / {targetCost:N0}g ({targetName})."
+                        );
+                    }
+                }
+            });
+            return;
+        }
+
+        if (action == "target")
+        {
+            if (args.Length < 3 || !int.TryParse(args[2], out int targetCost) || targetCost <= 0)
+            {
+                _helper.SendPrivateMessage(farmerId, "Penggunaan: !kas target <nama_proyek> <biaya>");
+                return;
+            }
+
+            string targetName = args[1];
+            Task.Run(async () =>
+            {
+                await SetVillageTargetAsync(targetName, targetCost);
+                int treasury = await GetVillageTreasuryAsync();
+                foreach (var f in Game1.getAllFarmers())
+                {
+                    if (f != null)
+                    {
+                        _helper.SendPrivateMessage(
+                            f.UniqueMultiplayerID,
+                            $"[Kas Desa] Target pembangunan diperbarui menjadi: {targetName} ({treasury:N0} / {targetCost:N0}g) oleh {farmer.Name}."
+                        );
+                    }
+                }
+            });
+            return;
+        }
+
+        if (action == "tarik" || action == "withdraw")
+        {
+            if (args.Length < 2 || !int.TryParse(args[1], out int amount) || amount <= 0)
+            {
+                _helper.SendPrivateMessage(farmerId, "Penggunaan: !kas tarik <jumlah>");
+                return;
+            }
+
+            Task.Run(async () =>
+            {
+                int treasury = await GetVillageTreasuryAsync();
+                if (treasury < amount)
+                {
+                    _helper.SendPrivateMessage(farmerId, $"[Kas Desa] Saldo kas tidak mencukupi ({treasury:N0}g).");
+                    return;
+                }
+
+                int newTreasury = treasury - amount;
+                await SetVillageTreasuryAsync(newTreasury);
+
+                bool isSeparate = Game1.player.team.useSeparateWallets.Value;
+                if (isSeparate)
+                {
+                    farmer.Money += amount;
+                }
+                else
+                {
+                    Game1.player.team.money.Value += amount;
+                }
+
+                _monitor.Log($"[Economy] {farmer.Name} withdrew {amount}g from village treasury. Remaining: {newTreasury}g", LogLevel.Info);
+                _helper.SendPrivateMessage(farmerId, $"[Kas Desa] Penarikan {amount:N0}g berhasil. Sisa kas: {newTreasury:N0}g.");
+            });
+            return;
+        }
+
+        _helper.SendPrivateMessage(farmerId, "Perintah tidak dikenal. Gunakan: !kas [saldo | setor <jumlah> | target <nama> <biaya> | tarik <jumlah>]");
+    }
+
     public async Task<object> GetEconomyOverviewAsync()
     {
         bool isSeparate = Game1.hasLoadedGame && Game1.player.team.useSeparateWallets.Value;
         int sharedMoney = Game1.hasLoadedGame ? Game1.player.team.money.Value : 0;
+
+        int villageTreasury = await GetVillageTreasuryAsync();
+        var (targetName, targetCost) = await GetVillageTargetAsync();
 
         var accounts = new List<object>();
 
@@ -374,6 +552,13 @@ public class BankService : ModService
         {
             useSeparateWallets = isSeparate,
             sharedFarmMoney = sharedMoney,
+            villageTreasury = villageTreasury,
+            villageTarget = new
+            {
+                name = targetName,
+                cost = targetCost,
+                progress = targetCost > 0 ? Math.Min(100.0, Math.Round((double)villageTreasury / targetCost * 100.0, 1)) : 0
+            },
             accounts = accounts
         };
     }

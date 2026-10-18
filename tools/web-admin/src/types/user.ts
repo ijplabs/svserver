@@ -12,6 +12,7 @@ export interface WebUser {
   farmerIdStr?: string;
   username: string;
   role: 'SUPERADMIN' | 'ADMIN' | 'PLAYER';
+  profession?: string;
   createdAtUtc: string;
   lastLoginUtc?: string | null;
 }

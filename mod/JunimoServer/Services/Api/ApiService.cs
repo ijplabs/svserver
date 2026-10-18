@@ -196,6 +196,9 @@ public class PlayerInfo
     /// destination, ahead of the netcode interpolation window). Empty when unresolved.
     /// </summary>
     public string Location { get; set; } = "";
+
+    /// <summary>Assigned profession.</summary>
+    public string Profession { get; set; } = "None";
 }
 
 /// <summary>
@@ -695,6 +698,7 @@ public class FarmerProfileResponse
     public Dictionary<string, CharacterSkillInfo> Skills { get; set; } = new();
     public List<InventoryItemInfo> Inventory { get; set; } = new();
     public List<EquipmentItemInfo> Equipment { get; set; } = new();
+    public string Profession { get; set; } = "None";
 }
 
 public class VillagerFriendshipDto
@@ -1469,6 +1473,7 @@ public partial class ApiService : ModService
     private readonly ModManagement.ModDistributionService? _modDistributionService;
     private readonly ChatCommands.ChatCommandsService? _chatCommandsService;
     private readonly HostAutomation.PauseService? _pauseService;
+    private readonly Profession.ProfessionService? _professionService;
 
     public ApiService(
         IModHelper helper,
@@ -1491,7 +1496,8 @@ public partial class ApiService : ModService
         ModManagement.ModEnforcementService? modEnforcementService = null,
         ModManagement.ModDistributionService? modDistributionService = null,
         ChatCommands.ChatCommandsService? chatCommandsService = null,
-        HostAutomation.PauseService? pauseService = null
+        HostAutomation.PauseService? pauseService = null,
+        Profession.ProfessionService? professionService = null
     )
         : base(helper, monitor)
     {
@@ -1514,6 +1520,7 @@ public partial class ApiService : ModService
         _modDistributionService = modDistributionService;
         _chatCommandsService = chatCommandsService;
         _pauseService = pauseService;
+        _professionService = professionService;
 
         if (_chatCommandsService != null)
         {
@@ -1869,6 +1876,7 @@ public partial class ApiService : ModService
                         Name = farmer.Name ?? farmer.displayName ?? "Unknown",
                         IsOnline = true,
                         Location = farmer.GetTargetLocation()?.NameOrUniqueName ?? "",
+                        Profession = _professionService?.GetCachedProfession(farmer.UniqueMultiplayerID)?.ToString() ?? "None",
                     }
                 );
             }
@@ -2763,14 +2771,28 @@ public partial class ApiService : ModService
                             break;
                         }
                         var registeredUsers = await _accountLinkingService.GetRegisteredUsersAsync();
-                        var sanitizedUsers = registeredUsers.Select(u => new
+                        var sanitizedUsers = new List<object>();
+                        foreach (var u in registeredUsers)
                         {
-                            farmerId = u.FarmerId,
-                            username = u.Username,
-                            role = u.Role,
-                            createdAtUtc = u.CreatedAtUtc,
-                            lastLoginUtc = u.LastLoginUtc
-                        }).ToList();
+                            string professionStr = "None";
+                            if (_professionService != null)
+                            {
+                                var prof = await _professionService.GetPlayerProfessionAsync(u.FarmerId);
+                                if (prof.HasValue)
+                                {
+                                    professionStr = prof.Value.ToString();
+                                }
+                            }
+                            sanitizedUsers.Add(new
+                            {
+                                farmerId = u.FarmerId,
+                                username = u.Username,
+                                role = u.Role,
+                                profession = professionStr,
+                                createdAtUtc = u.CreatedAtUtc,
+                                lastLoginUtc = u.LastLoginUtc
+                            });
+                        }
                         await WriteJsonAsync(response, sanitizedUsers);
                         break;
                     case "/api/admin/available-farmers":
@@ -6412,6 +6434,8 @@ public partial class ApiService : ModService
         public string? CurrentProduce { get; set; }
         public string Location { get; set; } = "";
         public string HomeBuilding { get; set; } = "";
+        public long OwnerId { get; set; }
+        public string OwnerName { get; set; } = "Bersama";
     }
 
     private async Task<List<FarmAnimalInfo>> HandleGetFarmAnimalsAsync()
@@ -6432,6 +6456,22 @@ public partial class ApiService : ModService
                 foreach (var animal in farm.animals.Values)
                 {
                     if (animal == null) continue;
+
+                    long ownerId = animal.ownerID.Value;
+                    string ownerName = "Bersama";
+                    if (animal.modData.TryGetValue("svserver/owner_name", out var customOwner) && !string.IsNullOrWhiteSpace(customOwner))
+                    {
+                        ownerName = customOwner;
+                    }
+                    else if (ownerId != 0)
+                    {
+                        var p = Game1.GetPlayer(ownerId);
+                        if (p != null && !string.IsNullOrWhiteSpace(p.Name))
+                        {
+                            ownerName = p.Name;
+                        }
+                    }
+
                     list.Add(new FarmAnimalInfo
                     {
                         Name = animal.Name,
@@ -6442,7 +6482,9 @@ public partial class ApiService : ModService
                         WasFed = animal.fullness.Value > 0,
                         CurrentProduce = !string.IsNullOrEmpty(animal.currentProduce.Value) ? animal.currentProduce.Value : null,
                         Location = "Farm",
-                        HomeBuilding = animal.home?.buildingType.Value ?? "Barn/Coop"
+                        HomeBuilding = animal.home?.buildingType.Value ?? "Barn/Coop",
+                        OwnerId = ownerId,
+                        OwnerName = ownerName
                     });
                 }
 
@@ -6453,6 +6495,22 @@ public partial class ApiService : ModService
                         foreach (var animal in animalHouse.animals.Values)
                         {
                             if (animal == null) continue;
+
+                            long ownerId = animal.ownerID.Value;
+                            string ownerName = "Bersama";
+                            if (animal.modData.TryGetValue("svserver/owner_name", out var customOwner) && !string.IsNullOrWhiteSpace(customOwner))
+                            {
+                                ownerName = customOwner;
+                            }
+                            else if (ownerId != 0)
+                            {
+                                var p = Game1.GetPlayer(ownerId);
+                                if (p != null && !string.IsNullOrWhiteSpace(p.Name))
+                                {
+                                    ownerName = p.Name;
+                                }
+                            }
+
                             list.Add(new FarmAnimalInfo
                             {
                                 Name = animal.Name,
@@ -6463,7 +6521,9 @@ public partial class ApiService : ModService
                                 WasFed = animal.fullness.Value > 0,
                                 CurrentProduce = !string.IsNullOrEmpty(animal.currentProduce.Value) ? animal.currentProduce.Value : null,
                                 Location = building.GetIndoors().NameOrUniqueName,
-                                HomeBuilding = building.buildingType.Value
+                                HomeBuilding = building.buildingType.Value,
+                                OwnerId = ownerId,
+                                OwnerName = ownerName
                             });
                         }
                     }
@@ -7254,6 +7314,15 @@ public partial class ApiService : ModService
             response.StatusCode = 404;
             await WriteJsonAsync(response, new { error = "Farmer character not found in active save." });
             return;
+        }
+
+        if (_professionService != null)
+        {
+            var prof = await _professionService.GetPlayerProfessionAsync(profile.Id);
+            if (prof.HasValue)
+            {
+                profile.Profession = prof.Value.ToString();
+            }
         }
 
         await WriteJsonAsync(response, profile);

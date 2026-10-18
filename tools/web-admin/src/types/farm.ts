@@ -33,6 +33,7 @@ export interface PlayerInfo {
   name: string;
   isOnline: boolean;
   location: string;
+  profession?: string;
 }
 
 export interface PlayersResponse {
@@ -56,6 +57,8 @@ export interface CropTileState {
   isReadyForHarvest: boolean;
   isDead: boolean;
   regrowDays: number;
+  ownerId?: number;
+  ownerName?: string;
 }
 
 export interface FarmCropsSnapshot {

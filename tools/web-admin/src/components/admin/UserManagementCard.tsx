@@ -272,6 +272,7 @@ export const UserManagementCard: React.FC = () => {
                 <th className="py-3 px-4">Nama Petani</th>
                 <th className="py-3 px-4">Farmer ID</th>
                 <th className="py-3 px-4">Peran Web</th>
+                <th className="py-3 px-4">Profesi RPG</th>
                 <th className="py-3 px-4">Dibuat Pada</th>
                 <th className="py-3 px-4">Login Terakhir</th>
                 <th className="py-3 px-4 text-right">Tindakan</th>
@@ -280,7 +281,7 @@ export const UserManagementCard: React.FC = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-[#1e2a42]">
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 dark:text-slate-500">
+                  <td colSpan={7} className="py-8 text-center text-slate-400 dark:text-slate-500">
                     Belum ada akun web terdaftar. Gunakan tombol &apos;Tambah / Tautkan Akun&apos; di atas.
                   </td>
                 </tr>
@@ -308,6 +309,32 @@ export const UserManagementCard: React.FC = () => {
                         <Shield className="w-3 h-3" />
                         {user.role}
                       </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {user.profession && user.profession !== 'None' ? (
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-medium ${
+                            user.profession === 'Farmer'
+                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                              : user.profession === 'Miner'
+                              ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
+                              : user.profession === 'Fisherman'
+                              ? 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20'
+                              : user.profession === 'Rancher'
+                              ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20'
+                              : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                          {user.profession === 'Farmer' ? 'Petani' :
+                           user.profession === 'Miner' ? 'Penambang' :
+                           user.profession === 'Fisherman' ? 'Nelayan' :
+                           user.profession === 'Rancher' ? 'Peternak' :
+                           user.profession === 'Forager' ? 'Penebang' : user.profession}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500">-</span>
+                      )}
                     </td>
                     <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400">
                       {new Date(user.createdAtUtc).toLocaleDateString('id-ID', {

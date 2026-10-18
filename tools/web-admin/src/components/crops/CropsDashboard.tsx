@@ -345,6 +345,7 @@ export const CropsDashboard: React.FC = () => {
                 <th className="py-2.5 px-3">Crop</th>
                 <th className="py-2.5 px-3">Location</th>
                 <th className="py-2.5 px-3">Coordinates</th>
+                <th className="py-2.5 px-3">Owner</th>
                 <th className="py-2.5 px-3">Growth Stage</th>
                 <th className="py-2.5 px-3">Harvest Days</th>
                 <th className="py-2.5 px-3">Watered</th>
@@ -376,6 +377,15 @@ export const CropsDashboard: React.FC = () => {
                     <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">{c.location}</td>
                     <td className="py-2.5 px-3 font-mono text-slate-500 dark:text-slate-400">
                       ({c.x}, {c.y})
+                    </td>
+                    <td className="py-2.5 px-3">
+                      {c.ownerName ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 dark:bg-[#162035] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#1e2a42]">
+                          {c.ownerName}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500 text-[10px]">Bersama</span>
+                      )}
                     </td>
                     <td className="py-2.5 px-3">
                       {c.isReadyForHarvest ? (

@@ -56,6 +56,15 @@ export const PlayersCard: React.FC = () => {
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
                           Online
                         </span>
+                        {p.profession && p.profession !== 'None' && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                            {p.profession === 'Farmer' ? 'Petani' :
+                             p.profession === 'Miner' ? 'Penambang' :
+                             p.profession === 'Fisherman' ? 'Nelayan' :
+                             p.profession === 'Rancher' ? 'Peternak' :
+                             p.profession === 'Forager' ? 'Penebang' : p.profession}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center space-x-1 text-[11px] text-slate-500 dark:text-slate-400">
                         <MapPin className="w-3 h-3 text-slate-400" />

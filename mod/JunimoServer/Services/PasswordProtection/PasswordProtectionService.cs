@@ -28,6 +28,7 @@ public class PasswordProtectionService : ModService
     private readonly LobbyService _lobbyService;
     private readonly CabinManagerService _cabinManager;
     private readonly AccountLinkingService? _accountLinkingService;
+    private readonly Profession.ProfessionService? _professionService;
 
     /// <summary>
     /// Thread-safe dictionary tracking authentication state per player.
@@ -62,7 +63,8 @@ public class PasswordProtectionService : ModService
         Harmony harmony,
         LobbyService lobbyService,
         CabinManagerService cabinManager,
-        AccountLinkingService? accountLinkingService = null
+        AccountLinkingService? accountLinkingService = null,
+        Profession.ProfessionService? professionService = null
     )
         : base(helper, monitor)
     {
@@ -81,6 +83,7 @@ public class PasswordProtectionService : ModService
         _lobbyService = lobbyService;
         _cabinManager = cabinManager;
         _accountLinkingService = accountLinkingService;
+        _professionService = professionService;
 
         ServerPassword = Env.ServerPassword;
         MaxFailedAttempts = Env.MaxLoginAttempts;
@@ -518,6 +521,15 @@ public class PasswordProtectionService : ModService
                 return true;
             }
 
+            // Allow !profesi commands for profession specialization selection
+            if (normalizedChat.StartsWith("!profesi", StringComparison.OrdinalIgnoreCase) ||
+                normalizedChat.StartsWith("!profession", StringComparison.OrdinalIgnoreCase) ||
+                normalizedChat.StartsWith("!role", StringComparison.OrdinalIgnoreCase))
+            {
+                _monitor.Log($"[Auth] Allowing !profesi from {message.FarmerID}", LogLevel.Debug);
+                return true;
+            }
+
             // Allow !help so players can discover commands
             if (normalizedChat.StartsWith("!help", StringComparison.OrdinalIgnoreCase))
             {
@@ -735,6 +747,36 @@ public class PasswordProtectionService : ModService
 
             if (isServerPasswordCorrect || isPersonalPasswordCorrect)
             {
+                // Verify profession specialization before allowing entry
+                if (_professionService != null)
+                {
+                    try
+                    {
+                        var chosenProfession = _professionService.GetPlayerProfessionAsync(playerId).GetAwaiter().GetResult();
+                        if (!chosenProfession.HasValue)
+                        {
+                            if (!authData.ProfessionWarningSent)
+                            {
+                                authData.ProfessionWarningSent = true;
+                                _helper.SendPrivateMessage(playerId, "[aqua]Pilihlah profesi spesialisasi Anda terlebih dahulu!");
+                                _helper.SendPrivateMessage(playerId, "[yellow]Ketik: !profesi <farmer | miner | fisherman | rancher | forager>");
+                                _helper.SendPrivateMessage(playerId, "[gray]Catatan: Jika mengetik !login sekali lagi tanpa memilih, Anda akan otomatis menjadi Petani (Farmer).");
+                                return new AuthenticationResult(false, "Pilih profesi terlebih dahulu via !profesi <nama>.");
+                            }
+                            else
+                            {
+                                // Default to Farmer on 2nd login attempt
+                                _professionService.SetPlayerProfessionAsync(playerId, Profession.ProfessionType.Farmer).GetAwaiter().GetResult();
+                                _helper.SendPrivateMessage(playerId, "[aqua]Profesi Anda otomatis ditetapkan sebagai: [green]Petani (Farmer)[white].");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _monitor.Log($"[Auth] Error validating profession for {playerId}: {ex.Message}", LogLevel.Error);
+                    }
+                }
+
                 authData.State = AuthState.Authenticated;
                 string authMethod = isServerPasswordCorrect ? "server_password" : "user_account";
                 _monitor.Log($"[Auth] {playerId} authenticated! (method: {authMethod})", LogLevel.Info);
@@ -1255,9 +1297,11 @@ public class PasswordProtectionService : ModService
     {
         var lines = new[]
         {
-            "[aqua]Welcome! This server is password protected.",
-            "[yellow]You're in the lobby until you authenticate.",
-            "[red]DO NOT drop items here - they will be deleted!",
+            "[aqua]Selamat datang di Server Lembah Pelikan!",
+            "[yellow]Lobi Autentikasi & Pemilihan Profesi:",
+            "[white]1. Pilih profesi Anda: [green]!profesi <farmer | miner | fisherman | rancher | forager>",
+            "[white]2. Masuk ke game: [yellow]!login PASSWORD_SERVER",
+            "[red]PERINGATAN: Jangan menjatuhkan item di lobi!",
         };
 
         foreach (var line in lines)

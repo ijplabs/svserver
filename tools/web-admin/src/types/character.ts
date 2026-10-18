@@ -38,4 +38,5 @@ export interface FarmerProfile {
   skills: Record<string, CharacterSkill>;
   inventory: InventoryItem[];
   equipment: EquipmentItem[];
+  profession?: string;
 }

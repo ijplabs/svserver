@@ -270,6 +270,17 @@ public class CropTrackerService : ModService
             fertilizerName = fertData?.DisplayName ?? fertilizerId;
         }
 
+        long? ownerId = null;
+        string? ownerName = null;
+        if (dirt.modData.TryGetValue("svserver/owner_id", out var oId) && long.TryParse(oId, out var parsedOId))
+        {
+            ownerId = parsedOId;
+        }
+        if (dirt.modData.TryGetValue("svserver/owner_name", out var oName) && !string.IsNullOrEmpty(oName))
+        {
+            ownerName = oName;
+        }
+
         return new CropTileState
         {
             X = (int)tile.X,
@@ -286,7 +297,9 @@ public class CropTrackerService : ModService
             FertilizerName = fertilizerName,
             IsReadyForHarvest = isReady,
             IsDead = isDead,
-            RegrowDays = regrowDays
+            RegrowDays = regrowDays,
+            OwnerId = ownerId,
+            OwnerName = ownerName,
         };
     }
 }

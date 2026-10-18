@@ -58,6 +58,11 @@ public class PlayerAuthData
     /// </summary>
     public DateTime? CustomizationCompleteTime { get; internal set; }
 
+    /// <summary>
+    /// Whether the player has been prompted to choose a profession before logging in.
+    /// </summary>
+    public bool ProfessionWarningSent { get; internal set; }
+
     public PlayerAuthData(long playerId)
     {
         PlayerId = playerId;
@@ -68,5 +73,6 @@ public class PlayerAuthData
         LastReminderTime = DateTime.MinValue;
         IsNewPlayer = false;
         CustomizationCompleteTime = null;
+        ProfessionWarningSent = false;
     }
 }

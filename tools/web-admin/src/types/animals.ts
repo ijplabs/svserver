@@ -9,4 +9,6 @@ export interface FarmAnimalInfo {
   currentProduce?: string | null;
   location: string;
   homeBuilding: string;
+  ownerId?: number;
+  ownerName?: string;
 }
