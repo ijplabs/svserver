@@ -10,14 +10,17 @@ import {
   Check, 
   AlertCircle,
   Pause,
-  Play
+  Play,
+  Sparkles
 } from 'lucide-react';
+import { CreateNewGameModal } from './CreateNewGameModal';
 
 export const AdminControlsCard: React.FC = () => {
   const { status, fetchAll } = useFarmStore();
   const [actionMessage, setActionMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [customReason, setCustomReason] = useState('');
+  const [isNewGameOpen, setIsNewGameOpen] = useState(false);
 
   const notify = (text: string, error = false) => {
     setActionMessage({ text, error });
@@ -116,9 +119,19 @@ export const AdminControlsCard: React.FC = () => {
             Superadmin Server Controls
           </h2>
         </div>
-        <span className="text-[11px] font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/50 px-2 py-0.5 rounded-full">
-          Superadmin Protected
-        </span>
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => setIsNewGameOpen(true)}
+            className="flex items-center space-x-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Buat Game Baru</span>
+          </button>
+          <span className="text-[11px] font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/50 px-2 py-0.5 rounded-full">
+            Superadmin Protected
+          </span>
+        </div>
       </div>
 
       {actionMessage && (
@@ -321,8 +334,23 @@ export const AdminControlsCard: React.FC = () => {
             <RotateCw className="w-3.5 h-3.5" />
             <span>Reload Mod Engine</span>
           </button>
+          <button
+            type="button"
+            disabled={isProcessing}
+            onClick={() => setIsNewGameOpen(true)}
+            className="w-full py-2 px-3 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center space-x-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Buat Game Baru</span>
+          </button>
         </div>
       </div>
+
+      <CreateNewGameModal
+        isOpen={isNewGameOpen}
+        onClose={() => setIsNewGameOpen(false)}
+        onSuccess={(msg) => notify(msg)}
+      />
     </div>
   );
 };

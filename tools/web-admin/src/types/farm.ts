@@ -97,3 +97,24 @@ export interface ItemInfo {
   price?: number;
   icon?: string;
 }
+
+export type CabinStrategyType = 'CabinStack' | 'FarmhouseStack' | 'None';
+
+export interface NewGameParams {
+  farmType?: number | string;
+  farmName?: string;
+  startingCabins?: number;
+  cabinStrategy?: CabinStrategyType;
+  maxPlayers?: number;
+  allowIpConnections?: boolean;
+  profitMargin?: number;
+  separateWallets?: boolean;
+  allowCabinRelocation?: boolean;
+}
+
+export interface NewGameResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+

@@ -1,5 +1,5 @@
 import { LoginRequest, RegisterRequest, WebSessionInfo, AuthMeResponse } from '../types/auth';
-import { ServerStatus, PlayersResponse, FarmCropsSnapshot, CabinsResponse } from '../types/farm';
+import { ServerStatus, PlayersResponse, FarmCropsSnapshot, CabinsResponse, NewGameParams, NewGameResponse } from '../types/farm';
 import { BackupEntry } from '../types/backup';
 import { EconomyOverview } from '../types/economy';
 import { AutomationStatus } from '../types/automation';
@@ -294,6 +294,11 @@ export const api = {
       request<{ isPaused: boolean; reason: string; pausedBy: string; remainingSeconds: number }>(
         '/api/server/pause/status'
       ),
+    newGame: (params: NewGameParams) =>
+      request<NewGameResponse>('/newgame', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      }),
   },
   backups: {
     list: () => request<BackupEntry[]>('/api/backups'),
