@@ -407,12 +407,9 @@ init_custom_mods() {
     fi
 
     # Sync all custom mods from persistent volume to the active SMAPI Mods directory
-    if [ -d "${PERSISTENT_MODS_DIR}" ]; then
-        local CUSTOM_COUNT=$(find "${PERSISTENT_MODS_DIR}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
-        if [ "${CUSTOM_COUNT}" -gt 0 ]; then
-            echo "[SVE-Manager] Syncing ${CUSTOM_COUNT} custom mod folder(s) to ${MODS_DEST_DIR}..."
-            cp -rf "${PERSISTENT_MODS_DIR}"/* "${MODS_DEST_DIR}/" 2>/dev/null || true
-        fi
+    if [ -d "${PERSISTENT_MODS_DIR}" ] && [ -n "$(ls -A "${PERSISTENT_MODS_DIR}" 2>/dev/null)" ]; then
+        echo "[Mod-Sync] Syncing custom mods from ${PERSISTENT_MODS_DIR} to ${MODS_DEST_DIR}..."
+        cp -rf "${PERSISTENT_MODS_DIR}"/. "${MODS_DEST_DIR}/" 2>/dev/null || true
     fi
 }
 

@@ -2,3 +2,7 @@ FROM sdvd/server:preview
 
 # Overwrite built-in mod with our custom compiled JunimoServer mod
 COPY mods/JunimoServer/ /data/Mods/JunimoServer/
+
+# Copy startup script that handles persistent custom-mods sync from /data/game/custom-mods to /data/Mods
+COPY docker/rootfs/startapp.sh /startapp.sh
+RUN chmod +x /startapp.sh
