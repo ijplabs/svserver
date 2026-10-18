@@ -6833,11 +6833,39 @@ public partial class ApiService : ModService
             var chunkPath = Path.Combine(chunkDir, $"chunk_{chunkIndex:D6}.part");
             await using (var fs = File.Create(chunkPath))
             {
-                await request.InputStream.CopyToAsync(fs);
+                long bytesRemaining = request.ContentLength64;
+                if (bytesRemaining > 0)
+                {
+                    byte[] buffer = new byte[64 * 1024];
+                    while (bytesRemaining > 0)
+                    {
+                        int toRead = (int)Math.Min(buffer.Length, bytesRemaining);
+                        int read = await request.InputStream.ReadAsync(buffer, 0, toRead);
+                        if (read == 0) break;
+                        await fs.WriteAsync(buffer, 0, read);
+                        bytesRemaining -= read;
+                    }
+                }
+                else
+                {
+                    await request.InputStream.CopyToAsync(fs);
+                }
+                await fs.FlushAsync();
             }
 
-            var existingParts = Directory.GetFiles(chunkDir, "chunk_*.part");
-            bool isComplete = existingParts.Length >= totalChunks;
+            bool isComplete = true;
+            int receivedCount = 0;
+            for (int i = 0; i < totalChunks; i++)
+            {
+                if (File.Exists(Path.Combine(chunkDir, $"chunk_{i:D6}.part")))
+                {
+                    receivedCount++;
+                }
+                else
+                {
+                    isComplete = false;
+                }
+            }
 
             if (!isComplete)
             {
@@ -6847,7 +6875,7 @@ public partial class ApiService : ModService
                     isComplete = false,
                     chunkIndex,
                     totalChunks,
-                    receivedChunks = existingParts.Length,
+                    receivedChunks = receivedCount,
                     message = $"Bagian {chunkIndex + 1}/{totalChunks} berhasil diterima."
                 });
                 return;
@@ -7263,11 +7291,11 @@ public partial class ApiService : ModService
                             else if (Game1.characterData != null && Game1.characterData.TryGetValue(npcName, out var cd))
                             {
                                 dispName = cd.DisplayName ?? npcName;
-                                bSeason = cd.BirthSeason ?? "";
+                                bSeason = cd.BirthSeason?.ToString() ?? "";
                                 bDay = cd.BirthDay;
-                                isDatable = cd.CanSocialize && cd.Gender != Gender.Undefined;
+                                isDatable = cd.CanBeRomanced;
                                 gender = cd.Gender.ToString();
-                                isBirthday = string.Equals(cd.BirthSeason, Game1.currentSeason, StringComparison.OrdinalIgnoreCase) && cd.BirthDay == Game1.dayOfMonth;
+                                isBirthday = cd.BirthSeason != null && string.Equals(cd.BirthSeason.Value.ToString(), Game1.currentSeason, StringComparison.OrdinalIgnoreCase) && cd.BirthDay == Game1.dayOfMonth;
                                 maxH = isDatable ? 8 : 10;
                             }
                         }
@@ -7302,11 +7330,11 @@ public partial class ApiService : ModService
                         string npcName = pair.Key;
                         var cd = pair.Value;
                         if (known.Contains(npcName)) continue;
-                        if (!cd.CanSocialize) continue;
+                        if (cd.SocialTab == StardewValley.GameData.Characters.SocialTabBehavior.HiddenAlways) continue;
                         if (cd.HomeRegion == "Other" && npcName != "Krobus" && npcName != "Dwarf" && npcName != "Sandy" && npcName != "Leo") continue;
 
-                        bool isDatable = cd.CanSocialize && cd.Gender != Gender.Undefined;
-                        bool isBirthday = string.Equals(cd.BirthSeason, Game1.currentSeason, StringComparison.OrdinalIgnoreCase) && cd.BirthDay == Game1.dayOfMonth;
+                        bool isDatable = cd.CanBeRomanced;
+                        bool isBirthday = cd.BirthSeason != null && string.Equals(cd.BirthSeason.Value.ToString(), Game1.currentSeason, StringComparison.OrdinalIgnoreCase) && cd.BirthDay == Game1.dayOfMonth;
 
                         socialData.Villagers.Add(new VillagerFriendshipDto
                         {
@@ -7320,7 +7348,7 @@ public partial class ApiService : ModService
                             GiftGivenToday = false,
                             TalkedToToday = false,
                             Status = "Friendly",
-                            BirthdaySeason = cd.BirthSeason ?? "",
+                            BirthdaySeason = cd.BirthSeason?.ToString() ?? "",
                             BirthdayDay = cd.BirthDay,
                             IsBirthdayToday = isBirthday,
                             IsDatable = isDatable,
@@ -7431,7 +7459,7 @@ public partial class ApiService : ModService
                         {
                             var sDto = new SpecialOrderDto
                             {
-                                Key = so.orderKey?.Value ?? "",
+                                Key = so.questKey?.Value ?? "",
                                 Name = so.questName?.Value ?? "Special Order",
                                 Description = so.questDescription?.Value ?? "",
                                 OrderType = so.orderType?.Value ?? "",
@@ -7518,8 +7546,7 @@ public partial class ApiService : ModService
                 };
 
                 bool isJoja = (Game1.player?.mailReceived?.Contains("JojaMember") == true) ||
-                              (Game1.player?.mailReceived?.Contains("jojaVault") == true) ||
-                              (Game1.player != null && Game1.player.hasCompletedTownProject("JojaMember"));
+                              (Game1.player?.mailReceived?.Contains("jojaVault") == true);
                 ccData.IsJojaRoute = isJoja;
 
                 if (isJoja)

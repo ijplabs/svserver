@@ -120,12 +120,24 @@ function uploadChunkWithRetry(
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            resolve(JSON.parse(xhr.responseText));
+            const parsed = JSON.parse(xhr.responseText);
+            if (parsed && typeof parsed === 'object' && parsed.error) {
+              reject(new Error(parsed.error));
+              return;
+            }
+            resolve(parsed);
           } catch {
             resolve({ success: true });
           }
         } else if (xhr.status === 404) {
           reject(new Error('HTTP 404'));
+        } else if (xhr.status === 401 || xhr.status === 403) {
+          let authErr = `Akses ditolak (HTTP ${xhr.status}). Silakan login kembali sebagai Administrator.`;
+          try {
+            const errObj = JSON.parse(xhr.responseText);
+            if (errObj?.error) authErr = errObj.error;
+          } catch {}
+          reject(new Error(authErr));
         } else {
           let errMsg = `Upload bagian gagal (HTTP ${xhr.status})`;
           try {
@@ -157,7 +169,7 @@ function uploadChunkWithRetry(
         }
       };
 
-      xhr.timeout = 60000;
+      xhr.timeout = 45000;
       xhr.send(chunkBlob);
     };
 
@@ -395,15 +407,15 @@ export const api = {
       }
 
       const base = getApiBase();
-      const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per chunk
+      const CHUNK_SIZE = 2 * 1024 * 1024; // 2 MB per chunk for fast, steady tunnel transfer
       const totalBytes = file.size;
 
-      // Small file (< 5 MB): upload directly with real progress
+      // Small file (< 2 MB): upload directly with real progress
       if (totalBytes < CHUNK_SIZE) {
         return uploadSingleFileXHR(file, base, token, onProgress);
       }
 
-      // Large file (>= 5 MB): Chunked Upload with resilient retry and byte-accurate progress
+      // Large file (>= 2 MB): Chunked Upload with resilient retry and byte-accurate progress
       const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE);
       const uploadId = `up_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
@@ -415,7 +427,7 @@ export const api = {
           const chunkBlob = file.slice(start, end);
           const isLast = i === totalChunks - 1;
 
-          const chunkUrl = `${base}/api/mods/upload/chunk?uploadId=${encodeURIComponent(uploadId)}&chunkIndex=${i}&totalChunks=${totalChunks}&filename=${encodeURIComponent(file.name)}&totalSize=${totalBytes}`;
+          const chunkUrl = `${base}/api/mods/upload/chunk?uploadId=${encodeURIComponent(uploadId)}&chunkIndex=${i}&totalChunks=${totalChunks}&filename=${encodeURIComponent(file.name)}&totalSize=${totalBytes}&token=${encodeURIComponent(token)}`;
 
           const res = await uploadChunkWithRetry(chunkBlob, chunkUrl, token, (chunkLoaded) => {
             const currentLoaded = start + chunkLoaded;
