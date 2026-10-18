@@ -226,6 +226,17 @@ public class ModEnforcementService : ModService
         _monitor.Log($"[ModEnforcement] Policy updated: Mode={_policy.EnforcementMode}, UnknownModsMode={_policy.UnknownModsMode}, {_policy.RequiredMods.Count} required mods", LogLevel.Info);
     }
 
+    public static bool IsInternalServerMod(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return true;
+        return id.Equals("JunimoHost.Server", StringComparison.OrdinalIgnoreCase) ||
+               id.Equals("JunimoServer.Shared", StringComparison.OrdinalIgnoreCase) ||
+               id.Equals("SaveBackup", StringComparison.OrdinalIgnoreCase) ||
+               id.Equals("ConsoleCommands", StringComparison.OrdinalIgnoreCase) ||
+               id.StartsWith("SMAPI.", StringComparison.OrdinalIgnoreCase) ||
+               id.Equals("ErrorHandler", StringComparison.OrdinalIgnoreCase);
+    }
+
     public List<ServerInstalledModInfo> GetInstalledServerMods()
     {
         var list = new List<ServerInstalledModInfo>();
@@ -236,11 +247,13 @@ public class ModEnforcementService : ModService
                 if (mod?.Manifest == null) continue;
 
                 var id = mod.Manifest.UniqueID ?? "";
+                if (IsInternalServerMod(id)) continue;
+
                 var name = mod.Manifest.Name ?? id;
                 var version = mod.Manifest.Version?.ToString() ?? "1.0.0";
                 var author = mod.Manifest.Author ?? "";
                 var description = mod.Manifest.Description ?? "";
-                bool isFramework = id.Contains("ContentPatcher") || id.Contains("SMAPI") || id.Contains("Expanded");
+                bool isFramework = id.Contains("ContentPatcher") || id.Contains("SMAPI") || id.Contains("Expanded") || id.Contains("SpaceCore");
 
                 list.Add(new ServerInstalledModInfo
                 {
@@ -271,7 +284,7 @@ public class ModEnforcementService : ModService
             {
                 foreach (var extra in extraMods)
                 {
-                    if (!serverMods.Any(s => s.UniqueId.Equals(extra.UniqueId, StringComparison.OrdinalIgnoreCase)))
+                    if (!IsInternalServerMod(extra.UniqueId) && !serverMods.Any(s => s.UniqueId.Equals(extra.UniqueId, StringComparison.OrdinalIgnoreCase)))
                     {
                         serverMods.Add(extra);
                     }
@@ -280,21 +293,12 @@ public class ModEnforcementService : ModService
 
             foreach (var mod in serverMods)
             {
-                // Exclude the dedicated server mod itself
-                if (mod.UniqueId.Equals("JunimoHost.Server", StringComparison.OrdinalIgnoreCase) ||
-                    mod.UniqueId.Equals("JunimoServer.Shared", StringComparison.OrdinalIgnoreCase))
+                if (IsInternalServerMod(mod.UniqueId))
                 {
                     continue;
                 }
 
-                // Auto-detect key expansion / gameplay mods (SVE, Content Patcher, or uploaded custom mods)
-                bool isTargetMod = mod.UniqueId.Contains("Expanded", StringComparison.OrdinalIgnoreCase) ||
-                                  mod.UniqueId.Contains("FlashShifter", StringComparison.OrdinalIgnoreCase) ||
-                                  mod.UniqueId.Contains("ContentPatcher", StringComparison.OrdinalIgnoreCase) ||
-                                  mod.UniqueId.Contains("CustomNPCFixes", StringComparison.OrdinalIgnoreCase) ||
-                                  (extraMods != null && extraMods.Any(e => e.UniqueId.Equals(mod.UniqueId, StringComparison.OrdinalIgnoreCase)));
-
-                if (isTargetMod && !_policy.RequiredMods.Any(r => r.UniqueId.Equals(mod.UniqueId, StringComparison.OrdinalIgnoreCase)))
+                if (!_policy.RequiredMods.Any(r => r.UniqueId.Equals(mod.UniqueId, StringComparison.OrdinalIgnoreCase)))
                 {
                     _policy.RequiredMods.Add(new RequiredModRule
                     {

@@ -38,6 +38,10 @@ public class ModDistributionService : ModService
     {
         "JunimoServer",
         "JunimoServer.Shared",
+        "smapi",
+        "SaveBackup",
+        "ConsoleCommands",
+        "ErrorHandler",
         ".git",
         ".game_libs",
         "bin",
@@ -47,15 +51,22 @@ public class ModDistributionService : ModService
     private static readonly HashSet<string> ExcludedModIds = new(StringComparer.OrdinalIgnoreCase)
     {
         "JunimoHost.Server",
-        "JunimoServer.Shared"
+        "JunimoServer.Shared",
+        "SaveBackup",
+        "ConsoleCommands",
+        "SMAPI.SaveBackup",
+        "SMAPI.ConsoleCommands",
+        "ErrorHandler"
     };
 
     private readonly ConcurrentDictionary<string, (DateTime CachedAt, byte[] Data)> _zipCache = new();
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
+    private readonly ModEnforcementService? _enforcementService;
 
-    public ModDistributionService(IModHelper helper, IMonitor monitor)
+    public ModDistributionService(IModHelper helper, IMonitor monitor, ModEnforcementService? enforcementService = null)
         : base(helper, monitor)
     {
+        _enforcementService = enforcementService;
     }
 
     public static string GetPersistentModsDirectory()
@@ -154,6 +165,43 @@ public class ModDistributionService : ModService
     }
 
     public List<SyncModInfo> GetSyncableMods()
+    {
+        var rawMods = GetAvailableSyncableMods();
+
+        // If ModPolicy specifies RequiredMods, prioritize and only distribute mods that match the required policy!
+        // This ensures the client only synchronizes mods that the server actually requires, rather than server-only tools.
+        if (_enforcementService != null)
+        {
+            var policy = _enforcementService.GetPolicy();
+            if (policy?.RequiredMods != null && policy.RequiredMods.Count > 0)
+            {
+                var filtered = new List<SyncModInfo>();
+                foreach (var mod in rawMods)
+                {
+                    bool isRequired = policy.RequiredMods.Any(r =>
+                        r.UniqueId.Equals(mod.UniqueId, StringComparison.OrdinalIgnoreCase) ||
+                        r.Name.Equals(mod.Name, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrWhiteSpace(r.Name) && mod.FolderName.Contains(r.Name, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(r.UniqueId) && mod.FolderName.Contains(r.UniqueId, StringComparison.OrdinalIgnoreCase))
+                    );
+
+                    if (isRequired)
+                    {
+                        filtered.Add(mod);
+                    }
+                }
+
+                if (filtered.Count > 0)
+                {
+                    return filtered;
+                }
+            }
+        }
+
+        return rawMods;
+    }
+
+    private List<SyncModInfo> GetAvailableSyncableMods()
     {
         var result = new List<SyncModInfo>();
         var seenUniqueIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
