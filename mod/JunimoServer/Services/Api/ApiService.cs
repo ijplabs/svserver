@@ -2547,7 +2547,7 @@ public partial class ApiService : ModService
                 response.StatusCode = 204;
                 response.Headers.Add("Access-Control-Allow-Origin", "*");
                 response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-                response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-Request-Id");
+                response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-Request-Id, X-File-Name");
                 response.Close();
                 return;
             }
@@ -6261,7 +6261,7 @@ public partial class ApiService : ModService
         response.ContentType = "application/json";
         response.Headers.Add("Access-Control-Allow-Origin", "*");
         response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-Request-Id");
+        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, X-Request-Id, X-File-Name");
         var buffer = Encoding.UTF8.GetBytes(json);
         response.ContentLength64 = buffer.Length;
         await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
@@ -6760,7 +6760,7 @@ public partial class ApiService : ModService
             string fileName = request.Headers["X-File-Name"] ?? request.QueryString["filename"] ?? "uploaded_mod.zip";
             fileName = Uri.UnescapeDataString(fileName);
 
-            var (success, message, installedMods) = _modDistributionService.InstallModZip(request.InputStream, fileName);
+            var (success, message, installedMods) = await _modDistributionService.InstallModZipAsync(request.InputStream, fileName);
             if (!success)
             {
                 response.StatusCode = 400;

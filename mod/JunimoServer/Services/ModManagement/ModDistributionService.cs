@@ -232,12 +232,17 @@ public class ModDistributionService : ModService
 
     public (bool Success, string Message, List<SyncModInfo> InstalledMods) InstallModZip(Stream zipStream, string fileName)
     {
+        return InstallModZipAsync(zipStream, fileName).GetAwaiter().GetResult();
+    }
+
+    public async Task<(bool Success, string Message, List<SyncModInfo> InstalledMods)> InstallModZipAsync(Stream zipStream, string fileName)
+    {
         var tempFile = Path.Combine(Path.GetTempPath(), $"upload_{Guid.NewGuid():N}.zip");
         try
         {
-            using (var fs = File.Create(tempFile))
+            await using (var fs = File.Create(tempFile))
             {
-                zipStream.CopyTo(fs);
+                await zipStream.CopyToAsync(fs);
             }
 
             if (new FileInfo(tempFile).Length == 0)

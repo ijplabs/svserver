@@ -246,7 +246,8 @@ export const api = {
         headers['Authorization'] = `Bearer ${token}`;
       }
       const base = getApiBase();
-      const res = await fetch(`${base}/api/mods/upload`, {
+      const url = `${base}/api/mods/upload?filename=${encodeURIComponent(file.name)}`;
+      const res = await fetch(url, {
         method: 'POST',
         headers,
         body: file,

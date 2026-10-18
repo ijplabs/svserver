@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Blocks,
   ShieldCheck,
@@ -51,6 +51,9 @@ export const ModManagementCard: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [uploadLocalMessage, setUploadLocalMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // New Required Mod Form State
   const [newReqId, setNewReqId] = useState('');
@@ -173,19 +176,28 @@ export const ModManagementCard: React.FC = () => {
     handleSavePolicy(updated);
   };
 
-  const handleFileUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFile) return;
+  const handleFileUpload = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!selectedFile) {
+      fileInputRef.current?.click();
+      return;
+    }
     try {
       setUploading(true);
-      setUploadProgress(`Mengunggah "${selectedFile.name}" ke penyimpanan aman server...`);
+      setUploadLocalMessage(null);
+      setUploadProgress(`Mengunggah "${selectedFile.name}" (${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB) ke server...`);
       const res = await api.mods.uploadMod(selectedFile);
-      setMessage({ text: res.message || 'Mod berhasil diunggah dan disimpan ke volume persisten.', type: 'success' });
+      const successText = res.message || 'Mod berhasil diunggah dan disimpan ke volume persisten.';
+      setMessage({ text: successText, type: 'success' });
+      setUploadLocalMessage({ text: successText, type: 'success' });
       setSelectedFile(null);
       setUploadProgress(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       await fetchData();
     } catch (err: any) {
-      setMessage({ text: err.message || 'Gagal mengunggah mod.', type: 'error' });
+      const errorText = err.message || 'Gagal mengunggah mod.';
+      setMessage({ text: errorText, type: 'error' });
+      setUploadLocalMessage({ text: errorText, type: 'error' });
       setUploadProgress(null);
     } finally {
       setUploading(false);
@@ -1010,31 +1022,101 @@ export const ModManagementCard: React.FC = () => {
             </div>
 
             <form onSubmit={handleFileUpload} className="space-y-4">
-              <div className="p-6 bg-slate-950/60 border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-xl transition flex flex-col items-center justify-center text-center space-y-3 cursor-pointer">
-                <FileArchive className="w-10 h-10 text-slate-500" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-slate-200">
-                    {selectedFile ? selectedFile.name : 'Pilih file mod (.zip) dari komputer Anda'}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {selectedFile
-                      ? `Ukuran: ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
-                      : 'Mendukung bundle ZIP mod individual maupun paket ekspansi besar (SVE, FTM, dsb)'}
-                  </p>
-                </div>
+              {/* Interactive Dropzone */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.name.toLowerCase().endsWith('.zip')) {
+                      setSelectedFile(file);
+                      setUploadLocalMessage(null);
+                    } else {
+                      setUploadLocalMessage({ text: 'Hanya file dengan format .zip yang didukung.', type: 'error' });
+                    }
+                  }
+                }}
+                className={`p-6 border-2 border-dashed rounded-xl transition flex flex-col items-center justify-center text-center space-y-3 cursor-pointer select-none ${
+                  isDragging
+                    ? 'bg-indigo-500/15 border-indigo-400 scale-[1.01]'
+                    : selectedFile
+                    ? 'bg-indigo-950/20 border-indigo-500/40'
+                    : 'bg-slate-950/60 border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/40'
+                }`}
+              >
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept=".zip"
                   disabled={uploading}
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
                       setSelectedFile(e.target.files[0]);
+                      setUploadLocalMessage(null);
                     }
                   }}
-                  className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                  className="hidden"
                 />
+
+                {selectedFile ? (
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className="p-3 bg-indigo-500/20 rounded-xl text-indigo-400">
+                      <FileArchive className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-slate-100">{selectedFile.name}</p>
+                      <p className="text-xs text-indigo-300 font-mono">
+                        Ukuran: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <span className="text-xs text-slate-400 underline hover:text-slate-300">
+                      Klik untuk mengganti file lain
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <FileArchive className="w-10 h-10 text-slate-500" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-slate-200">
+                        Klik di sini atau seret (drag & drop) file .zip mod ke area ini
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Mendukung bundle ZIP mod individual maupun paket ekspansi besar (SVE, FTM, dsb)
+                      </p>
+                    </div>
+                    <span className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 font-medium transition">
+                      Pilih File Mod (.zip)
+                    </span>
+                  </>
+                )}
               </div>
 
+              {/* Local Feedback Alert directly in the form */}
+              {uploadLocalMessage && (
+                <div
+                  className={`flex items-center gap-2 p-3.5 rounded-xl text-xs font-medium border ${
+                    uploadLocalMessage.type === 'success'
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                  }`}
+                >
+                  {uploadLocalMessage.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                  )}
+                  <span>{uploadLocalMessage.text}</span>
+                </div>
+              )}
+
+              {/* Upload Progress */}
               {uploadProgress && (
                 <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 flex items-center gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
@@ -1042,24 +1124,34 @@ export const ModManagementCard: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-3">
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-1">
                 {selectedFile && (
                   <button
                     type="button"
-                    onClick={() => setSelectedFile(null)}
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setUploadLocalMessage(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
                     disabled={uploading}
-                    className="px-4 py-2 text-xs text-slate-400 hover:text-slate-200 transition"
+                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs text-slate-400 hover:text-slate-200 transition"
                   >
-                    Batal
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Batalkan Pilihan
                   </button>
                 )}
                 <button
                   type="submit"
-                  disabled={!selectedFile || uploading}
+                  disabled={uploading}
                   className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
                   <Upload className="w-4 h-4" />
-                  {uploading ? 'Mengunggah & Mengekstrak...' : 'Unggah & Pasang Mod'}
+                  {uploading
+                    ? 'Mengunggah & Mengekstrak...'
+                    : selectedFile
+                    ? `Unggah "${selectedFile.name.length > 25 ? selectedFile.name.substring(0, 22) + '...' : selectedFile.name}"`
+                    : 'Pilih File Mod (.zip)'}
                 </button>
               </div>
             </form>
