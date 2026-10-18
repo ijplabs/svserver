@@ -12,6 +12,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Tools;
+using StardewValley.Objects;
 
 namespace JunimoServer.Services.Profession;
 
@@ -480,26 +481,6 @@ public class ProfessionService : ModService
         });
     }
 
-    private void GiveItemToFarmer(Farmer farmer, Item? item)
-    {
-        if (farmer == null || item == null) return;
-
-        try
-        {
-            if (farmer.currentLocation != null)
-            {
-                Game1.createItemDebris(item, farmer.Position, 2, farmer.currentLocation);
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            _monitor.Log($"[Profession] Could not create item debris for {farmer.Name}: {ex.Message}", LogLevel.Warn);
-        }
-
-        farmer.addItemToInventory(item);
-    }
-
     public void DeliverStarterKit(Farmer farmer, ProfessionType profession)
     {
         if (farmer == null) return;
@@ -509,11 +490,32 @@ public class ProfessionService : ModService
 
         _monitor.Log($"[Profession] Delivering {profession} starter kit to {farmer.Name} ({farmer.UniqueMultiplayerID})", LogLevel.Info);
 
+        var loc = farmer.currentLocation ?? Game1.getLocationFromName("Farm");
+
+        // Clean up any unpickable item debris left from previous versions
+        if (loc != null)
+        {
+            try
+            {
+                var stuckDebris = loc.debris.Where(d => d.item != null).ToList();
+                foreach (var d in stuckDebris)
+                {
+                    loc.debris.Remove(d);
+                }
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Profession] Could not clear old debris: {ex.Message}", LogLevel.Trace);
+            }
+        }
+
+        var starterItems = new List<Item>();
+
         switch (profession)
         {
             case ProfessionType.Farmer:
                 // 1x Quality Sprinkler
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)621", 1));
+                starterItems.Add(ItemRegistry.Create("(O)621", 1));
 
                 // 15x Seasonal Seeds
                 string seedId = Game1.currentSeason switch
@@ -523,30 +525,30 @@ public class ProfessionService : ModService
                     "winter" => "(O)495", // Winter Seeds
                     _ => "(O)472",        // Parsnip Seeds (Spring default)
                 };
-                GiveItemToFarmer(farmer, ItemRegistry.Create(seedId, 15));
+                starterItems.Add(ItemRegistry.Create(seedId, 15));
 
                 // 15x Basic Fertilizer
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)368", 15));
+                starterItems.Add(ItemRegistry.Create("(O)368", 15));
                 break;
 
             case ProfessionType.Miner:
                 // Upgrade Pickaxe to Copper
-                GiveItemToFarmer(farmer, new Pickaxe { UpgradeLevel = 1 });
+                starterItems.Add(new Pickaxe { UpgradeLevel = 1 });
 
                 // 10x Torches, 3x Cherry Bombs, 2x Miner's Treat
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)93", 10));
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)286", 3));
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)243", 2));
+                starterItems.Add(ItemRegistry.Create("(O)93", 10));
+                starterItems.Add(ItemRegistry.Create("(O)286", 3));
+                starterItems.Add(ItemRegistry.Create("(O)243", 2));
                 break;
 
             case ProfessionType.Fisherman:
                 // Fiberglass Rod
-                GiveItemToFarmer(farmer, new FishingRod(2));
+                starterItems.Add(new FishingRod(2));
 
                 // 20x Bait, 2x Crab Pot, 2x Dish o' The Sea
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)685", 20));
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)710", 2));
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)242", 2));
+                starterItems.Add(ItemRegistry.Create("(O)685", 20));
+                starterItems.Add(ItemRegistry.Create("(O)710", 2));
+                starterItems.Add(ItemRegistry.Create("(O)242", 2));
                 break;
 
             case ProfessionType.Rancher:
@@ -561,25 +563,68 @@ public class ProfessionService : ModService
                 }
 
                 // 30x Hay, Milk Pail, Shears
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)178", 30));
-                GiveItemToFarmer(farmer, ItemRegistry.Create<Tool>("(T)MilkPail"));
-                GiveItemToFarmer(farmer, ItemRegistry.Create<Tool>("(T)Shears"));
+                starterItems.Add(ItemRegistry.Create("(O)178", 30));
+                starterItems.Add(ItemRegistry.Create<Tool>("(T)MilkPail"));
+                starterItems.Add(ItemRegistry.Create<Tool>("(T)Shears"));
                 break;
 
             case ProfessionType.Forager:
                 // Upgrade Axe to Copper
-                GiveItemToFarmer(farmer, new Axe { UpgradeLevel = 1 });
+                starterItems.Add(new Axe { UpgradeLevel = 1 });
 
                 // 1x Charcoal Kiln, 10x Tree Fertilizer, 2x Survival Burger
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(BC)114", 1));
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)805", 10));
-                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)241", 2));
+                starterItems.Add(ItemRegistry.Create("(BC)114", 1));
+                starterItems.Add(ItemRegistry.Create("(O)805", 10));
+                starterItems.Add(ItemRegistry.Create("(O)241", 2));
                 break;
+        }
+
+        if (loc != null)
+        {
+            Vector2 targetTile = farmer.Tile;
+            Vector2 openTile = Vector2.Zero;
+            Vector2 facingTile = farmer.GetGrabTile();
+
+            if (loc.isTilePlaceable(facingTile) && !loc.objects.ContainsKey(facingTile))
+            {
+                openTile = facingTile;
+            }
+            else
+            {
+                openTile = Utility.getRandomAdjacentOpenTile(targetTile, loc);
+                if (openTile == Vector2.Zero || loc.objects.ContainsKey(openTile))
+                {
+                    var openTiles = Utility.recursiveFindOpenTiles(loc, targetTile, 8, 30);
+                    foreach (var t in openTiles)
+                    {
+                        if (!loc.objects.ContainsKey(t))
+                        {
+                            openTile = t;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (openTile == Vector2.Zero || loc.objects.ContainsKey(openTile))
+            {
+                openTile = targetTile;
+            }
+
+            // Remove existing empty container if present
+            if (loc.objects.TryGetValue(openTile, out var existingObj) && existingObj is Chest c && c.Items.Count == 0)
+            {
+                loc.objects.Remove(openTile);
+            }
+
+            // Create gift box chest
+            var giftBox = new Chest(starterItems, openTile, giftbox: true, giftboxIndex: 0, giftboxIsStarterGift: false);
+            loc.objects[openTile] = giftBox;
         }
 
         _helper.SendPrivateMessage(
             farmer.UniqueMultiplayerID,
-            $"[Profesi] Selamat datang di lembah! Paket perlengkapan starter {GetProfessionDisplayName(profession)} telah dikirim ke lokasi Anda."
+            $"[Profesi] Paket perlengkapan starter {GetProfessionDisplayName(profession)} telah diletakkan dalam Kotak Kado (Gift Box) di dekat Anda! Klik kanan kotak kado tersebut untuk membuka dan mengambil isinya."
         );
     }
 
