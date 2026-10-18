@@ -2672,10 +2672,10 @@ public partial class ApiService : ModService
                         await WriteJsonAsync(response, _modDistributionService?.GetSyncManifest() ?? new ModManagement.SyncManifestResponse());
                         break;
                     case "/api/mods/sync/bundle":
-                        await HandleGetModBundleZipAsync(response);
+                        await HandleGetModBundleZipAsync(request, response);
                         break;
                     case "/api/mods/sync/client-mod":
-                        await HandleGetClientModZipAsync(response);
+                        await HandleGetClientModZipAsync(request, response);
                         break;
                     case "/api/mods/sync/download":
                         await HandleGetModZipDownloadAsync(request, response);
@@ -6987,7 +6987,44 @@ public partial class ApiService : ModService
             || path.StartsWith("/api/mods/sync/download");
     }
 
-    private async Task HandleGetModBundleZipAsync(HttpListenerResponse response)
+    private async Task ServeBytesWithRangeSupportAsync(HttpListenerRequest request, HttpListenerResponse response, byte[] data, string contentType, string fileName)
+    {
+        response.ContentType = contentType;
+        response.Headers["Accept-Ranges"] = "bytes";
+        response.Headers["Content-Disposition"] = $"attachment; filename=\"{fileName}\"";
+
+        string? rangeHeader = request.Headers["Range"];
+        if (!string.IsNullOrWhiteSpace(rangeHeader) && rangeHeader.StartsWith("bytes="))
+        {
+            var rawRange = rangeHeader.Substring("bytes=".Length).Trim();
+            var parts = rawRange.Split('-');
+            long start = 0;
+            long end = data.Length - 1;
+
+            if (long.TryParse(parts[0], out var s))
+            {
+                start = Math.Max(0, Math.Min(s, data.Length - 1));
+            }
+
+            if (parts.Length > 1 && long.TryParse(parts[1], out var e))
+            {
+                end = Math.Max(start, Math.Min(e, data.Length - 1));
+            }
+
+            long length = end - start + 1;
+            response.StatusCode = 206; // Partial Content
+            response.Headers["Content-Range"] = $"bytes {start}-{end}/{data.Length}";
+            response.ContentLength64 = length;
+            await response.OutputStream.WriteAsync(data, (int)start, (int)length);
+            return;
+        }
+
+        response.StatusCode = 200;
+        response.ContentLength64 = data.Length;
+        await response.OutputStream.WriteAsync(data, 0, data.Length);
+    }
+
+    private async Task HandleGetModBundleZipAsync(HttpListenerRequest request, HttpListenerResponse response)
     {
         if (_modDistributionService == null)
         {
@@ -7004,10 +7041,7 @@ public partial class ApiService : ModService
             return;
         }
 
-        response.ContentType = "application/zip";
-        response.Headers["Content-Disposition"] = "attachment; filename=\"stardew-server-mods.zip\"";
-        response.ContentLength64 = zipBytes.Length;
-        await response.OutputStream.WriteAsync(zipBytes, 0, zipBytes.Length);
+        await ServeBytesWithRangeSupportAsync(request, response, zipBytes, "application/zip", "stardew-server-mods.zip");
     }
 
     private async Task HandleGetModZipDownloadAsync(HttpListenerRequest request, HttpListenerResponse response, string? folderParam = null)
@@ -7035,13 +7069,10 @@ public partial class ApiService : ModService
             return;
         }
 
-        response.ContentType = "application/zip";
-        response.Headers["Content-Disposition"] = $"attachment; filename=\"{folder}.zip\"";
-        response.ContentLength64 = zipBytes.Length;
-        await response.OutputStream.WriteAsync(zipBytes, 0, zipBytes.Length);
+        await ServeBytesWithRangeSupportAsync(request, response, zipBytes, "application/zip", $"{folder}.zip");
     }
 
-    private async Task HandleGetClientModZipAsync(HttpListenerResponse response)
+    private async Task HandleGetClientModZipAsync(HttpListenerRequest request, HttpListenerResponse response)
     {
         var searchPaths = new[]
         {
@@ -7055,10 +7086,7 @@ public partial class ApiService : ModService
         if (foundPath != null)
         {
             var bytes = await File.ReadAllBytesAsync(foundPath);
-            response.ContentType = "application/zip";
-            response.Headers["Content-Disposition"] = "attachment; filename=\"JunimoClientSync.zip\"";
-            response.ContentLength64 = bytes.Length;
-            await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+            await ServeBytesWithRangeSupportAsync(request, response, bytes, "application/zip", "JunimoClientSync.zip");
             return;
         }
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using JunimoClientSync.Models;
 using Microsoft.Xna.Framework;
@@ -369,7 +370,7 @@ public class ModEntry : Mod
         try
         {
             string baseUrl = Config.ServerUrl.TrimEnd('/');
-            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
 
             _syncStatus = "Fetching server mod manifest...";
             _progress = 0.15f;
@@ -432,6 +433,7 @@ public class ModEntry : Mod
 
             Monitor.Log($"[JunimoClientSync] Found {neededMods.Count} mod(s) requiring download/update.", LogLevel.Info);
             _updatedCount = neededMods.Count;
+            float totalModSlice = 0.65f / neededMods.Count;
 
             // Download and extract each mod
             for (int i = 0; i < neededMods.Count; i++)
@@ -447,14 +449,123 @@ public class ModEntry : Mod
                     : $"{baseUrl}{mod.DownloadUrl}";
 
                 string tempZipPath = Path.Combine(modsDir, $"_temp_{mod.FolderName}.zip");
-
-                using (var downloadStream = await client.GetStreamAsync(downloadUrl))
-                using (var fileStream = File.Create(tempZipPath))
+                if (File.Exists(tempZipPath))
                 {
-                    await downloadStream.CopyToAsync(fileStream);
+                    try { File.Delete(tempZipPath); } catch { }
                 }
 
+                // Probe ContentLength and Accept-Ranges support
+                long totalBytes = mod.SizeBytes;
+                bool supportsRanges = false;
+                try
+                {
+                    using var headReq = new HttpRequestMessage(HttpMethod.Head, downloadUrl);
+                    using var headResp = await client.SendAsync(headReq, HttpCompletionOption.ResponseHeadersRead);
+                    if (headResp.IsSuccessStatusCode)
+                    {
+                        if (headResp.Content.Headers.ContentLength.HasValue && headResp.Content.Headers.ContentLength.Value > 0)
+                        {
+                            totalBytes = headResp.Content.Headers.ContentLength.Value;
+                        }
+                        supportsRanges = headResp.Headers.AcceptRanges.Contains("bytes") || headResp.Headers.Contains("Accept-Ranges");
+                    }
+                }
+                catch
+                {
+                    // Fallback to default streaming
+                }
+
+                const long ChunkSize = 5 * 1024 * 1024; // 5 MB chunks to prevent tunnel timeouts
+
+                if (supportsRanges && totalBytes > ChunkSize)
+                {
+                    // 1. Chunked Range Download
+                    using (var fileStream = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        long downloaded = 0;
+                        while (downloaded < totalBytes)
+                        {
+                            long start = downloaded;
+                            long end = Math.Min(start + ChunkSize - 1, totalBytes - 1);
+
+                            bool chunkSuccess = false;
+                            int retries = 0;
+                            while (!chunkSuccess && retries < 3)
+                            {
+                                try
+                                {
+                                    using var chunkReq = new HttpRequestMessage(HttpMethod.Get, downloadUrl);
+                                    chunkReq.Headers.Range = new RangeHeaderValue(start, end);
+                                    using var chunkResp = await client.SendAsync(chunkReq, HttpCompletionOption.ResponseHeadersRead);
+                                    chunkResp.EnsureSuccessStatusCode();
+
+                                    using var stream = await chunkResp.Content.ReadAsStreamAsync();
+                                    byte[] buf = new byte[65536];
+                                    int read;
+                                    long chunkRead = 0;
+                                    while ((read = await stream.ReadAsync(buf, 0, buf.Length)) > 0)
+                                    {
+                                        await fileStream.WriteAsync(buf, 0, read);
+                                        chunkRead += read;
+                                        long currentTotal = downloaded + chunkRead;
+                                        float frac = (float)currentTotal / totalBytes;
+                                        _progress = baseProg + (totalModSlice * frac);
+                                        _syncDetail = $"{i + 1}/{neededMods.Count} • {FormatBytes(currentTotal)} / {FormatBytes(totalBytes)} ({(int)(frac * 100)}%)";
+                                    }
+
+                                    downloaded += chunkRead;
+                                    chunkSuccess = true;
+                                }
+                                catch (Exception ex)
+                                {
+                                    retries++;
+                                    Monitor.Log($"[JunimoClientSync] Chunk {start}-{end} failed (attempt {retries}/3): {ex.Message}. Retrying...", LogLevel.Warn);
+                                    if (retries >= 3) throw;
+                                    await Task.Delay(1000);
+                                    fileStream.Seek(start, SeekOrigin.Begin);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // 2. Streamed download with real-time 64KB buffer progress
+                    using var resp = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                    resp.EnsureSuccessStatusCode();
+
+                    if (totalBytes <= 0 && resp.Content.Headers.ContentLength.HasValue)
+                    {
+                        totalBytes = resp.Content.Headers.ContentLength.Value;
+                    }
+
+                    using var downloadStream = await resp.Content.ReadAsStreamAsync();
+                    using var fileStream = File.Create(tempZipPath);
+                    byte[] buffer = new byte[65536];
+                    long totalRead = 0;
+                    int bytesRead;
+
+                    while ((bytesRead = await downloadStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                        totalRead += bytesRead;
+
+                        if (totalBytes > 0)
+                        {
+                            float frac = Math.Min(1f, (float)totalRead / totalBytes);
+                            _progress = baseProg + (totalModSlice * frac);
+                            _syncDetail = $"{i + 1}/{neededMods.Count} • {FormatBytes(totalRead)} / {FormatBytes(totalBytes)} ({(int)(frac * 100)}%)";
+                        }
+                        else
+                        {
+                            _syncDetail = $"{i + 1}/{neededMods.Count} • {FormatBytes(totalRead)} downloaded";
+                        }
+                    }
+                }
+
+                _progress = baseProg + totalModSlice;
                 _syncStatus = $"Extracting {mod.Name}...";
+                _syncDetail = $"{i + 1}/{neededMods.Count} (Decompressing files)";
 
                 // Extract zip directly into client Mods folder
                 try
@@ -465,7 +576,7 @@ public class ModEntry : Mod
                 {
                     if (File.Exists(tempZipPath))
                     {
-                        File.Delete(tempZipPath);
+                        try { File.Delete(tempZipPath); } catch { }
                     }
                 }
             }
@@ -513,6 +624,17 @@ public class ModEntry : Mod
         {
             return !string.Equals(current, required, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        if (bytes >= 1024 * 1024 * 1024)
+            return $"{(bytes / (1024.0 * 1024.0 * 1024.0)):F2} GB";
+        if (bytes >= 1024 * 1024)
+            return $"{(bytes / (1024.0 * 1024.0)):F1} MB";
+        if (bytes >= 1024)
+            return $"{(bytes / 1024.0):F0} KB";
+        return $"{bytes} B";
     }
 }
 

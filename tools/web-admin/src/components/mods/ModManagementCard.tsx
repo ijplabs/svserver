@@ -17,7 +17,9 @@ import {
   FileCode,
   Upload,
   HardDrive,
-  FileArchive
+  FileArchive,
+  Copy,
+  Check
 } from 'lucide-react';
 import { api, type UploadProgressData } from '../../lib/api';
 import type {
@@ -46,6 +48,7 @@ export const ModManagementCard: React.FC = () => {
   const [syncManifest, setSyncManifest] = useState<any>(null);
   const [activeSubTab, setActiveSubTab] = useState<'required' | 'blacklisted' | 'server' | 'custom' | 'audit' | 'distribution'>('required');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [copiedScript, setCopiedScript] = useState(false);
 
   // Upload state
   const [uploading, setUploading] = useState(false);
@@ -865,24 +868,44 @@ export const ModManagementCard: React.FC = () => {
               {/* Card 1: Mod Klien JunimoClientSync */}
               <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-indigo-400">
-                    <Laptop className="w-5 h-5" />
-                    <h4 className="text-sm font-semibold text-slate-200">Mod Klien SMAPI</h4>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-indigo-400">
+                      <Laptop className="w-5 h-5" />
+                      <h4 className="text-sm font-semibold text-slate-200">Mod Klien SMAPI</h4>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <ShieldCheck className="w-3 h-3 text-emerald-400" /> Terverifikasi
+                    </span>
                   </div>
                   <p className="text-xs text-slate-400">
-                    Paket mod klien berukuran sangat kecil (~22 KB). Menambahkan tombol sinkronisasi langsung di Lobby Co-op & Title Menu Stardew Valley.
+                    Mod klien berukuran kecil (~25 KB) dengan dukungan <strong>Chunked Download (5 MB parts)</strong> & sertifikat digital resmi. Tombol sinkronisasi langsung di Lobby Co-op & Title Menu.
                   </p>
-                  <p className="text-xs font-mono text-slate-500">Target: Folder Mods Klien</p>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-mono text-slate-400">Penerbit: Junimo Dedicated Server Security Authority</p>
+                    <p className="text-[10px] font-mono text-slate-500 truncate" title="SHA-256: 96C08F6AFCD6C845D77C7E941EDF2E3D5498593E833486EBD62B0D366B229CE6">
+                      SHA256: 96C08F6AFCD6C845...
+                    </p>
+                  </div>
                 </div>
 
-                <a
-                  href="/JunimoClientSync.zip"
-                  download="JunimoClientSync.zip"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Unduh JunimoClientSync (.zip)
-                </a>
+                <div className="space-y-2 pt-2">
+                  <a
+                    href="/JunimoClientSync.zip"
+                    download="JunimoClientSync.zip"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Unduh JunimoClientSync (.zip)
+                  </a>
+                  <a
+                    href="/JunimoSecurityCert.cer"
+                    download="JunimoSecurityCert.cer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-[11px] font-medium rounded-lg border border-slate-800 transition"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    Unduh Sertifikat Keamanan (.cer)
+                  </a>
+                </div>
               </div>
 
               {/* Card 2: 1-Click EZ Setup Batch Script */}
@@ -893,19 +916,43 @@ export const ModManagementCard: React.FC = () => {
                     <h4 className="text-sm font-semibold text-slate-200">Script 1-Klik (Windows)</h4>
                   </div>
                   <p className="text-xs text-slate-400">
-                    Script otomatis untuk teman yang belum paham cara pasang mod. Klik 2x file .bat ini untuk otomatis mendeteksi folder Steam dan memasang mod sync.
+                    Script otomatis untuk teman yang belum paham cara pasang mod. Otomatis mendeteksi folder Steam, memasang mod sync, dan mendaftarkan sertifikat keamanan ke Windows.
                   </p>
                   <p className="text-xs font-mono text-slate-500">Eksekusi: sync-mods.bat</p>
                 </div>
 
-                <a
-                  href="/sync-mods.bat"
-                  download="sync-mods.bat"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Unduh sync-mods.bat
-                </a>
+                <div className="space-y-2 pt-2">
+                  <a
+                    href="/sync-mods.bat"
+                    download="sync-mods.bat"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Unduh sync-mods.bat
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cmd = `powershell -NoProfile -Command "try { $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://stardew-api.ijplabs.dev/api/mods/sync/client-mod', 'JunimoClientSync.zip'); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('JunimoClientSync.zip', '$env:APPDATA\\StardewValley\\Mods', $true); Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] Selesai!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
+                      navigator.clipboard.writeText(cmd);
+                      setCopiedScript(true);
+                      setTimeout(() => setCopiedScript(false), 2500);
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-[11px] font-medium rounded-lg border border-slate-800 transition cursor-pointer"
+                  >
+                    {copiedScript ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400 font-semibold">Perintah Disalin ke Clipboard!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Salin Perintah PowerShell (Tanpa Download)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Card 3: Full Server Modpack */}

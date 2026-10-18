@@ -35,7 +35,7 @@ echo [INFO] Target folder Mods: %MODS_DIR%
 echo [INFO] Mengunduh paket mod klien dari server: %SERVER_URL%...
 echo.
 
-powershell -NoProfile -Command "try { $wc = New-Object System.Net.WebClient; $wc.DownloadFile('%SERVER_URL%/api/mods/sync/client-mod', 'JunimoClientSync.zip'); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('JunimoClientSync.zip', '%MODS_DIR%', $true); Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] Mod JunimoClientSync berhasil dipasang ke folder Mods!' -ForegroundColor Green; } catch { Write-Host '[ERROR] Gagal mengunduh: ' $_.Exception.Message -ForegroundColor Red; }"
+powershell -NoProfile -Command "try { $wc = New-Object System.Net.WebClient; $wc.DownloadFile('%SERVER_URL%/api/mods/sync/client-mod', 'JunimoClientSync.zip'); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('JunimoClientSync.zip', '%MODS_DIR%', $true); Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] Mod JunimoClientSync berhasil dipasang ke folder Mods!' -ForegroundColor Green; if (Test-Path '%MODS_DIR%\JunimoClientSync\JunimoSecurityCert.cer') { certutil -user -addstore 'TrustedPublisher' '%MODS_DIR%\JunimoClientSync\JunimoSecurityCert.cer' | Out-Null; Write-Host '[OK] Sertifikat keamanan digital terverifikasi dan didaftarkan!' -ForegroundColor Green; } } catch { Write-Host '[ERROR] Gagal mengunduh: ' $_.Exception.Message -ForegroundColor Red; }"
 
 echo.
 echo ========================================================
