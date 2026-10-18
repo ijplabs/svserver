@@ -238,13 +238,13 @@ export const api = {
       }>('/api/mods/sync/manifest'),
     uploadMod: async (file: File) => {
       const token = getToken();
-      const headers: Record<string, string> = {
-        'X-File-Name': encodeURIComponent(file.name),
-        'Content-Type': 'application/zip',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      if (!token) {
+        throw new Error('Sesi login telah berakhir. Silakan login kembali sebagai Administrator/Sysadmin.');
       }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/zip',
+        'Authorization': `Bearer ${token}`,
+      };
       const base = getApiBase();
       const url = `${base}/api/mods/upload?filename=${encodeURIComponent(file.name)}`;
       const res = await fetch(url, {
@@ -253,8 +253,13 @@ export const api = {
         body: file,
       });
       if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `Upload gagal (${res.status})`);
+        let errMsg = `Upload gagal (${res.status})`;
+        try {
+          const errJson = await res.json();
+          if (errJson && errJson.error) errMsg = errJson.error;
+          else if (errJson && errJson.message) errMsg = errJson.message;
+        } catch {}
+        throw new Error(errMsg);
       }
       return res.json() as Promise<{
         success: boolean;

@@ -195,7 +195,10 @@ export const ModManagementCard: React.FC = () => {
       if (fileInputRef.current) fileInputRef.current.value = '';
       await fetchData();
     } catch (err: any) {
-      const errorText = err.message || 'Gagal mengunggah mod.';
+      let errorText = err.message || 'Gagal mengunggah mod.';
+      if (errorText.toLowerCase().includes('failed to fetch')) {
+        errorText = 'Gagal mengirim file ke server (Failed to fetch). Pastikan koneksi internet stabil dan ukuran file tidak melebihi batas jaringan.';
+      }
       setMessage({ text: errorText, type: 'error' });
       setUploadLocalMessage({ text: errorText, type: 'error' });
       setUploadProgress(null);
