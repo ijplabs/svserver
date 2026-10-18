@@ -430,7 +430,7 @@ public class ModDistributionService : ModService
             return null;
         }
 
-        // Check cache
+        // Check in-memory cache first
         if (_zipCache.TryGetValue(folderName, out var cached) && DateTime.UtcNow - cached.CachedAt < CacheDuration)
         {
             return cached.Data;
@@ -441,24 +441,61 @@ public class ModDistributionService : ModService
 
         if (!Directory.Exists(targetDir))
         {
-            return null;
+            var persistentDir = GetPersistentModsDirectory();
+            var altDir = Path.Combine(persistentDir, folderName);
+            if (Directory.Exists(altDir))
+            {
+                targetDir = altDir;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        var cacheDir = Path.Combine(Path.GetTempPath(), "junimo_mod_cache");
+        Directory.CreateDirectory(cacheDir);
+        var cachedZipFile = Path.Combine(cacheDir, $"{folderName}.zip");
+
+        var dirInfo = new DirectoryInfo(targetDir);
+        var lastWrite = dirInfo.LastWriteTimeUtc;
+
+        if (File.Exists(cachedZipFile))
+        {
+            var fileInfo = new FileInfo(cachedZipFile);
+            if (fileInfo.LastWriteTimeUtc >= lastWrite && fileInfo.Length > 0)
+            {
+                try
+                {
+                    var data = File.ReadAllBytes(cachedZipFile);
+                    _zipCache[folderName] = (DateTime.UtcNow, data);
+                    return data;
+                }
+                catch { }
+            }
         }
 
         try
         {
-            using var ms = new MemoryStream();
-            using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
+            var tempTarget = cachedZipFile + ".tmp";
+            if (File.Exists(tempTarget)) File.Delete(tempTarget);
+
+            using (var fs = new FileStream(tempTarget, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var archive = new ZipArchive(fs, ZipArchiveMode.Create, false))
             {
                 AddDirectoryToArchive(archive, targetDir, folderName);
             }
 
-            var bytes = ms.ToArray();
+            if (File.Exists(cachedZipFile)) File.Delete(cachedZipFile);
+            File.Move(tempTarget, cachedZipFile);
+
+            var bytes = File.ReadAllBytes(cachedZipFile);
             _zipCache[folderName] = (DateTime.UtcNow, bytes);
             return bytes;
         }
         catch (Exception ex)
         {
-            Monitor.Log($"[ModDistribution] Failed to create zip for {folderName}: {ex.Message}", LogLevel.Error);
+            Monitor.Log($"[ModDistribution] Failed to zip mod '{folderName}': {ex.Message}", LogLevel.Error);
             return null;
         }
     }
@@ -472,6 +509,7 @@ public class ModDistributionService : ModService
         }
 
         var modsDir = GetModsDirectory();
+        var persistentDir = GetPersistentModsDirectory();
         var syncMods = GetSyncableMods();
 
         try
@@ -482,6 +520,15 @@ public class ModDistributionService : ModService
                 foreach (var mod in syncMods)
                 {
                     var sourceDir = Path.Combine(modsDir, mod.FolderName);
+                    if (!Directory.Exists(sourceDir))
+                    {
+                        var altDir = Path.Combine(persistentDir, mod.FolderName);
+                        if (Directory.Exists(altDir))
+                        {
+                            sourceDir = altDir;
+                        }
+                    }
+
                     if (Directory.Exists(sourceDir))
                     {
                         AddDirectoryToArchive(archive, sourceDir, mod.FolderName);
@@ -507,7 +554,8 @@ public class ModDistributionService : ModService
         {
             var relativePath = Path.GetRelativePath(sourceDirectory, file);
             var entryName = Path.Combine(entryPrefix, relativePath).Replace('\\', '/');
-            archive.CreateEntryFromFile(file, entryName, CompressionLevel.Optimal);
+            archive.CreateEntryFromFile(file, entryName, CompressionLevel.Fastest);
         }
     }
 }
+
