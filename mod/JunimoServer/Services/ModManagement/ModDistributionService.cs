@@ -95,7 +95,7 @@ public class ModDistributionService : ModService
         return Helper.DirectoryPath;
     }
 
-    private SyncModInfo? GetModInfoFromFolder(string dir, string folderName)
+    private SyncModInfo? GetModInfoFromFolder(string dir, string folderName, string? relativeDownloadPath = null)
     {
         var manifestPath = Path.Combine(dir, "manifest.json");
         if (!File.Exists(manifestPath))
@@ -122,6 +122,7 @@ public class ModDistributionService : ModService
             string version = (string?)raw.Version ?? "1.0.0";
             string author = (string?)raw.Author ?? "";
             string description = (string?)raw.Description ?? "";
+            string downloadKey = relativeDownloadPath ?? folderName;
 
             long sizeBytes = 0;
             try
@@ -140,9 +141,9 @@ public class ModDistributionService : ModService
                 Version = version,
                 Author = author,
                 Description = description,
-                FolderName = folderName,
+                FolderName = downloadKey,
                 SizeBytes = sizeBytes,
-                DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(folderName)}"
+                DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(downloadKey)}"
             };
         }
         catch (Exception ex)
@@ -155,6 +156,7 @@ public class ModDistributionService : ModService
     public List<SyncModInfo> GetSyncableMods()
     {
         var result = new List<SyncModInfo>();
+        var seenUniqueIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var seenFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         var dirsToScan = new List<string>();
@@ -169,18 +171,70 @@ public class ModDistributionService : ModService
 
         foreach (var parentDir in dirsToScan)
         {
+            // 1. Recursive search: Find all manifest.json (handles nested multi-mod packs like Stardew Valley Expanded)
+            try
+            {
+                var manifestFiles = Directory.GetFiles(parentDir, "manifest.json", SearchOption.AllDirectories);
+                foreach (var manifestPath in manifestFiles)
+                {
+                    var modDir = Path.GetDirectoryName(manifestPath);
+                    if (string.IsNullOrEmpty(modDir)) continue;
+
+                    var relativePath = Path.GetRelativePath(parentDir, modDir).Replace('\\', '/');
+                    if (relativePath.StartsWith(".") || relativePath.Contains("/.") ||
+                        relativePath.Split('/').Any(p => ExcludedFolderNames.Contains(p)))
+                    {
+                        continue;
+                    }
+
+                    var folderName = Path.GetFileName(modDir);
+                    var modInfo = GetModInfoFromFolder(modDir, folderName, relativePath);
+                    if (modInfo != null && seenUniqueIds.Add(modInfo.UniqueId))
+                    {
+                        seenFolders.Add(relativePath);
+                        seenFolders.Add(folderName);
+                        result.Add(modInfo);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"[ModDistribution] Error scanning recursive manifests in {parentDir}: {ex.Message}", LogLevel.Warn);
+            }
+
+            // 2. Fallback: Check top-level directories that might not have a direct manifest.json
             foreach (var dir in Directory.GetDirectories(parentDir))
             {
                 var folderName = Path.GetFileName(dir);
-                if (ExcludedFolderNames.Contains(folderName) || !seenFolders.Add(folderName))
+                if (ExcludedFolderNames.Contains(folderName) || seenFolders.Contains(folderName))
                 {
                     continue;
                 }
 
-                var modInfo = GetModInfoFromFolder(dir, folderName);
-                if (modInfo != null)
+                // If sub-mods inside this folder were already scanned, skip
+                if (result.Any(r => r.FolderName.StartsWith(folderName + "/", StringComparison.OrdinalIgnoreCase)))
                 {
-                    result.Add(modInfo);
+                    continue;
+                }
+
+                long size = 0;
+                try
+                {
+                    size = Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+                }
+                catch { }
+
+                if (size > 0 && seenFolders.Add(folderName))
+                {
+                    result.Add(new SyncModInfo
+                    {
+                        UniqueId = folderName,
+                        Name = folderName,
+                        Version = "1.0.0",
+                        FolderName = folderName,
+                        SizeBytes = size,
+                        DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(folderName)}"
+                    });
                 }
             }
         }
@@ -191,40 +245,63 @@ public class ModDistributionService : ModService
     public List<SyncModInfo> GetCustomModsList()
     {
         var result = new List<SyncModInfo>();
+        var seenUniqueIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var persistentDir = GetPersistentModsDirectory();
 
         if (Directory.Exists(persistentDir))
         {
+            // Recursive scan for all manifests in persistent directory
+            try
+            {
+                var manifestFiles = Directory.GetFiles(persistentDir, "manifest.json", SearchOption.AllDirectories);
+                foreach (var manifestPath in manifestFiles)
+                {
+                    var modDir = Path.GetDirectoryName(manifestPath);
+                    if (string.IsNullOrEmpty(modDir)) continue;
+
+                    var relativePath = Path.GetRelativePath(persistentDir, modDir).Replace('\\', '/');
+                    if (relativePath.StartsWith(".") || relativePath.Contains("/.") ||
+                        relativePath.Split('/').Any(p => ExcludedFolderNames.Contains(p)))
+                    {
+                        continue;
+                    }
+
+                    var folderName = Path.GetFileName(modDir);
+                    var modInfo = GetModInfoFromFolder(modDir, folderName, relativePath);
+                    if (modInfo != null && seenUniqueIds.Add(modInfo.UniqueId))
+                    {
+                        result.Add(modInfo);
+                    }
+                }
+            }
+            catch { }
+
+            // Fallback for custom top-level folders
             foreach (var dir in Directory.GetDirectories(persistentDir))
             {
                 var folderName = Path.GetFileName(dir);
-                if (ExcludedFolderNames.Contains(folderName)) continue;
-
-                var modInfo = GetModInfoFromFolder(dir, folderName);
-                if (modInfo != null)
+                if (ExcludedFolderNames.Contains(folderName) ||
+                    result.Any(r => r.FolderName.Equals(folderName, StringComparison.OrdinalIgnoreCase) || r.FolderName.StartsWith(folderName + "/", StringComparison.OrdinalIgnoreCase)))
                 {
-                    result.Add(modInfo);
+                    continue;
                 }
-                else
-                {
-                    // Fallback if no manifest.json
-                    long size = 0;
-                    try
-                    {
-                        size = Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
-                    }
-                    catch { }
 
-                    result.Add(new SyncModInfo
-                    {
-                        UniqueId = folderName,
-                        Name = folderName,
-                        Version = "custom",
-                        FolderName = folderName,
-                        SizeBytes = size,
-                        DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(folderName)}"
-                    });
+                long size = 0;
+                try
+                {
+                    size = Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
                 }
+                catch { }
+
+                result.Add(new SyncModInfo
+                {
+                    UniqueId = folderName,
+                    Name = folderName,
+                    Version = "custom",
+                    FolderName = folderName,
+                    SizeBytes = size,
+                    DownloadUrl = $"/api/mods/sync/download/{Uri.EscapeDataString(folderName)}"
+                });
             }
         }
 
@@ -455,7 +532,8 @@ public class ModDistributionService : ModService
 
         var cacheDir = Path.Combine(Path.GetTempPath(), "junimo_mod_cache");
         Directory.CreateDirectory(cacheDir);
-        var cachedZipFile = Path.Combine(cacheDir, $"{folderName}.zip");
+        var safeZipName = folderName.Replace('/', '_').Replace('\\', '_');
+        var cachedZipFile = Path.Combine(cacheDir, $"{safeZipName}.zip");
 
         var dirInfo = new DirectoryInfo(targetDir);
         var lastWrite = dirInfo.LastWriteTimeUtc;
@@ -483,7 +561,8 @@ public class ModDistributionService : ModService
             using (var fs = new FileStream(tempTarget, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var archive = new ZipArchive(fs, ZipArchiveMode.Create, false))
             {
-                AddDirectoryToArchive(archive, targetDir, folderName);
+                var entryPrefix = Path.GetFileName(targetDir);
+                AddDirectoryToArchive(archive, targetDir, entryPrefix);
             }
 
             if (File.Exists(cachedZipFile)) File.Delete(cachedZipFile);
@@ -531,7 +610,8 @@ public class ModDistributionService : ModService
 
                     if (Directory.Exists(sourceDir))
                     {
-                        AddDirectoryToArchive(archive, sourceDir, mod.FolderName);
+                        var entryPrefix = Path.GetFileName(sourceDir);
+                        AddDirectoryToArchive(archive, sourceDir, entryPrefix);
                     }
                 }
             }
