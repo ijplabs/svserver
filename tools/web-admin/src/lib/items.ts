@@ -1,5 +1,6 @@
 import cropsData from '../data/items/crops.json';
 import fertilizerData from '../data/items/fertilizer.json';
+import { getItemImageUrl } from './wikiAssets';
 
 interface ItemEntry {
   name: string;
@@ -18,7 +19,9 @@ function normalizeKey(str: string): string {
 }
 
 export function getCropImage(cropNameOrId: string): string | null {
-  if (!cropNameOrId) return null;
+  if (!cropNameOrId || cropNameOrId.toLowerCase() === 'unknown crop' || cropNameOrId.toLowerCase() === 'unknown') {
+    return null;
+  }
   const key = normalizeKey(cropNameOrId);
   if (typedCrops[key]?.url) {
     return typedCrops[key].url;
@@ -27,7 +30,11 @@ export function getCropImage(cropNameOrId: string): string | null {
   const found = Object.values(typedCrops).find(
     (c) => c.name.toLowerCase() === cropNameOrId.toLowerCase()
   );
-  return found ? found.url : null;
+  if (found) return found.url;
+
+  // Fallback to wiki assets
+  const fallback = getItemImageUrl(cropNameOrId);
+  return fallback || null;
 }
 
 export function getFertilizerImage(fertNameOrId: string): string | null {

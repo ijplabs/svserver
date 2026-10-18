@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useFarmStore } from '../../store/farmStore';
 import { getCropImage, getFertilizerImage } from '../../lib/items';
+import { WikiImage } from '../common/WikiImage';
 import { 
   Sprout, 
   Droplets, 
@@ -261,11 +262,11 @@ export const CropsDashboard: React.FC = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 rounded-lg bg-white dark:bg-[#141e33] border border-slate-200 dark:border-[#1e2a42] flex items-center justify-center p-1 overflow-hidden shrink-0">
                         {imgUrl ? (
-                          <img
+                          <WikiImage
                             src={imgUrl}
                             alt={item.name}
+                            fallbackIcon={<Sprout className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
                             className="w-full h-full object-contain"
-                            loading="lazy"
                           />
                         ) : (
                           <Sprout className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -360,7 +361,12 @@ export const CropsDashboard: React.FC = () => {
                     <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
                       <div className="w-6 h-6 rounded bg-slate-100 dark:bg-[#141e33] border border-slate-200 dark:border-[#1e2a42] flex items-center justify-center overflow-hidden shrink-0">
                         {img ? (
-                          <img src={img} alt="" className="w-full h-full object-contain" />
+                          <WikiImage
+                            src={img}
+                            alt={c.harvestItemName || c.cropId}
+                            fallbackIcon={<Sprout className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
+                            className="w-full h-full object-contain"
+                          />
                         ) : (
                           <Sprout className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         )}
@@ -405,9 +411,14 @@ export const CropsDashboard: React.FC = () => {
                     <td className="py-2.5 px-3">
                       {c.fertilizerName ? (
                         <div className="flex items-center space-x-1 text-slate-600 dark:text-slate-400">
-                          {fertImg && (
-                            <img src={fertImg} alt="" className="w-4 h-4 object-contain" />
-                          )}
+                          {fertImg ? (
+                            <WikiImage
+                              src={fertImg}
+                              alt={c.fertilizerName}
+                              fallbackIcon={<Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                              className="w-4 h-4 object-contain"
+                            />
+                          ) : null}
                           <span>{c.fertilizerName}</span>
                         </div>
                       ) : (

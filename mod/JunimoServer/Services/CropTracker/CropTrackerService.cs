@@ -229,11 +229,37 @@ public class CropTrackerService : ModService
         }
 
         string harvestItemId = crop.indexOfHarvest.Value ?? string.Empty;
+        if (string.IsNullOrEmpty(harvestItemId))
+        {
+            try
+            {
+                var cropData = crop.GetData();
+                if (cropData != null && !string.IsNullOrEmpty(cropData.HarvestItemId))
+                {
+                    harvestItemId = cropData.HarvestItemId;
+                }
+            }
+            catch { }
+        }
+
         string harvestItemName = string.Empty;
         if (!string.IsNullOrEmpty(harvestItemId))
         {
-            var itemData = ItemRegistry.GetData(harvestItemId);
+            var itemData = ItemRegistry.GetData(harvestItemId) ?? ItemRegistry.GetData("(O)" + harvestItemId);
             harvestItemName = itemData?.DisplayName ?? harvestItemId;
+        }
+
+        if (string.IsNullOrEmpty(harvestItemName) || int.TryParse(harvestItemName, out _))
+        {
+            var seedId = crop.netSeedIndex.Value;
+            if (!string.IsNullOrEmpty(seedId))
+            {
+                var seedData = ItemRegistry.GetData(seedId) ?? ItemRegistry.GetData("(O)" + seedId);
+                if (seedData != null && !string.IsNullOrEmpty(seedData.DisplayName))
+                {
+                    harvestItemName = seedData.DisplayName.Replace(" Seeds", "").Replace(" Starter", "").Trim();
+                }
+            }
         }
 
         string? fertilizerId = string.IsNullOrEmpty(dirt.fertilizer.Value) ? null : dirt.fertilizer.Value;

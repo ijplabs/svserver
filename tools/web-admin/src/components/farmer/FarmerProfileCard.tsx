@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { FarmerProfile } from '../../types/character';
+import { WikiImage } from '../common/WikiImage';
+import { getItemImageUrl } from '../../lib/wikiAssets';
 
 export const FarmerProfileCard: React.FC = () => {
   const [profile, setProfile] = useState<FarmerProfile | null>(null);
@@ -258,19 +260,43 @@ export const FarmerProfileCard: React.FC = () => {
                 Tidak ada perlengkapan yang terpasang saat ini.
               </p>
             ) : (
-              profile.equipment.map((eq) => (
-                <div
-                  key={eq.slot}
-                  className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200/60 dark:border-[#1e2a42] rounded-xl shadow-2xs"
-                >
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">
-                    {eq.slot}
-                  </span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {eq.name}
-                  </span>
-                </div>
-              ))
+              profile.equipment.map((eq) => {
+                const imgUrl = getItemImageUrl(eq.name);
+                const s = eq.slot;
+                const slotLabel =
+                  s === 'Hat' ? 'Topi' :
+                  s === 'Shirt' ? 'Baju' :
+                  s === 'Pants' ? 'Celana' :
+                  s === 'Boots' ? 'Sepatu Bot' :
+                  s === 'LeftRing' ? 'Cincin Kiri' :
+                  s === 'RightRing' ? 'Cincin Kanan' : eq.slot;
+
+                return (
+                  <div
+                    key={eq.slot}
+                    className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200/60 dark:border-[#1e2a42] hover:border-slate-300 dark:hover:border-slate-700 rounded-xl shadow-2xs transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-lg bg-white dark:bg-[#141e33] border border-slate-200 dark:border-[#1e2a42] flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-2xs">
+                        <WikiImage
+                          src={imgUrl}
+                          alt={eq.name}
+                          fallbackText={eq.name}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-semibold tracking-wider block">
+                          {slotLabel}
+                        </span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate block" title={eq.name}>
+                          {eq.name}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
@@ -304,20 +330,22 @@ export const FarmerProfileCard: React.FC = () => {
               );
             }
 
+            const itemImg = getItemImageUrl(item.name) || getItemImageUrl(item.displayName);
+
             return (
               <div
                 key={idx}
-                className="aspect-square relative rounded-xl border border-slate-200 dark:border-[#1e2a42] bg-slate-50 dark:bg-[#0a0f1d] p-1.5 flex flex-col justify-between hover:border-amber-500 transition-colors group cursor-default shadow-xs"
+                className="aspect-square relative rounded-xl border border-slate-200 dark:border-[#1e2a42] bg-slate-50 dark:bg-[#0a0f1d] hover:border-amber-500/70 dark:hover:border-amber-500/70 p-1 flex flex-col items-center justify-between group cursor-default shadow-2xs transition-all hover:shadow-xs"
                 title={`${item.displayName} (${item.categoryName || 'Item'})\nJumlah: ${item.stack}`}
               >
-                {/* Quality Star Indicator */}
-                <div className="flex justify-between items-start">
-                  <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500">
+                {/* Header: Slot Index & Quality Star */}
+                <div className="w-full flex items-center justify-between pointer-events-none z-10 leading-none px-0.5">
+                  <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 font-medium">
                     {idx + 1}
                   </span>
                   {item.quality > 0 && (
                     <span
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-2 h-2 rounded-full ring-1 ring-white dark:ring-slate-900 ${
                         item.quality === 1
                           ? 'bg-slate-400'
                           : item.quality === 2
@@ -335,17 +363,27 @@ export const FarmerProfileCard: React.FC = () => {
                   )}
                 </div>
 
-                {/* Item Name Display */}
-                <div className="truncate text-[11px] font-semibold text-slate-800 dark:text-slate-200 leading-tight">
-                  {item.displayName}
+                {/* Center: Real Item Sprite */}
+                <div className="flex-1 w-full flex items-center justify-center p-0.5 min-h-0">
+                  <WikiImage
+                    src={itemImg}
+                    alt={item.displayName}
+                    fallbackText={item.displayName}
+                    className="w-7 h-7 sm:w-8 sm:h-8 object-contain drop-shadow-2xs group-hover:scale-110 transition-transform duration-150"
+                  />
                 </div>
 
-                {/* Stack Count Badge */}
-                <div className="text-right">
-                  {item.stack > 1 && (
-                    <span className="px-1 py-0.2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded font-mono text-[9px] font-bold">
+                {/* Bottom Bar: Stack Count Badge & Item Name */}
+                <div className="w-full flex items-end justify-between leading-none px-0.5 z-10">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 truncate max-w-[70%] font-medium hidden sm:inline-block">
+                    {item.displayName}
+                  </span>
+                  {item.stack > 1 ? (
+                    <span className="ml-auto px-1 py-0.5 bg-slate-900/80 dark:bg-slate-950/90 text-white rounded font-mono text-[9px] font-bold shadow-2xs leading-none">
                       {item.stack}
                     </span>
+                  ) : (
+                    <span className="sm:hidden" />
                   )}
                 </div>
               </div>
