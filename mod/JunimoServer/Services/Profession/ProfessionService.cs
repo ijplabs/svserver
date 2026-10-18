@@ -48,6 +48,7 @@ public class ProfessionService : ModService
 
         RegisterCommands();
         _helper.Events.Player.Warped += OnPlayerWarped;
+        _helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 
         _monitor.Log("[Profession] ProfessionService initialized.", LogLevel.Info);
     }
@@ -70,6 +71,12 @@ public class ProfessionService : ModService
             "role",
             "Lihat atau pilih peran spesialisasi (!role <pilihan>)",
             HandleProfessionCommand
+        );
+
+        _chatCommandsService.RegisterCommand(
+            "claimkit",
+            "Ambil starter kit profesi jika belum diterima (!claimkit)",
+            HandleClaimKitCommand
         );
     }
 
@@ -168,16 +175,92 @@ public class ProfessionService : ModService
                     farmerId,
                     $"[Profesi] Selamat! Anda telah memilih profesi: [{GetProfessionDisplayName(selectedProfession)}]."
                 );
-                _helper.SendPrivateMessage(
-                    farmerId,
-                    "[Profesi] Paket starter kit akan diberikan otomatis saat Anda memasuki pertanian."
-                );
+
+                hasKit = await HasKitBeenGrantedAsync(farmerId);
+                if (!hasKit)
+                {
+                    _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
+
+                    void DeliverNow(object? s, OneSecondUpdateTickedEventArgs ev)
+                    {
+                        _helper.Events.GameLoop.OneSecondUpdateTicked -= DeliverNow;
+                        try
+                        {
+                            var onlineFarmer = Game1.GetPlayer(farmerId);
+                            if (onlineFarmer != null)
+                            {
+                                DeliverStarterKit(onlineFarmer, selectedProfession);
+                                _ = MarkStarterKitReceivedAsync(farmerId);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _monitor.Log($"[Profession] Failed immediate delivery: {ex.Message}", LogLevel.Error);
+                        }
+                    }
+                }
             }
             else
             {
                 _helper.SendPrivateMessage(
                     farmerId,
                     "[Profesi] Gagal menyimpan pilihan profesi. Coba lagi dalam beberapa saat."
+                );
+            }
+        });
+    }
+
+    private void HandleClaimKitCommand(string[] args, ReceivedMessage msg)
+    {
+        long farmerId = msg.SourceFarmer;
+        Task.Run(async () =>
+        {
+            var profession = await GetPlayerProfessionAsync(farmerId);
+            if (!profession.HasValue)
+            {
+                _helper.SendPrivateMessage(
+                    farmerId,
+                    "[Profesi] Anda belum memilih profesi! Ketik: !profesi farmer (atau miner, fisherman, rancher, forager) terlebih dahulu."
+                );
+                return;
+            }
+
+            _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
+
+            void DeliverNow(object? s, OneSecondUpdateTickedEventArgs ev)
+            {
+                _helper.Events.GameLoop.OneSecondUpdateTicked -= DeliverNow;
+                try
+                {
+                    var onlineFarmer = Game1.GetPlayer(farmerId);
+                    if (onlineFarmer != null)
+                    {
+                        DeliverStarterKit(onlineFarmer, profession.Value);
+                        _ = MarkStarterKitReceivedAsync(farmerId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _monitor.Log($"[Profession] Failed claimkit delivery: {ex.Message}", LogLevel.Error);
+                }
+            }
+        });
+    }
+
+    private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
+    {
+        if (e.Peer == null || e.Peer.PlayerID == 0) return;
+        long farmerId = e.Peer.PlayerID;
+
+        Task.Run(async () =>
+        {
+            await Task.Delay(3500);
+            var profession = await GetPlayerProfessionAsync(farmerId);
+            if (!profession.HasValue)
+            {
+                _helper.SendPrivateMessage(
+                    farmerId,
+                    "[Profesi] Selamat datang! Pilih peran profesi RPG Anda dengan mengetik: !profesi farmer (atau miner, fisherman, rancher, forager) untuk mengambil starter kit spesialisasi Anda!"
                 );
             }
         });
@@ -397,6 +480,26 @@ public class ProfessionService : ModService
         });
     }
 
+    private void GiveItemToFarmer(Farmer farmer, Item? item)
+    {
+        if (farmer == null || item == null) return;
+
+        try
+        {
+            if (farmer.currentLocation != null)
+            {
+                Game1.createItemDebris(item, farmer.Position, 2, farmer.currentLocation);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            _monitor.Log($"[Profession] Could not create item debris for {farmer.Name}: {ex.Message}", LogLevel.Warn);
+        }
+
+        farmer.addItemToInventory(item);
+    }
+
     public void DeliverStarterKit(Farmer farmer, ProfessionType profession)
     {
         if (farmer == null) return;
@@ -410,7 +513,7 @@ public class ProfessionService : ModService
         {
             case ProfessionType.Farmer:
                 // 1x Quality Sprinkler
-                farmer.addItemToInventory(ItemRegistry.Create("(O)621", 1));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)621", 1));
 
                 // 15x Seasonal Seeds
                 string seedId = Game1.currentSeason switch
@@ -420,38 +523,30 @@ public class ProfessionService : ModService
                     "winter" => "(O)495", // Winter Seeds
                     _ => "(O)472",        // Parsnip Seeds (Spring default)
                 };
-                farmer.addItemToInventory(ItemRegistry.Create(seedId, 15));
+                GiveItemToFarmer(farmer, ItemRegistry.Create(seedId, 15));
 
                 // 15x Basic Fertilizer
-                farmer.addItemToInventory(ItemRegistry.Create("(O)368", 15));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)368", 15));
                 break;
 
             case ProfessionType.Miner:
                 // Upgrade Pickaxe to Copper
-                var pickaxe = farmer.Items.OfType<Pickaxe>().FirstOrDefault();
-                if (pickaxe != null)
-                {
-                    pickaxe.UpgradeLevel = Math.Max(pickaxe.UpgradeLevel, 1);
-                }
-                else
-                {
-                    farmer.addItemToInventory(new Pickaxe { UpgradeLevel = 1 });
-                }
+                GiveItemToFarmer(farmer, new Pickaxe { UpgradeLevel = 1 });
 
                 // 10x Torches, 3x Cherry Bombs, 2x Miner's Treat
-                farmer.addItemToInventory(ItemRegistry.Create("(O)93", 10));
-                farmer.addItemToInventory(ItemRegistry.Create("(O)286", 3));
-                farmer.addItemToInventory(ItemRegistry.Create("(O)243", 2));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)93", 10));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)286", 3));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)243", 2));
                 break;
 
             case ProfessionType.Fisherman:
                 // Fiberglass Rod
-                farmer.addItemToInventory(new FishingRod(2));
+                GiveItemToFarmer(farmer, new FishingRod(2));
 
                 // 20x Bait, 2x Crab Pot, 2x Dish o' The Sea
-                farmer.addItemToInventory(ItemRegistry.Create("(O)685", 20));
-                farmer.addItemToInventory(ItemRegistry.Create("(O)710", 2));
-                farmer.addItemToInventory(ItemRegistry.Create("(O)242", 2));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)685", 20));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)710", 2));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)242", 2));
                 break;
 
             case ProfessionType.Rancher:
@@ -466,33 +561,25 @@ public class ProfessionService : ModService
                 }
 
                 // 30x Hay, Milk Pail, Shears
-                farmer.addItemToInventory(ItemRegistry.Create("(O)178", 30));
-                farmer.addItemToInventory(ItemRegistry.Create<Tool>("(T)MilkPail"));
-                farmer.addItemToInventory(ItemRegistry.Create<Tool>("(T)Shears"));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)178", 30));
+                GiveItemToFarmer(farmer, ItemRegistry.Create<Tool>("(T)MilkPail"));
+                GiveItemToFarmer(farmer, ItemRegistry.Create<Tool>("(T)Shears"));
                 break;
 
             case ProfessionType.Forager:
                 // Upgrade Axe to Copper
-                var axe = farmer.Items.OfType<Axe>().FirstOrDefault();
-                if (axe != null)
-                {
-                    axe.UpgradeLevel = Math.Max(axe.UpgradeLevel, 1);
-                }
-                else
-                {
-                    farmer.addItemToInventory(new Axe { UpgradeLevel = 1 });
-                }
+                GiveItemToFarmer(farmer, new Axe { UpgradeLevel = 1 });
 
                 // 1x Charcoal Kiln, 10x Tree Fertilizer, 2x Survival Burger
-                farmer.addItemToInventory(ItemRegistry.Create("(BC)114", 1));
-                farmer.addItemToInventory(ItemRegistry.Create("(O)805", 10));
-                farmer.addItemToInventory(ItemRegistry.Create("(O)241", 2));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(BC)114", 1));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)805", 10));
+                GiveItemToFarmer(farmer, ItemRegistry.Create("(O)241", 2));
                 break;
         }
 
         _helper.SendPrivateMessage(
             farmer.UniqueMultiplayerID,
-            $"[Profesi] Selamat datang di lembah! Paket perlengkapan starter {GetProfessionDisplayName(profession)} telah ditambahkan ke ransel Anda."
+            $"[Profesi] Selamat datang di lembah! Paket perlengkapan starter {GetProfessionDisplayName(profession)} telah dikirim ke lokasi Anda."
         );
     }
 
