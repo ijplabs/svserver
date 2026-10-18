@@ -2879,6 +2879,9 @@ public partial class ApiService : ModService
                     case "/api/mods/upload":
                         await HandlePostModUploadAsync(request, response);
                         break;
+                    case "/api/mods/upload/chunk":
+                        await HandlePostModUploadChunkAsync(request, response);
+                        break;
                     case "/api/server/pause":
                     case "/api/admin/pause":
                         await HandlePostServerPauseAsync(request, response);
@@ -6779,6 +6782,133 @@ public partial class ApiService : ModService
         {
             response.StatusCode = 500;
             await WriteJsonAsync(response, new { error = ex.Message });
+        }
+    }
+
+    private async Task HandlePostModUploadChunkAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var user = await GetUserFromRequestAsync(request);
+        if (user == null || (user.Value.Role != "SUPERADMIN" && user.Value.Role != "ADMIN"))
+        {
+            response.StatusCode = 403;
+            await WriteJsonAsync(response, new { error = "Hanya Administrator / Sysadmin yang berhak mengunggah mod ke server." });
+            return;
+        }
+
+        if (_modDistributionService == null)
+        {
+            response.StatusCode = 503;
+            await WriteJsonAsync(response, new { error = "Layanan distribusi mod tidak aktif." });
+            return;
+        }
+
+        try
+        {
+            string uploadId = request.QueryString["uploadId"] ?? "";
+            string chunkIndexStr = request.QueryString["chunkIndex"] ?? "";
+            string totalChunksStr = request.QueryString["totalChunks"] ?? "";
+            string fileName = request.QueryString["filename"] ?? "uploaded_mod.zip";
+            fileName = Uri.UnescapeDataString(fileName);
+
+            if (string.IsNullOrWhiteSpace(uploadId) ||
+                !int.TryParse(chunkIndexStr, out int chunkIndex) ||
+                !int.TryParse(totalChunksStr, out int totalChunks) ||
+                totalChunks <= 0 || chunkIndex < 0 || chunkIndex >= totalChunks)
+            {
+                response.StatusCode = 400;
+                await WriteJsonAsync(response, new { error = "Parameter chunk upload tidak valid (uploadId, chunkIndex, totalChunks)." });
+                return;
+            }
+
+            var invalidChars = Path.GetInvalidFileNameChars();
+            uploadId = new string(uploadId.Where(c => !invalidChars.Contains(c) && (char.IsLetterOrDigit(c) || c == '_' || c == '-')).ToArray());
+            if (string.IsNullOrWhiteSpace(uploadId))
+            {
+                uploadId = "upload_" + DateTime.UtcNow.Ticks;
+            }
+
+            var chunkDir = Path.Combine(Path.GetTempPath(), "junimo_mod_chunks", uploadId);
+            Directory.CreateDirectory(chunkDir);
+
+            var chunkPath = Path.Combine(chunkDir, $"chunk_{chunkIndex:D6}.part");
+            await using (var fs = File.Create(chunkPath))
+            {
+                await request.InputStream.CopyToAsync(fs);
+            }
+
+            var existingParts = Directory.GetFiles(chunkDir, "chunk_*.part");
+            bool isComplete = existingParts.Length >= totalChunks;
+
+            if (!isComplete)
+            {
+                await WriteJsonAsync(response, new
+                {
+                    success = true,
+                    isComplete = false,
+                    chunkIndex,
+                    totalChunks,
+                    receivedChunks = existingParts.Length,
+                    message = $"Bagian {chunkIndex + 1}/{totalChunks} berhasil diterima."
+                });
+                return;
+            }
+
+            // All chunks received. Assemble file in order
+            var assembledZipPath = Path.Combine(Path.GetTempPath(), $"assembled_{Guid.NewGuid():N}.zip");
+            try
+            {
+                await using (var outputStream = File.Create(assembledZipPath))
+                {
+                    for (int i = 0; i < totalChunks; i++)
+                    {
+                        var partFile = Path.Combine(chunkDir, $"chunk_{i:D6}.part");
+                        if (!File.Exists(partFile))
+                        {
+                            response.StatusCode = 400;
+                            await WriteJsonAsync(response, new { error = $"Potongan file bagian {i + 1} hilang. Silakan ulangi proses unggah." });
+                            return;
+                        }
+
+                        await using (var partStream = File.OpenRead(partFile))
+                        {
+                            await partStream.CopyToAsync(outputStream);
+                        }
+                    }
+                }
+
+                await using (var zipStream = File.OpenRead(assembledZipPath))
+                {
+                    var (success, message, installedMods) = await _modDistributionService.InstallModZipAsync(zipStream, fileName);
+                    if (!success)
+                    {
+                        response.StatusCode = 400;
+                        await WriteJsonAsync(response, new { success = false, isComplete = true, error = message });
+                        return;
+                    }
+
+                    await WriteJsonAsync(response, new
+                    {
+                        success = true,
+                        isComplete = true,
+                        message,
+                        installedMods
+                    });
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(assembledZipPath)) File.Delete(assembledZipPath);
+                    if (Directory.Exists(chunkDir)) Directory.Delete(chunkDir, true);
+                }
+                catch { }
+            }
+        }
+        catch (Exception ex)
+        {
+            response.StatusCode = 500;
+            await WriteJsonAsync(response, new { error = "Kesalahan chunk upload: " + ex.Message });
         }
     }
 

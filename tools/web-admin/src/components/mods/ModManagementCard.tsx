@@ -19,7 +19,7 @@ import {
   HardDrive,
   FileArchive
 } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api, type UploadProgressData } from '../../lib/api';
 import type {
   ServerInstalledMod,
   ModPolicy,
@@ -50,7 +50,7 @@ export const ModManagementCard: React.FC = () => {
   // Upload state
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [uploadProgressData, setUploadProgressData] = useState<UploadProgressData | null>(null);
   const [uploadLocalMessage, setUploadLocalMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -185,23 +185,33 @@ export const ModManagementCard: React.FC = () => {
     try {
       setUploading(true);
       setUploadLocalMessage(null);
-      setUploadProgress(`Mengunggah "${selectedFile.name}" (${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB) ke server...`);
-      const res = await api.mods.uploadMod(selectedFile);
-      const successText = res.message || 'Mod berhasil diunggah dan disimpan ke volume persisten.';
+      setUploadProgressData({
+        loadedBytes: 0,
+        totalBytes: selectedFile.size,
+        percentage: 0,
+        stage: 'uploading',
+        statusText: `Menyiapkan pengunggahan "${selectedFile.name}" (${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB)...`
+      });
+
+      const res = await api.mods.uploadMod(selectedFile, (progress) => {
+        setUploadProgressData(progress);
+      });
+
+      const successText = res?.message || `Mod "${selectedFile.name}" berhasil diunggah dan disimpan ke volume persisten.`;
       setMessage({ text: successText, type: 'success' });
       setUploadLocalMessage({ text: successText, type: 'success' });
       setSelectedFile(null);
-      setUploadProgress(null);
+      setUploadProgressData(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       await fetchData();
     } catch (err: any) {
       let errorText = err.message || 'Gagal mengunggah mod.';
       if (errorText.toLowerCase().includes('failed to fetch')) {
-        errorText = 'Gagal mengirim file ke server (Failed to fetch). Pastikan koneksi internet stabil dan ukuran file tidak melebihi batas jaringan.';
+        errorText = 'Gagal mengirim file ke server (Failed to fetch). Pastikan koneksi internet stabil dan server aktif.';
       }
       setMessage({ text: errorText, type: 'error' });
       setUploadLocalMessage({ text: errorText, type: 'error' });
-      setUploadProgress(null);
+      setUploadProgressData(null);
     } finally {
       setUploading(false);
     }
@@ -1119,11 +1129,41 @@ export const ModManagementCard: React.FC = () => {
                 </div>
               )}
 
-              {/* Upload Progress */}
-              {uploadProgress && (
-                <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
-                  <span>{uploadProgress}</span>
+              {/* Upload Real-time Progress Bar */}
+              {uploadProgressData && (
+                <div className="p-4 bg-slate-950/80 border border-indigo-500/30 rounded-xl space-y-3 shadow-inner">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-indigo-300 font-medium">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-400 shrink-0" />
+                      <span>
+                        {uploadProgressData.currentChunk && uploadProgressData.totalChunks
+                          ? `Mengunggah Bagian ${uploadProgressData.currentChunk} dari ${uploadProgressData.totalChunks}`
+                          : uploadProgressData.stage === 'assembling'
+                          ? 'Server Menggabungkan & Memverifikasi Mod'
+                          : 'Mengunggah File Mod'}
+                      </span>
+                    </div>
+                    <span className="font-mono font-bold text-sm text-indigo-400">
+                      {uploadProgressData.percentage}%
+                    </span>
+                  </div>
+
+                  {/* Progress Bar Track */}
+                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-500 via-indigo-400 to-emerald-400 rounded-full transition-all duration-200 ease-out shadow-sm"
+                      style={{ width: `${Math.max(2, uploadProgressData.percentage)}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="font-mono">
+                      {(uploadProgressData.loadedBytes / (1024 * 1024)).toFixed(1)} MB / {(uploadProgressData.totalBytes / (1024 * 1024)).toFixed(1)} MB
+                    </span>
+                    <span className="text-slate-300 font-medium truncate max-w-[260px] sm:max-w-xs text-right">
+                      {uploadProgressData.statusText}
+                    </span>
+                  </div>
                 </div>
               )}
 

@@ -85,6 +85,155 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data;
 }
 
+export interface UploadProgressData {
+  loadedBytes: number;
+  totalBytes: number;
+  percentage: number;
+  currentChunk?: number;
+  totalChunks?: number;
+  stage: 'uploading' | 'assembling' | 'complete';
+  statusText: string;
+}
+
+function uploadChunkWithRetry(
+  chunkBlob: Blob,
+  url: string,
+  token: string,
+  onProgress?: (loaded: number) => void,
+  retries = 3
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const attempt = (remainingRetries: number) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+      if (xhr.upload && onProgress) {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            onProgress(e.loaded);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            resolve({ success: true });
+          }
+        } else if (xhr.status === 404) {
+          reject(new Error('HTTP 404'));
+        } else {
+          let errMsg = `Upload bagian gagal (HTTP ${xhr.status})`;
+          try {
+            const errObj = JSON.parse(xhr.responseText);
+            if (errObj?.error) errMsg = errObj.error;
+          } catch {}
+
+          if (remainingRetries > 0 && xhr.status >= 500) {
+            setTimeout(() => attempt(remainingRetries - 1), 1500);
+          } else {
+            reject(new Error(errMsg));
+          }
+        }
+      };
+
+      xhr.onerror = () => {
+        if (remainingRetries > 0) {
+          setTimeout(() => attempt(remainingRetries - 1), 1500);
+        } else {
+          reject(new Error('Koneksi terputus saat mengunggah bagian mod.'));
+        }
+      };
+
+      xhr.ontimeout = () => {
+        if (remainingRetries > 0) {
+          setTimeout(() => attempt(remainingRetries - 1), 1500);
+        } else {
+          reject(new Error('Waktu upload habis (timeout).'));
+        }
+      };
+
+      xhr.timeout = 60000;
+      xhr.send(chunkBlob);
+    };
+
+    attempt(retries);
+  });
+}
+
+function uploadSingleFileXHR(
+  file: File,
+  base: string,
+  token: string,
+  onProgress?: (data: UploadProgressData) => void
+): Promise<{ success: boolean; message: string; installedMods?: import('../types/mods').CustomModItem[] }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const url = `${base}/api/mods/upload?filename=${encodeURIComponent(file.name)}`;
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Content-Type', 'application/zip');
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+    if (xhr.upload && onProgress) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.min(99, Math.round((e.loaded / e.total) * 100));
+          onProgress({
+            loadedBytes: e.loaded,
+            totalBytes: e.total,
+            percentage: pct,
+            stage: e.loaded === e.total ? 'assembling' : 'uploading',
+            statusText: e.loaded === e.total
+              ? 'File terunggah. Server sedang mengekstrak mod...'
+              : `Mengunggah (${(e.loaded / (1024 * 1024)).toFixed(1)} MB / ${(e.total / (1024 * 1024)).toFixed(1)} MB - ${pct}%)...`
+          });
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          onProgress?.({
+            loadedBytes: file.size,
+            totalBytes: file.size,
+            percentage: 100,
+            stage: 'complete',
+            statusText: 'Selesai! Mod berhasil dipasang di server.'
+          });
+          resolve(res);
+        } catch {
+          resolve({ success: true, message: 'Mod berhasil diunggah' });
+        }
+      } else {
+        let errMsg = `Upload gagal (HTTP ${xhr.status})`;
+        try {
+          const errObj = JSON.parse(xhr.responseText);
+          if (errObj?.error) errMsg = errObj.error;
+          else if (errObj?.message) errMsg = errObj.message;
+        } catch {}
+        reject(new Error(errMsg));
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('Koneksi terputus saat mengunggah mod (Network Error).'));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error('Waktu upload habis (timeout).'));
+    };
+
+    xhr.timeout = 300000;
+    xhr.send(file);
+  });
+}
+
 export const api = {
   auth: {
     login: (body: LoginRequest) =>
@@ -236,36 +385,77 @@ export const api = {
           downloadUrl: string;
         }>;
       }>('/api/mods/sync/manifest'),
-    uploadMod: async (file: File) => {
+    uploadMod: async (
+      file: File,
+      onProgress?: (data: UploadProgressData) => void
+    ) => {
       const token = getToken();
       if (!token) {
         throw new Error('Sesi login telah berakhir. Silakan login kembali sebagai Administrator/Sysadmin.');
       }
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/zip',
-        'Authorization': `Bearer ${token}`,
-      };
+
       const base = getApiBase();
-      const url = `${base}/api/mods/upload?filename=${encodeURIComponent(file.name)}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: file,
-      });
-      if (!res.ok) {
-        let errMsg = `Upload gagal (${res.status})`;
-        try {
-          const errJson = await res.json();
-          if (errJson && errJson.error) errMsg = errJson.error;
-          else if (errJson && errJson.message) errMsg = errJson.message;
-        } catch {}
-        throw new Error(errMsg);
+      const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per chunk
+      const totalBytes = file.size;
+
+      // Small file (< 5 MB): upload directly with real progress
+      if (totalBytes < CHUNK_SIZE) {
+        return uploadSingleFileXHR(file, base, token, onProgress);
       }
-      return res.json() as Promise<{
-        success: boolean;
-        message: string;
-        installedMods?: import('../types/mods').CustomModItem[];
-      }>;
+
+      // Large file (>= 5 MB): Chunked Upload with resilient retry and byte-accurate progress
+      const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE);
+      const uploadId = `up_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+
+      try {
+        let finalResult: any = null;
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, totalBytes);
+          const chunkBlob = file.slice(start, end);
+          const isLast = i === totalChunks - 1;
+
+          const chunkUrl = `${base}/api/mods/upload/chunk?uploadId=${encodeURIComponent(uploadId)}&chunkIndex=${i}&totalChunks=${totalChunks}&filename=${encodeURIComponent(file.name)}&totalSize=${totalBytes}`;
+
+          const res = await uploadChunkWithRetry(chunkBlob, chunkUrl, token, (chunkLoaded) => {
+            const currentLoaded = start + chunkLoaded;
+            const pct = Math.min(99, Math.round((currentLoaded / totalBytes) * 100));
+            onProgress?.({
+              loadedBytes: currentLoaded,
+              totalBytes,
+              percentage: pct,
+              currentChunk: i + 1,
+              totalChunks,
+              stage: isLast && chunkLoaded === chunkBlob.size ? 'assembling' : 'uploading',
+              statusText: isLast && chunkLoaded === chunkBlob.size
+                ? 'Semua bagian terunggah. Server sedang menggabungkan & mengekstrak mod...'
+                : `Mengunggah bagian ${i + 1} dari ${totalChunks} (${(currentLoaded / (1024 * 1024)).toFixed(1)} MB / ${(totalBytes / (1024 * 1024)).toFixed(1)} MB - ${pct}%)...`
+            });
+          });
+
+          if (isLast) {
+            finalResult = res;
+          }
+        }
+
+        onProgress?.({
+          loadedBytes: totalBytes,
+          totalBytes,
+          percentage: 100,
+          currentChunk: totalChunks,
+          totalChunks,
+          stage: 'complete',
+          statusText: 'Selesai! Mod berhasil dipasang di server.'
+        });
+
+        return finalResult;
+      } catch (err: any) {
+        // Fallback to single XHR if chunk endpoint returns 404 (prior server container)
+        if (err.message && err.message.includes('404')) {
+          return uploadSingleFileXHR(file, base, token, onProgress);
+        }
+        throw err;
+      }
     },
     getCustomMods: () =>
       request<import('../types/mods').CustomModItem[]>('/api/mods/custom/list'),
