@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using HarmonyLib;
+using JunimoServer.Services.Auth;
 using JunimoServer.Services.CabinManager;
 using JunimoServer.Services.Lobby;
 using JunimoServer.Shared;
@@ -26,6 +27,7 @@ public class PasswordProtectionService : ModService
     private readonly IMonitor _monitor;
     private readonly LobbyService _lobbyService;
     private readonly CabinManagerService _cabinManager;
+    private readonly AccountLinkingService? _accountLinkingService;
 
     /// <summary>
     /// Thread-safe dictionary tracking authentication state per player.
@@ -59,7 +61,8 @@ public class PasswordProtectionService : ModService
         IMonitor monitor,
         Harmony harmony,
         LobbyService lobbyService,
-        CabinManagerService cabinManager
+        CabinManagerService cabinManager,
+        AccountLinkingService? accountLinkingService = null
     )
         : base(helper, monitor)
     {
@@ -77,6 +80,7 @@ public class PasswordProtectionService : ModService
         _monitor = monitor;
         _lobbyService = lobbyService;
         _cabinManager = cabinManager;
+        _accountLinkingService = accountLinkingService;
 
         ServerPassword = Env.ServerPassword;
         MaxFailedAttempts = Env.MaxLoginAttempts;
@@ -710,16 +714,37 @@ public class PasswordProtectionService : ModService
                 return new AuthenticationResult(true, "Already authenticated.");
             }
 
-            if (SecureComparePasswords(password, ServerPassword))
+            bool isServerPasswordCorrect = SecureComparePasswords(password, ServerPassword);
+            bool isPersonalPasswordCorrect = false;
+
+            if (!isServerPasswordCorrect && _accountLinkingService != null)
+            {
+                try
+                {
+                    var profile = _accountLinkingService.GetUserProfileAsync(playerId).GetAwaiter().GetResult();
+                    if (profile != null && !string.IsNullOrEmpty(profile.PasswordHash) && !string.IsNullOrEmpty(profile.PasswordSalt))
+                    {
+                        isPersonalPasswordCorrect = AccountLinkingService.VerifyPassword(password, profile.PasswordHash, profile.PasswordSalt);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _monitor.Log($"[Auth] Failed checking personal password for {playerId}: {ex.Message}", LogLevel.Debug);
+                }
+            }
+
+            if (isServerPasswordCorrect || isPersonalPasswordCorrect)
             {
                 authData.State = AuthState.Authenticated;
-                _monitor.Log($"[Auth] {playerId} authenticated!", LogLevel.Info);
+                string authMethod = isServerPasswordCorrect ? "server_password" : "user_account";
+                _monitor.Log($"[Auth] {playerId} authenticated! (method: {authMethod})", LogLevel.Info);
                 Diagnostics.ModEventLog.Emit(
                     "auth_login_attempted",
                     new
                     {
                         playerId,
                         result = "success",
+                        method = authMethod,
                         failedAttempts = authData.FailedAttempts,
                     }
                 );
@@ -798,6 +823,7 @@ public class PasswordProtectionService : ModService
     public class PendingPlayerDto
     {
         public long PlayerId { get; set; }
+        public string PlayerIdStr => PlayerId.ToString();
         public string FarmerName { get; set; } = "Unknown";
         public int FailedAttempts { get; set; }
         public double SecondsInLobby { get; set; }
@@ -837,13 +863,52 @@ public class PasswordProtectionService : ModService
         return list;
     }
 
-    public bool ManuallyApprovePlayer(long playerId)
+    public bool ManuallyApprovePlayer(long playerId, string? rawIdStr = null)
     {
-        if (!_playerAuthData.TryGetValue(playerId, out var authData))
+        if (_playerAuthData.TryGetValue(playerId, out var authData))
         {
-            return false;
+            return ApproveAuthData(authData);
         }
 
+        // 1. Fallback for JS IEEE-754 precision loss (e.g. 4914598584983820000 vs 4914598584983821234)
+        if (!string.IsNullOrEmpty(rawIdStr))
+        {
+            var trimmed = rawIdStr.TrimEnd('0');
+            if (trimmed.Length >= 8)
+            {
+                var candidate = _playerAuthData.FirstOrDefault(kvp =>
+                    kvp.Value.State == AuthState.Unauthenticated &&
+                    kvp.Key.ToString().StartsWith(trimmed)
+                );
+                if (candidate.Value != null)
+                {
+                    _monitor.Log($"[Auth] Fuzzy matched truncated playerId '{rawIdStr}' to real ID {candidate.Key}", LogLevel.Info);
+                    return ApproveAuthData(candidate.Value);
+                }
+            }
+        }
+
+        // 2. Fallback: if only 1 pending player exists in the lobby, approve them
+        var pending = _playerAuthData.Where(kvp => kvp.Value.State == AuthState.Unauthenticated).ToList();
+        if (pending.Count == 1)
+        {
+            _monitor.Log($"[Auth] Single pending player fallback: approving {pending[0].Key} for requested '{rawIdStr ?? playerId.ToString()}'", LogLevel.Info);
+            return ApproveAuthData(pending[0].Value);
+        }
+
+        // 3. Fallback: check if the player is currently in Game1.otherFarmers
+        if (Game1.otherFarmers.TryGetValue(playerId, out var farmer))
+        {
+            var data = new PlayerAuthData(playerId) { State = AuthState.Unauthenticated };
+            _playerAuthData[playerId] = data;
+            return ApproveAuthData(data);
+        }
+
+        return false;
+    }
+
+    private bool ApproveAuthData(PlayerAuthData authData)
+    {
         lock (authData.StateLock)
         {
             if (authData.State == AuthState.Authenticated)
@@ -852,17 +917,17 @@ public class PasswordProtectionService : ModService
             }
 
             authData.State = AuthState.Authenticated;
-            _monitor.Log($"[Auth] Player {playerId} was MANUALLY APPROVED via Web Admin", LogLevel.Info);
+            _monitor.Log($"[Auth] Player {authData.PlayerId} was MANUALLY APPROVED via Web Admin", LogLevel.Info);
             Diagnostics.ModEventLog.Emit(
                 "auth_login_manual_approval",
                 new
                 {
-                    playerId,
+                    playerId = authData.PlayerId,
                     result = "manual_approved_by_admin"
                 }
             );
 
-            _helper.SendPrivateMessage(playerId, "You have been approved by the administrator. Welcome to the farm!");
+            _helper.SendPrivateMessage(authData.PlayerId, "You have been approved by the administrator. Welcome to the farm!");
             WarpToDestination(authData);
             return true;
         }

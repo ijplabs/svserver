@@ -335,8 +335,8 @@ export const api = {
   },
   admin: {
     getPendingPlayers: () => request<import('../types/user').PendingPlayer[]>('/api/admin/pending-players'),
-    approvePlayer: (playerId: number) =>
-      request<{ success: boolean; message: string }>(`/api/admin/approve-player?playerId=${playerId}`, {
+    approvePlayer: (playerId: string | number) =>
+      request<{ success: boolean; message: string }>(`/api/admin/approve-player?playerId=${encodeURIComponent(String(playerId))}`, {
         method: 'POST',
       }),
     getUsers: () => request<import('../types/user').WebUser[]>('/api/admin/users'),
@@ -346,8 +346,8 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
-    deleteUser: (farmerId: number) =>
-      request<{ success: boolean; message: string }>(`/api/admin/users/delete?farmerId=${farmerId}`, {
+    deleteUser: (farmerId: string | number) =>
+      request<{ success: boolean; message: string }>(`/api/admin/users/delete?farmerId=${encodeURIComponent(String(farmerId))}`, {
         method: 'DELETE',
       }),
   },

@@ -15,10 +15,11 @@ namespace JunimoServer.Services.NetworkTweaks;
 
 public class NetworkTweaker : ModService
 {
-    private readonly PersistentOptions _options;
+    private static PersistentOptions _options = null!;
     private readonly ServerSettingsLoader _settings;
     private bool _networkSettingsApplied;
     private static IMonitor _monitor = null!;
+    private static IModHelper _helper = null!;
 
     /// <summary>Shared reflection handle for the private <c>GameServer.rejectFarmhandRequest</c>.
     /// Also used by <c>FarmhandOwnershipService</c>'s gate prefix — one handle, not per-caller
@@ -36,6 +37,7 @@ public class NetworkTweaker : ModService
         Harmony harmony
     )
     {
+        _helper = helper;
         _options = options;
         _settings = settings;
         _monitor = monitor;
@@ -193,6 +195,57 @@ public class NetworkTweaker : ModService
         bool isStructure
     )
     {
+        // 1. Host Farmhouse Door Lock:
+        // Intercept when a non-host farmhand interacts with the host's Farmhouse door.
+        // The player stays outside on the Farm in front of the door, plays locked door sound,
+        // and receives a chat notification without ever transitioning inside.
+        if (_options != null && !_options.IsFarmHouseStack &&
+            (string.Equals(name, "FarmHouse", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(name, "Farmhouse", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (farmer != null && farmer.UniqueMultiplayerID != Game1.player.UniqueMultiplayerID)
+            {
+                var farm = Game1.getFarm();
+                if (farm != null)
+                {
+                    var entry = farm.GetMainFarmHouseEntry();
+                    short outsideX = (short)entry.X;
+                    short outsideY = (short)(entry.Y + 1);
+
+                    farmer.currentLocation = farm;
+                    farmer.Position = new Microsoft.Xna.Framework.Vector2(
+                        outsideX * 64,
+                        outsideY * 64
+                    );
+
+                    NetworkHelper.SendLocation(
+                        __instance,
+                        farmer.UniqueMultiplayerID,
+                        farm,
+                        forceCurrent: true
+                    );
+
+                    try
+                    {
+                        farm.playSound("doorClose");
+                    }
+                    catch
+                    {
+                        // Ignore sound failure if audio device is unavailable
+                    }
+
+                    _helper?.SendPrivateMessage(farmer.UniqueMultiplayerID, "Pintu rumah utama terkunci.");
+
+                    _monitor.Log(
+                        $"[FarmhouseLock] Prevented player '{farmer.Name}' ({farmer.UniqueMultiplayerID}) from entering host Farmhouse. Placed at Farm ({outsideX}, {outsideY}).",
+                        LogLevel.Info
+                    );
+
+                    return false; // Skip original GameServer.warpFarmer
+                }
+            }
+        }
+
         // Only intercept when isStructure is false. If true, vanilla handles it fine.
         if (isStructure)
         {

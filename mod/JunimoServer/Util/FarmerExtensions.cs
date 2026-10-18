@@ -65,4 +65,27 @@ public static class FarmerExtensions
             );
         }
     }
+
+    public static void WarpToLocation(this Farmer farmer, string locationName, int x, int y)
+    {
+        Game1.server.sendMessage(
+            farmer.UniqueMultiplayerID,
+            Multiplayer.passout,
+            Game1.player,
+            new object[]
+            {
+                locationName,
+                x,
+                y,
+                false,
+            }
+        );
+
+        var loc = Game1.getLocationFromName(locationName);
+        if (loc != null)
+        {
+            farmer.currentLocation = loc;
+            farmer.Position = new Vector2(x * 64f, y * 64f);
+        }
+    }
 }

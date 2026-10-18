@@ -1285,12 +1285,26 @@ public partial class CabinManagerService : ModService
                 // Block all human players from the farmhouse - it's reserved for the server host
                 if (!roleService.IsServerHost(farmer))
                 {
-                    Helper.SendPrivateMessage(
-                        farmer.UniqueMultiplayerID,
-                        "Can't enter main building, porting to your own cabin"
-                    );
+                    if (options.IsFarmHouseStack)
+                    {
+                        Helper.SendPrivateMessage(
+                            farmer.UniqueMultiplayerID,
+                            "Can't enter main building, porting to your own cabin"
+                        );
 
-                    farmer.WarpHome();
+                        farmer.WarpHome();
+                    }
+                    else
+                    {
+                        var farm = Game1.getFarm();
+                        var entry = farm?.GetMainFarmHouseEntry() ?? new Microsoft.Xna.Framework.Point(64, 15);
+                        farmer.WarpToLocation("Farm", entry.X, entry.Y + 1);
+
+                        Helper.SendPrivateMessage(
+                            farmer.UniqueMultiplayerID,
+                            "Pintu rumah utama terkunci."
+                        );
+                    }
                 }
             }
         }

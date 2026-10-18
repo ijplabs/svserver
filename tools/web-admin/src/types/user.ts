@@ -1,5 +1,6 @@
 export interface PendingPlayer {
   playerId: number;
+  playerIdStr?: string;
   farmerName: string;
   failedAttempts: number;
   secondsInLobby: number;
@@ -8,6 +9,7 @@ export interface PendingPlayer {
 
 export interface WebUser {
   farmerId: number;
+  farmerIdStr?: string;
   username: string;
   role: 'SUPERADMIN' | 'ADMIN' | 'PLAYER';
   createdAtUtc: string;
@@ -16,6 +18,7 @@ export interface WebUser {
 
 export interface AvailableFarmer {
   farmerId: number;
+  farmerIdStr?: string;
   farmerName: string;
   isOnline: boolean;
   hasWebAccount: boolean;
@@ -23,7 +26,8 @@ export interface AvailableFarmer {
 }
 
 export interface CreateUserRequest {
-  farmerId: number;
+  farmerId: number | string;
+  farmerIdStr?: string;
   username: string;
   password: string;
   role: 'ADMIN' | 'PLAYER';

@@ -21,13 +21,13 @@ export const UserManagementCard: React.FC = () => {
   const [users, setUsers] = useState<WebUser[]>([]);
   const [availableFarmers, setAvailableFarmers] = useState<AvailableFarmer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isApproving, setIsApproving] = useState<number | null>(null);
+  const [isApproving, setIsApproving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Form states for provisioning account
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedFarmerId, setSelectedFarmerId] = useState<number>(0);
+  const [selectedFarmerId, setSelectedFarmerId] = useState<string>('');
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'PLAYER' | 'ADMIN'>('PLAYER');
@@ -63,13 +63,14 @@ export const UserManagementCard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleApprove = async (playerId: number) => {
-    setIsApproving(playerId);
+  const handleApprove = async (playerId: string | number) => {
+    const idKey = String(playerId);
+    setIsApproving(idKey);
     setError(null);
     setSuccessMsg(null);
     try {
-      const res = await api.admin.approvePlayer(playerId);
-      setSuccessMsg(res.message || `Pemain ${playerId} berhasil disetujui.`);
+      const res = await api.admin.approvePlayer(idKey);
+      setSuccessMsg(res.message || `Pemain ${idKey} berhasil disetujui.`);
       await fetchData();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Gagal menyetujui pemain.';
@@ -91,7 +92,7 @@ export const UserManagementCard: React.FC = () => {
     setSuccessMsg(null);
     try {
       const res = await api.admin.createUser({
-        farmerId: Number(selectedFarmerId),
+        farmerId: selectedFarmerId,
         username: newUsername.trim(),
         password: newPassword,
         role: newRole,
@@ -100,7 +101,7 @@ export const UserManagementCard: React.FC = () => {
       setShowAddModal(false);
       setNewUsername('');
       setNewPassword('');
-      setSelectedFarmerId(0);
+      setSelectedFarmerId('');
       await fetchData();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Gagal menyimpan akun pengguna.';
@@ -110,15 +111,16 @@ export const UserManagementCard: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (farmerId: number, username: string) => {
+  const handleDeleteUser = async (farmerId: string | number, username: string) => {
     if (!window.confirm(`Hapus akses akun web untuk petani '${username}'?`)) {
       return;
     }
 
+    const idKey = String(farmerId);
     setError(null);
     setSuccessMsg(null);
     try {
-      const res = await api.admin.deleteUser(farmerId);
+      const res = await api.admin.deleteUser(idKey);
       setSuccessMsg(res.message);
       await fetchData();
     } catch (err: unknown) {
@@ -128,9 +130,10 @@ export const UserManagementCard: React.FC = () => {
   };
 
   const handleSelectFarmerChange = (farmerIdStr: string) => {
-    const fId = Number(farmerIdStr);
-    setSelectedFarmerId(fId);
-    const farmer = availableFarmers.find((f) => f.farmerId === fId);
+    setSelectedFarmerId(farmerIdStr);
+    const farmer = availableFarmers.find(
+      (f) => (f.farmerIdStr && f.farmerIdStr === farmerIdStr) || String(f.farmerId) === farmerIdStr
+    );
     if (farmer && farmer.farmerName) {
       setNewUsername(farmer.farmerName);
     }
@@ -190,15 +193,17 @@ export const UserManagementCard: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingPlayers.map((player) => (
+            {pendingPlayers.map((player) => {
+              const pIdStr = player.playerIdStr || String(player.playerId);
+              return (
               <div
-                key={player.playerId}
+                key={pIdStr}
                 className="p-4 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl flex flex-col justify-between shadow-2xs"
               >
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-slate-900 dark:text-white text-sm">
-                      {player.farmerName !== 'Unknown' ? player.farmerName : `Pemain #${player.playerId}`}
+                      {player.farmerName !== 'Unknown' ? player.farmerName : `Pemain #${pIdStr}`}
                     </span>
                     <span className="px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full">
                       Lobby
@@ -214,21 +219,22 @@ export const UserManagementCard: React.FC = () => {
                       <span>Percobaan Gagal: {player.failedAttempts}</span>
                     </div>
                     <div className="text-[11px] font-mono text-slate-400">
-                      ID: {player.playerId}
+                      ID: {pIdStr}
                     </div>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => handleApprove(player.playerId)}
-                  disabled={isApproving === player.playerId}
-                  className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+                  onClick={() => handleApprove(pIdStr)}
+                  disabled={isApproving === pIdStr}
+                  className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   <UserCheck className="w-4 h-4" />
-                  {isApproving === player.playerId ? 'Menyetujui...' : 'Izinkan Masuk (Bypass)'}
+                  {isApproving === pIdStr ? 'Menyetujui...' : 'Izinkan Masuk (Bypass)'}
                 </button>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
@@ -279,13 +285,15 @@ export const UserManagementCard: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                users.map((user) => (
-                  <tr key={user.farmerId} className="hover:bg-slate-50/50 dark:hover:bg-[#162035]/60 transition-colors">
+                users.map((user) => {
+                  const uFarmerIdStr = user.farmerIdStr || String(user.farmerId);
+                  return (
+                  <tr key={uFarmerIdStr} className="hover:bg-slate-50/50 dark:hover:bg-[#162035]/60 transition-colors">
                     <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
                       {user.username}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-slate-400 dark:text-slate-500">
-                      {user.farmerId}
+                      {uFarmerIdStr}
                     </td>
                     <td className="py-3.5 px-4">
                       <span
@@ -321,7 +329,7 @@ export const UserManagementCard: React.FC = () => {
                     <td className="py-3.5 px-4 text-right">
                       {user.role !== 'SUPERADMIN' && (
                         <button
-                          onClick={() => handleDeleteUser(user.farmerId, user.username)}
+                          onClick={() => handleDeleteUser(uFarmerIdStr, user.username)}
                           className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                           title="Hapus akses akun"
                         >
@@ -330,7 +338,8 @@ export const UserManagementCard: React.FC = () => {
                       )}
                     </td>
                   </tr>
-                ))
+                );
+                })
               )}
             </tbody>
           </table>
@@ -366,12 +375,15 @@ export const UserManagementCard: React.FC = () => {
                   onChange={(e) => handleSelectFarmerChange(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                 >
-                  <option value={0}>-- Masukkan ID Kustom atau Pilih --</option>
-                  {availableFarmers.map((f) => (
-                    <option key={f.farmerId} value={f.farmerId}>
-                      {f.farmerName} (ID: {f.farmerId}) {f.hasWebAccount ? '[Sudah ada akun]' : ''}
-                    </option>
-                  ))}
+                  <option value="">-- Masukkan ID Kustom atau Pilih --</option>
+                  {availableFarmers.map((f) => {
+                    const fIdStr = f.farmerIdStr || String(f.farmerId);
+                    return (
+                      <option key={fIdStr} value={fIdStr}>
+                        {f.farmerName} (ID: {fIdStr}) {f.hasWebAccount ? '[Sudah ada akun]' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -380,10 +392,10 @@ export const UserManagementCard: React.FC = () => {
                   Farmer ID (ID Pemain)
                 </label>
                 <input
-                  type="number"
-                  value={selectedFarmerId || ''}
-                  onChange={(e) => setSelectedFarmerId(Number(e.target.value))}
-                  placeholder="e.g. -741289410294"
+                  type="text"
+                  value={selectedFarmerId}
+                  onChange={(e) => setSelectedFarmerId(e.target.value)}
+                  placeholder="Contoh: 4914598584983821234"
                   required
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-[#0a0f1d] border border-slate-200 dark:border-[#1e2a42] rounded-xl text-slate-900 dark:text-white font-mono focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                 />

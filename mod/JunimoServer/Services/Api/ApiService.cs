@@ -2899,11 +2899,10 @@ public partial class ApiService : ModService
                             break;
                         }
                         var approveIdStr = request.QueryString["playerId"];
-                        if (string.IsNullOrEmpty(approveIdStr) || !long.TryParse(approveIdStr, out long approveId))
+                        long approveId = 0;
+                        if (!string.IsNullOrEmpty(approveIdStr))
                         {
-                            response.StatusCode = 400;
-                            await WriteJsonAsync(response, new { error = "Valid 'playerId' query parameter is required." });
-                            break;
+                            long.TryParse(approveIdStr, out approveId);
                         }
                         if (_passwordProtectionService == null)
                         {
@@ -2914,16 +2913,16 @@ public partial class ApiService : ModService
                         bool approved = false;
                         await RunOnGameThreadAsync(() =>
                         {
-                            approved = _passwordProtectionService.ManuallyApprovePlayer(approveId);
+                            approved = _passwordProtectionService.ManuallyApprovePlayer(approveId, approveIdStr);
                         });
                         if (approved)
                         {
-                            await WriteJsonAsync(response, new { success = true, playerId = approveId, message = $"Player {approveId} manually approved and admitted to farm." });
+                            await WriteJsonAsync(response, new { success = true, playerId = approveIdStr ?? approveId.ToString(), message = $"Pemain {approveIdStr ?? approveId.ToString()} berhasil disetujui dan dialihkan ke kabin." });
                         }
                         else
                         {
                             response.StatusCode = 404;
-                            await WriteJsonAsync(response, new { error = $"Player {approveId} not found in pending authentication list or already authenticated." });
+                            await WriteJsonAsync(response, new { error = $"Pemain {approveIdStr ?? approveId.ToString()} tidak ditemukan di daftar antrean lobby." });
                         }
                         break;
                     case "/api/admin/users/create":
@@ -2944,7 +2943,19 @@ public partial class ApiService : ModService
                         {
                             var bodyStr = await reader.ReadToEndAsync();
                             var bodyObj = JObject.Parse(bodyStr);
-                            long fId = bodyObj["farmerId"]?.Value<long>() ?? 0;
+                            long fId = 0;
+                            var fIdToken = bodyObj["farmerId"];
+                            if (fIdToken != null)
+                            {
+                                if (fIdToken.Type == JTokenType.String)
+                                {
+                                    long.TryParse(fIdToken.ToString(), out fId);
+                                }
+                                else
+                                {
+                                    fId = fIdToken.Value<long>();
+                                }
+                            }
                             string uName = bodyObj["username"]?.ToString()?.Trim() ?? "";
                             string uPass = bodyObj["password"]?.ToString()?.Trim() ?? "";
                             string uRole = bodyObj["role"]?.ToString()?.Trim() ?? "PLAYER";

@@ -14,6 +14,7 @@ namespace JunimoServer.Services.Auth;
 public class AvailableFarmerDto
 {
     public long FarmerId { get; set; }
+    public string FarmerIdStr => FarmerId.ToString();
     public string FarmerName { get; set; } = string.Empty;
     public bool IsOnline { get; set; }
     public bool HasWebAccount { get; set; }
@@ -23,6 +24,7 @@ public class AvailableFarmerDto
 public class WebUserOtp
 {
     public long FarmerId { get; set; }
+    public string FarmerIdStr => FarmerId.ToString();
     public string FarmerName { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }
 }
@@ -30,6 +32,7 @@ public class WebUserOtp
 public class WebUserProfile
 {
     public long FarmerId { get; set; }
+    public string FarmerIdStr => FarmerId.ToString();
     public string Username { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string PasswordSalt { get; set; } = string.Empty;
@@ -42,6 +45,7 @@ public class WebSessionInfo
 {
     public string Token { get; set; } = string.Empty;
     public long FarmerId { get; set; }
+    public string FarmerIdStr => FarmerId.ToString();
     public string Username { get; set; } = string.Empty;
     public string Role { get; set; } = "PLAYER";
     public DateTime ExpiresAtUtc { get; set; }
@@ -339,6 +343,23 @@ public class AccountLinkingService : ModService
             }
         }
         return users;
+    }
+
+    /// <summary>
+    /// Retrieves a web user profile by farmer ID directly from Redis.
+    /// </summary>
+    public async Task<WebUserProfile?> GetUserProfileAsync(long farmerId)
+    {
+        return await _redis.GetAsync<WebUserProfile>($"auth:user:{farmerId}");
+    }
+
+    /// <summary>
+    /// Checks if a farmer ID is registered for web access.
+    /// </summary>
+    public async Task<bool> IsFarmerRegisteredAsync(long farmerId)
+    {
+        var val = await _redis.HashGetAsync("auth:registered_farmers", farmerId.ToString());
+        return !string.IsNullOrEmpty(val);
     }
 
     /// <summary>
