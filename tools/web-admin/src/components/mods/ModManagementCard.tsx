@@ -897,7 +897,7 @@ export const ModManagementCard: React.FC = () => {
 
                 <div className="space-y-2 pt-2">
                   <a
-                    href="/JunimoClientSync.zip"
+                    href="/JunimoClientSync-v1.1.1.zip?v=1.1.1"
                     download="JunimoClientSync-v1.1.1.zip"
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
                   >
@@ -940,7 +940,7 @@ export const ModManagementCard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const cmd = `powershell -NoProfile -Command "try { $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://stardew-api.ijplabs.dev/api/mods/sync/client-mod', 'JunimoClientSync.zip'); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('JunimoClientSync.zip', '$env:APPDATA\\StardewValley\\Mods', $true); Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.1.1 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
+                      const cmd = `powershell -NoProfile -Command "try { $m = 'D:\\SteamLibrary\\steamapps\\common\\Stardew Valley\\Mods'; if (-not (Test-Path $m)) { $m = '$env:APPDATA\\StardewValley\\Mods' }; Remove-Item -Path \\"$m\\Junimo Client Sync\\", \\"$m\\JunimoClientSync\\" -Recurse -Force -ErrorAction SilentlyContinue; $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.1.zip?v=1.1.1', 'JunimoClientSync.zip'); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('JunimoClientSync.zip', $m, $true); Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.1.1 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
                       navigator.clipboard.writeText(cmd);
                       setCopiedScript(true);
                       setTimeout(() => setCopiedScript(false), 2500);
