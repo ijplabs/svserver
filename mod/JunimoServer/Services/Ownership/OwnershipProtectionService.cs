@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
+using StardewValley.TerrainFeatures;
 
 namespace JunimoServer.Services.Ownership;
 
@@ -44,6 +45,18 @@ public class OwnershipProtectionService : ModService
         harmony.Patch(
             original: AccessTools.Method(typeof(FarmAnimal), nameof(FarmAnimal.pet)),
             postfix: new HarmonyMethod(typeof(OwnershipProtectionService), nameof(FarmAnimal_Pet_Postfix))
+        );
+
+        // Patch HoeDirt planting to record owner
+        harmony.Patch(
+            original: AccessTools.Method(typeof(HoeDirt), nameof(HoeDirt.plant)),
+            postfix: new HarmonyMethod(typeof(OwnershipProtectionService), nameof(HoeDirt_Plant_Postfix))
+        );
+
+        // Patch HoeDirt performToolAction (crop protection against non-owner destruction)
+        harmony.Patch(
+            original: AccessTools.Method(typeof(HoeDirt), nameof(HoeDirt.performToolAction)),
+            prefix: new HarmonyMethod(typeof(OwnershipProtectionService), nameof(HoeDirt_PerformToolAction_Prefix))
         );
 
         RegisterCommands();
@@ -278,5 +291,51 @@ public class OwnershipProtectionService : ModService
                 $"[{__instance.Name}] merasa senang dielus! (Ayam milik {ownerName})"
             );
         }
+    }
+
+    private static void HoeDirt_Plant_Postfix(HoeDirt __instance, string itemId, Farmer who, bool isFertilizer, bool __result)
+    {
+        if (!__result || isFertilizer || who == null || __instance == null) return;
+
+        __instance.modData["svserver/owner_id"] = who.UniqueMultiplayerID.ToString();
+        __instance.modData["svserver/owner_name"] = who.Name;
+    }
+
+    private static bool HoeDirt_PerformToolAction_Prefix(HoeDirt __instance, Tool t, int damage, Vector2 tileLocation, ref bool __result)
+    {
+        if (__instance == null || __instance.crop == null) return true;
+
+        if (!__instance.modData.TryGetValue("svserver/owner_id", out var ownerIdStr) || !long.TryParse(ownerIdStr, out var ownerId) || ownerId == 0)
+        {
+            return true;
+        }
+
+        Farmer? user = t?.getLastFarmerToUse();
+        if (user == null || user.IsMainPlayer || user.UniqueMultiplayerID == ownerId)
+        {
+            return true;
+        }
+
+        string ownerName = "Petani Lain";
+        if (__instance.modData.TryGetValue("svserver/owner_name", out var oName) && !string.IsNullOrEmpty(oName))
+        {
+            ownerName = oName;
+        }
+        else
+        {
+            var ownerFarmer = Game1.GetPlayer(ownerId);
+            if (ownerFarmer != null && !string.IsNullOrEmpty(ownerFarmer.Name))
+            {
+                ownerName = ownerFarmer.Name;
+            }
+        }
+
+        _instance?._helper.SendPrivateMessage(
+            user.UniqueMultiplayerID,
+            $"[Kebun] Tanaman ini milik {ownerName}. Hanya pemilik yang dapat mencangkul/menghancurkannya."
+        );
+
+        __result = false;
+        return false;
     }
 }
