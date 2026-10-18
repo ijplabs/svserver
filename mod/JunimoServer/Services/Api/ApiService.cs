@@ -6731,7 +6731,15 @@ public partial class ApiService : ModService
             return;
         }
 
-        int added = _modEnforcementService.AutoSyncServerMods();
+        var customMods = _modDistributionService?.GetCustomModsList()?.Select(c => new ModManagement.ServerInstalledModInfo
+        {
+            UniqueId = c.UniqueId,
+            Name = c.Name,
+            Version = c.Version,
+            Description = c.Description
+        }).ToList();
+
+        int added = _modEnforcementService.AutoSyncServerMods(customMods);
         await WriteJsonAsync(response, new
         {
             success = true,

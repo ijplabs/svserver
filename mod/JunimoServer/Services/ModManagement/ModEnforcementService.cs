@@ -104,6 +104,17 @@ public class ModEnforcementService : ModService
 
     private string GetConfigFilePath()
     {
+        // 1. Persistent volume: /data/settings (mounted in Docker Compose & Coolify)
+        if (Directory.Exists("/data/settings"))
+        {
+            return "/data/settings/mod-policy.json";
+        }
+        // 2. Persistent volume: /data/game (mounted named volume game-data)
+        if (Directory.Exists("/data/game"))
+        {
+            return "/data/game/mod-policy.json";
+        }
+        // 3. Fallback: /data (container root)
         if (Directory.Exists("/data"))
         {
             return "/data/mod-policy.json";
@@ -117,15 +128,28 @@ public class ModEnforcementService : ModService
         {
             try
             {
-                var path = GetConfigFilePath();
-                if (File.Exists(path))
+                var candidatePaths = new[]
                 {
-                    var json = File.ReadAllText(path);
-                    var loaded = JsonConvert.DeserializeObject<ModPolicyData>(json);
-                    if (loaded != null)
+                    GetConfigFilePath(),
+                    "/data/settings/mod-policy.json",
+                    "/data/game/mod-policy.json",
+                    "/data/mod-policy.json",
+                    Path.Combine(Constants.SavesPath, "..", "mod-policy.json")
+                };
+
+                foreach (var path in candidatePaths.Distinct())
+                {
+                    if (File.Exists(path))
                     {
-                        _policy = loaded;
-                        return;
+                        var json = File.ReadAllText(path);
+                        var loaded = JsonConvert.DeserializeObject<ModPolicyData>(json);
+                        if (loaded != null && (loaded.RequiredMods.Count > 0 || loaded.BlacklistedMods.Count > 0 || !string.Equals(loaded.EnforcementMode, "Disabled", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            _policy = loaded;
+                            // Ensure migrated to primary persistent location
+                            SavePolicyInternal();
+                            return;
+                        }
                     }
                 }
             }
@@ -159,6 +183,12 @@ public class ModEnforcementService : ModService
 
             var json = JsonConvert.SerializeObject(_policy, Formatting.Indented);
             File.WriteAllText(path, json);
+
+            // Also mirror backup to /data/game/mod-policy.json if /data/game exists and path is different
+            if (Directory.Exists("/data/game") && !path.StartsWith("/data/game", StringComparison.OrdinalIgnoreCase))
+            {
+                try { File.WriteAllText("/data/game/mod-policy.json", json); } catch { }
+            }
         }
         catch (Exception ex)
         {
@@ -231,25 +261,38 @@ public class ModEnforcementService : ModService
         return list.OrderBy(m => m.Name).ToList();
     }
 
-    public int AutoSyncServerMods()
+    public int AutoSyncServerMods(IEnumerable<ServerInstalledModInfo>? extraMods = null)
     {
         int added = 0;
         lock (_lock)
         {
             var serverMods = GetInstalledServerMods();
+            if (extraMods != null)
+            {
+                foreach (var extra in extraMods)
+                {
+                    if (!serverMods.Any(s => s.UniqueId.Equals(extra.UniqueId, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        serverMods.Add(extra);
+                    }
+                }
+            }
+
             foreach (var mod in serverMods)
             {
                 // Exclude the dedicated server mod itself
-                if (mod.UniqueId.Equals("JunimoHost.Server", StringComparison.OrdinalIgnoreCase))
+                if (mod.UniqueId.Equals("JunimoHost.Server", StringComparison.OrdinalIgnoreCase) ||
+                    mod.UniqueId.Equals("JunimoServer.Shared", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                // Auto-detect key expansion / gameplay mods (SVE, Content Patcher, etc.)
+                // Auto-detect key expansion / gameplay mods (SVE, Content Patcher, or uploaded custom mods)
                 bool isTargetMod = mod.UniqueId.Contains("Expanded", StringComparison.OrdinalIgnoreCase) ||
                                   mod.UniqueId.Contains("FlashShifter", StringComparison.OrdinalIgnoreCase) ||
                                   mod.UniqueId.Contains("ContentPatcher", StringComparison.OrdinalIgnoreCase) ||
-                                  mod.UniqueId.Contains("CustomNPCFixes", StringComparison.OrdinalIgnoreCase);
+                                  mod.UniqueId.Contains("CustomNPCFixes", StringComparison.OrdinalIgnoreCase) ||
+                                  (extraMods != null && extraMods.Any(e => e.UniqueId.Equals(mod.UniqueId, StringComparison.OrdinalIgnoreCase)));
 
                 if (isTargetMod && !_policy.RequiredMods.Any(r => r.UniqueId.Equals(mod.UniqueId, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -257,7 +300,7 @@ public class ModEnforcementService : ModService
                     {
                         UniqueId = mod.UniqueId,
                         Name = mod.Name,
-                        MinVersion = mod.Version,
+                        MinVersion = mod.Version != "custom" ? mod.Version : "",
                         Required = true
                     });
                     added++;
