@@ -46,6 +46,8 @@ public class ModEntry : Mod
         helper.Events.Input.ButtonPressed += OnButtonPressed;
         helper.Events.Input.CursorMoved += OnCursorMoved;
 
+        Monitor.Log($"[JunimoClientSync] Loaded v{ModManifest.Version} (Chunked Range & Signed). Ready to sync.", LogLevel.Info);
+
         helper.ConsoleCommands.Add(
             "sync_mods",
             "Synchronize installed mods with the dedicated server. Usage: sync_mods",
@@ -254,7 +256,7 @@ public class ModEntry : Mod
         );
 
         // Header Title
-        string title = "Junimo Mod Sync";
+        string title = $"Junimo Mod Sync v{ModManifest.Version}";
         var titleSize = Game1.dialogueFont.MeasureString(title);
         var titlePos = new Vector2(modalX + (modalW - titleSize.X) / 2f, modalY + 24);
         Utility.drawTextWithShadow(b, title, Game1.dialogueFont, titlePos, Game1.textColor);
