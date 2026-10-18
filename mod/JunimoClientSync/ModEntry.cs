@@ -450,7 +450,9 @@ public class ModEntry : Mod
                     ? mod.DownloadUrl
                     : $"{baseUrl}{mod.DownloadUrl}";
 
-                string tempZipPath = Path.Combine(modsDir, $"_temp_{mod.FolderName}.zip");
+                var invalidChars = Path.GetInvalidFileNameChars().Concat(new[] { '/', '\\', ':', '*', '?', '"', '<', '>', '|' }).Distinct().ToArray();
+                string safeBaseName = string.Join("_", mod.FolderName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+                string tempZipPath = Path.Combine(Path.GetTempPath(), $"junimo_sync_{safeBaseName}_{Guid.NewGuid():N}.zip");
                 if (File.Exists(tempZipPath))
                 {
                     try { File.Delete(tempZipPath); } catch { }

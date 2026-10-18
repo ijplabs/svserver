@@ -873,7 +873,7 @@ export const ModManagementCard: React.FC = () => {
                       <Laptop className="w-5 h-5" />
                       <h4 className="text-sm font-semibold text-slate-200">Mod Klien SMAPI</h4>
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        v1.1.0
+                        v1.1.1
                       </span>
                     </div>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -886,7 +886,7 @@ export const ModManagementCard: React.FC = () => {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-slate-400">Versi Saat Ini:</span>
-                      <span className="font-mono text-emerald-400 font-semibold">v1.1.0 (Chunked Range)</span>
+                      <span className="font-mono text-emerald-400 font-semibold">v1.1.1 (Chunked & Path Fixed)</span>
                     </div>
                     <p className="text-[11px] font-mono text-slate-400 truncate">Penerbit: Junimo Dedicated Server Security Authority</p>
                     <p className="text-[10px] font-mono text-slate-500 truncate" title="SHA-256: 7D37BC62637ADF216B4CB0530893E1811AE197FA5F24F3AA6717CF4669BCFAE2">
@@ -898,11 +898,11 @@ export const ModManagementCard: React.FC = () => {
                 <div className="space-y-2 pt-2">
                   <a
                     href="/JunimoClientSync.zip"
-                    download="JunimoClientSync-v1.1.0.zip"
+                    download="JunimoClientSync-v1.1.1.zip"
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
                   >
                     <Download className="w-4 h-4" />
-                    Unduh JunimoClientSync v1.1.0 (.zip)
+                    Unduh JunimoClientSync v1.1.1 (.zip)
                   </a>
                   <a
                     href="/JunimoSecurityCert.cer"
@@ -940,7 +940,7 @@ export const ModManagementCard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const cmd = `powershell -NoProfile -Command "try { $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://stardew-api.ijplabs.dev/api/mods/sync/client-mod', 'JunimoClientSync.zip'); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('JunimoClientSync.zip', '$env:APPDATA\\StardewValley\\Mods', $true); Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.1.0 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
+                      const cmd = `powershell -NoProfile -Command "try { $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://stardew-api.ijplabs.dev/api/mods/sync/client-mod', 'JunimoClientSync.zip'); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('JunimoClientSync.zip', '$env:APPDATA\\StardewValley\\Mods', $true); Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.1.1 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
                       navigator.clipboard.writeText(cmd);
                       setCopiedScript(true);
                       setTimeout(() => setCopiedScript(false), 2500);

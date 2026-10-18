@@ -1,7 +1,7 @@
 {
   "Name": "Junimo Client Sync",
   "Author": "JunimoHost",
-  "Version": "1.1.0",
+  "Version": "1.1.1",
   "Description": "EZ 1-Click Mod Sync directly from the Stardew Valley Co-op Lobby and Title Menu with Chunked Download support.",
   "UniqueID": "JunimoHost.ClientSync",
   "EntryDll": "JunimoClientSync.dll",
