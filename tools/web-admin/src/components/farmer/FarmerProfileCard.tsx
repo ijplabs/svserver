@@ -16,7 +16,7 @@ import {
 import { api } from '../../lib/api';
 import { FarmerProfile } from '../../types/character';
 import { WikiImage } from '../common/WikiImage';
-import { getItemImageUrl } from '../../lib/wikiAssets';
+import { getItemImageUrl, getItemImageFallbackUrl } from '../../lib/wikiAssets';
 
 export const FarmerProfileCard: React.FC = () => {
   const [profile, setProfile] = useState<FarmerProfile | null>(null);
@@ -262,6 +262,7 @@ export const FarmerProfileCard: React.FC = () => {
             ) : (
               profile.equipment.map((eq) => {
                 const imgUrl = getItemImageUrl(eq.name);
+                const imgFallback = getItemImageFallbackUrl(eq.name);
                 const s = eq.slot;
                 const slotLabel =
                   s === 'Hat' ? 'Topi' :
@@ -281,6 +282,7 @@ export const FarmerProfileCard: React.FC = () => {
                         <WikiImage
                           src={imgUrl}
                           alt={eq.name}
+                          fallbackSrc={imgFallback}
                           fallbackText={eq.name}
                           className="w-full h-full object-contain"
                         />
@@ -331,6 +333,7 @@ export const FarmerProfileCard: React.FC = () => {
             }
 
             const itemImg = getItemImageUrl(item.name) || getItemImageUrl(item.displayName);
+            const itemFallback = getItemImageFallbackUrl(item.name) || getItemImageFallbackUrl(item.displayName);
 
             return (
               <div
@@ -368,6 +371,7 @@ export const FarmerProfileCard: React.FC = () => {
                   <WikiImage
                     src={itemImg}
                     alt={item.displayName}
+                    fallbackSrc={itemFallback}
                     fallbackText={item.displayName}
                     className="w-7 h-7 sm:w-8 sm:h-8 object-contain drop-shadow-2xs group-hover:scale-110 transition-transform duration-150"
                   />

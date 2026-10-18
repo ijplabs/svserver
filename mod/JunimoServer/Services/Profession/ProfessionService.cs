@@ -145,13 +145,12 @@ public class ProfessionService : ModService
         Task.Run(async () =>
         {
             var current = await GetPlayerProfessionAsync(farmerId);
-            bool hasKit = await HasKitBeenGrantedAsync(farmerId);
 
-            if (current.HasValue && hasKit)
+            if (current.HasValue)
             {
                 _helper.SendPrivateMessage(
                     farmerId,
-                    $"[Profesi] Anda sudah aktif sebagai [{GetProfessionDisplayName(current.Value)}] dan menerima perlengkapan starter."
+                    $"[Profesi] Anda sudah memilih profesi [{GetProfessionDisplayName(current.Value)}]. Pilihan profesi bersifat permanen dan hanya dapat dilakukan 1 kali."
                 );
                 return;
             }
@@ -177,26 +176,40 @@ public class ProfessionService : ModService
                     $"[Profesi] Selamat! Anda telah memilih profesi: [{GetProfessionDisplayName(selectedProfession)}]."
                 );
 
-                hasKit = await HasKitBeenGrantedAsync(farmerId);
-                if (!hasKit)
-                {
-                    _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
+                var onlineFarmer = Game1.GetPlayer(farmerId);
+                string locName = onlineFarmer?.currentLocation?.NameOrUniqueName ?? "";
+                bool inLobby = locName.Contains("Lobby", StringComparison.OrdinalIgnoreCase);
 
-                    void DeliverNow(object? s, OneSecondUpdateTickedEventArgs ev)
+                if (inLobby)
+                {
+                    _helper.SendPrivateMessage(
+                        farmerId,
+                        "[Profesi] Starter kit Anda akan dikirimkan begitu Anda login (!login <password>) dan tiba di area perkebunan (Farm)."
+                    );
+                }
+                else
+                {
+                    bool hasKit = await HasKitBeenGrantedAsync(farmerId);
+                    if (!hasKit)
                     {
-                        _helper.Events.GameLoop.OneSecondUpdateTicked -= DeliverNow;
-                        try
+                        await MarkStarterKitReceivedAsync(farmerId);
+                        _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
+
+                        void DeliverNow(object? s, OneSecondUpdateTickedEventArgs ev)
                         {
-                            var onlineFarmer = Game1.GetPlayer(farmerId);
-                            if (onlineFarmer != null)
+                            _helper.Events.GameLoop.OneSecondUpdateTicked -= DeliverNow;
+                            try
                             {
-                                DeliverStarterKit(onlineFarmer, selectedProfession);
-                                _ = MarkStarterKitReceivedAsync(farmerId);
+                                var f = Game1.GetPlayer(farmerId);
+                                if (f != null)
+                                {
+                                    DeliverStarterKit(f, selectedProfession);
+                                }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            _monitor.Log($"[Profession] Failed immediate delivery: {ex.Message}", LogLevel.Error);
+                            catch (Exception ex)
+                            {
+                                _monitor.Log($"[Profession] Failed immediate delivery: {ex.Message}", LogLevel.Error);
+                            }
                         }
                     }
                 }
@@ -226,6 +239,29 @@ public class ProfessionService : ModService
                 return;
             }
 
+            bool hasKit = await HasKitBeenGrantedAsync(farmerId);
+            if (hasKit)
+            {
+                _helper.SendPrivateMessage(
+                    farmerId,
+                    "[Profesi] Anda sudah pernah mengambil Starter Kit! Starter kit hanya dapat diambil 1 kali."
+                );
+                return;
+            }
+
+            var onlineFarmer = Game1.GetPlayer(farmerId);
+            string locName = onlineFarmer?.currentLocation?.NameOrUniqueName ?? "";
+            if (locName.Contains("Lobby", StringComparison.OrdinalIgnoreCase))
+            {
+                _helper.SendPrivateMessage(
+                    farmerId,
+                    "[Profesi] Silakan login terlebih dahulu (!login <password>) untuk mengambil starter kit di area perkebunan."
+                );
+                return;
+            }
+
+            await MarkStarterKitReceivedAsync(farmerId);
+
             _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
 
             void DeliverNow(object? s, OneSecondUpdateTickedEventArgs ev)
@@ -233,11 +269,10 @@ public class ProfessionService : ModService
                 _helper.Events.GameLoop.OneSecondUpdateTicked -= DeliverNow;
                 try
                 {
-                    var onlineFarmer = Game1.GetPlayer(farmerId);
-                    if (onlineFarmer != null)
+                    var f = Game1.GetPlayer(farmerId);
+                    if (f != null)
                     {
-                        DeliverStarterKit(onlineFarmer, profession.Value);
-                        _ = MarkStarterKitReceivedAsync(farmerId);
+                        DeliverStarterKit(f, profession.Value);
                     }
                 }
                 catch (Exception ex)
@@ -463,6 +498,8 @@ public class ProfessionService : ModService
                 await SetPlayerProfessionAsync(farmerId, ProfessionType.Farmer);
             }
 
+            await MarkStarterKitReceivedAsync(farmerId);
+
             _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverKitOnTick;
 
             void DeliverKitOnTick(object? s, OneSecondUpdateTickedEventArgs ev)
@@ -471,7 +508,6 @@ public class ProfessionService : ModService
                 try
                 {
                     DeliverStarterKit(e.Player, profession.Value);
-                    _ = MarkStarterKitReceivedAsync(farmerId);
                 }
                 catch (Exception ex)
                 {
@@ -564,8 +600,8 @@ public class ProfessionService : ModService
 
                 // 30x Hay, Milk Pail, Shears
                 starterItems.Add(ItemRegistry.Create("(O)178", 30));
-                starterItems.Add(ItemRegistry.Create<Tool>("(T)MilkPail"));
-                starterItems.Add(ItemRegistry.Create<Tool>("(T)Shears"));
+                starterItems.Add(new MilkPail());
+                starterItems.Add(new Shears());
                 break;
 
             case ProfessionType.Forager:

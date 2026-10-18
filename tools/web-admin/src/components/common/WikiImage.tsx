@@ -29,6 +29,12 @@ export const WikiImage: React.FC<WikiImageProps> = ({
     setTriedFallback(false);
     setHasError(false);
     setIsLoading(true);
+
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, [src]);
 
   const handleError = () => {
@@ -76,13 +82,13 @@ export const WikiImage: React.FC<WikiImageProps> = ({
   return (
     <div className={`relative overflow-hidden inline-flex items-center justify-center ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-lg" />
+        <div className="absolute inset-0 bg-slate-200/60 dark:bg-slate-800/60 animate-pulse rounded-lg pointer-events-none" />
       )}
       <img
         src={currentSrc}
         alt={alt}
-        referrerPolicy="no-referrer"
-        loading="lazy"
+        loading="eager"
+        crossOrigin="anonymous"
         onLoad={() => setIsLoading(false)}
         onError={handleError}
         className={`w-full h-full object-contain transition-opacity duration-200 ${

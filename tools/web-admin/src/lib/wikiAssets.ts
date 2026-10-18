@@ -1,3 +1,5 @@
+import cdnItemsMap from '../data/cdn_items_map.json';
+
 // Pure JS MD5 Implementation (RFC 1321) for generating MediaWiki asset paths
 function rotateLeft(lValue: number, iShiftBits: number): number {
   return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
@@ -592,6 +594,16 @@ export function getItemImageUrl(itemName: string): string {
     .replace(/\s*\((Gold|Silver|Iridium)\)\s*/i, '')
     .trim();
 
+  // First check fast jsdelivr CDN & direct mapping (1,597 items)
+  const lower = clean.toLowerCase();
+  const cdnEntry = (cdnItemsMap as Record<string, string>)[lower];
+  if (cdnEntry) {
+    if (cdnEntry.startsWith('http://') || cdnEntry.startsWith('https://')) {
+      return cdnEntry;
+    }
+    return `https://cdn.jsdelivr.net/npm/stardew-valley-data@1.1.1/images/${cdnEntry}`;
+  }
+
   if (SVE_ITEM_MAP[clean]) {
     return getSveWikiImageUrl(SVE_ITEM_MAP[clean]);
   }
@@ -600,12 +612,12 @@ export function getItemImageUrl(itemName: string): string {
     return getStardewWikiImageUrl(ITEM_MAP[clean]);
   }
 
-  // Default to official Stardew Valley Wiki format
-  return getStardewWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
+  // Default to official Stardew Valley Expanded wiki.gg since it allows hotlinking
+  return getSveWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
 }
 
 /**
- * Fallback item image URL (e.g. tries SVE wiki.gg if vanilla wiki fails, and vice versa).
+ * Fallback item image URL (e.g. tries wiki.gg or stardew wiki if primary fails).
  */
 export function getItemImageFallbackUrl(itemName: string): string {
   if (!itemName) return '';
@@ -615,9 +627,17 @@ export function getItemImageFallbackUrl(itemName: string): string {
     .replace(/\s*\((Gold|Silver|Iridium)\)\s*/i, '')
     .trim();
 
+  const lower = clean.toLowerCase();
+  const cdnEntry = (cdnItemsMap as Record<string, string>)[lower];
+
+  if (cdnEntry) {
+    // If CDN failed, fallback to SVE wiki.gg
+    return getSveWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
+  }
+
   if (SVE_ITEM_MAP[clean]) {
     return getStardewWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
   }
-  return getSveWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
+  return getStardewWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
 }
 
