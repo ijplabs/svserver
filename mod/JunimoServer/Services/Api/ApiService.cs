@@ -7390,7 +7390,7 @@ public partial class ApiService : ModService
                             NPC? npc = Game1.getCharacterFromName(npcName);
                             if (npc != null)
                             {
-                                dispName = npc.displayName ?? npcName;
+                                dispName = CleanCharacterDisplayName(npc.displayName, npcName);
                                 bSeason = npc.Birthday_Season ?? "";
                                 bDay = npc.Birthday_Day;
                                 isDatable = npc.datable.Value;
@@ -7406,7 +7406,7 @@ public partial class ApiService : ModService
                             }
                             else if (Game1.characterData != null && Game1.characterData.TryGetValue(npcName, out var cd))
                             {
-                                dispName = cd.DisplayName ?? npcName;
+                                dispName = CleanCharacterDisplayName(cd.DisplayName, npcName);
                                 bSeason = cd.BirthSeason?.ToString() ?? "";
                                 bDay = cd.BirthDay;
                                 isDatable = cd.CanBeRomanced;
@@ -7420,7 +7420,7 @@ public partial class ApiService : ModService
                         socialData.Villagers.Add(new VillagerFriendshipDto
                         {
                             Name = npcName,
-                            DisplayName = dispName,
+                            DisplayName = CleanCharacterDisplayName(dispName, npcName),
                             Points = friendship.Points,
                             Hearts = Math.Min(maxH, friendship.Points / 250),
                             MaxHearts = maxH,
@@ -7455,7 +7455,7 @@ public partial class ApiService : ModService
                         socialData.Villagers.Add(new VillagerFriendshipDto
                         {
                             Name = npcName,
-                            DisplayName = cd.DisplayName ?? npcName,
+                            DisplayName = CleanCharacterDisplayName(cd.DisplayName, npcName),
                             Points = 0,
                             Hearts = 0,
                             MaxHearts = isDatable ? 8 : 10,
@@ -7499,6 +7499,30 @@ public partial class ApiService : ModService
         }
 
         await WriteJsonAsync(response, socialData);
+    }
+
+    private static string CleanCharacterDisplayName(string? raw, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return fallback;
+        var trimmed = raw.Trim();
+
+        // Check for [LocalizedText Strings\NPCNames:Abigail] or [LocalizedText ...:Name]
+        var match = System.Text.RegularExpressions.Regex.Match(trimmed, @"\[(?:LocalizedText\s+)?[^:]+:([^\]]+)\]", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (match.Success && !string.IsNullOrWhiteSpace(match.Groups[1].Value))
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
+        if (trimmed.StartsWith("Strings\\", StringComparison.OrdinalIgnoreCase) || trimmed.StartsWith("Strings/", StringComparison.OrdinalIgnoreCase))
+        {
+            int colon = trimmed.IndexOf(':');
+            if (colon >= 0 && colon < trimmed.Length - 1)
+            {
+                return trimmed.Substring(colon + 1).Trim();
+            }
+        }
+
+        return trimmed;
     }
 
     private async Task HandleGetFarmerQuestsAsync(HttpListenerRequest request, HttpListenerResponse response)

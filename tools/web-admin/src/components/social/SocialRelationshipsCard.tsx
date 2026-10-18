@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { FarmerSocialResponse } from '../../types/social';
-import { getNpcPortraitUrl } from '../../lib/wikiAssets';
+import { getNpcPortraitUrl, getNpcPortraitFallbackUrl, cleanDisplayName } from '../../lib/wikiAssets';
 import { WikiImage } from '../common/WikiImage';
 
 export const SocialRelationshipsCard: React.FC = () => {
@@ -51,15 +51,25 @@ export const SocialRelationshipsCard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const birthdayTodayList = useMemo(() => {
+  const cleanedVillagers = useMemo(() => {
     if (!socialData?.villagers) return [];
-    return socialData.villagers.filter((v) => v.isBirthdayToday);
+    return socialData.villagers.map((v) => {
+      const cleanName = cleanDisplayName(v.name);
+      const cleanDisp = cleanDisplayName(v.displayName || v.name);
+      return {
+        ...v,
+        name: cleanName,
+        displayName: cleanDisp,
+      };
+    });
   }, [socialData]);
 
-  const filteredVillagers = useMemo(() => {
-    if (!socialData?.villagers) return [];
+  const birthdayTodayList = useMemo(() => {
+    return cleanedVillagers.filter((v) => v.isBirthdayToday);
+  }, [cleanedVillagers]);
 
-    let list = [...socialData.villagers];
+  const filteredVillagers = useMemo(() => {
+    let list = [...cleanedVillagers];
 
     // Search query
     if (searchQuery.trim()) {
@@ -98,7 +108,7 @@ export const SocialRelationshipsCard: React.FC = () => {
     });
 
     return list;
-  }, [socialData, searchQuery, filterType, sortBy]);
+  }, [cleanedVillagers, searchQuery, filterType, sortBy]);
 
   const renderHeartMeter = (hearts: number, maxHearts: number) => {
     return (
@@ -316,6 +326,7 @@ export const SocialRelationshipsCard: React.FC = () => {
                   <div className="relative shrink-0">
                     <WikiImage
                       src={getNpcPortraitUrl(v.name)}
+                      fallbackSrc={getNpcPortraitFallbackUrl(v.name)}
                       alt={v.displayName}
                       fallbackText={v.displayName}
                       className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#162035] border border-slate-200 dark:border-[#1e2a42] object-contain p-1"

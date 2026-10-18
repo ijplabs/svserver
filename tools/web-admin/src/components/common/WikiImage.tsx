@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ImageOff } from 'lucide-react';
 
 interface WikiImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -7,6 +7,7 @@ interface WikiImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   className?: string;
   fallbackIcon?: React.ReactNode;
   fallbackText?: string;
+  fallbackSrc?: string;
 }
 
 export const WikiImage: React.FC<WikiImageProps> = ({
@@ -15,12 +16,33 @@ export const WikiImage: React.FC<WikiImageProps> = ({
   className = '',
   fallbackIcon,
   fallbackText,
+  fallbackSrc,
   ...props
 }) => {
-  const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentSrc, setCurrentSrc] = useState<string>(src);
+  const [triedFallback, setTriedFallback] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  if (!src || hasError) {
+  useEffect(() => {
+    setCurrentSrc(src);
+    setTriedFallback(false);
+    setHasError(false);
+    setIsLoading(true);
+  }, [src]);
+
+  const handleError = () => {
+    if (fallbackSrc && !triedFallback && fallbackSrc !== currentSrc) {
+      setTriedFallback(true);
+      setCurrentSrc(fallbackSrc);
+      setIsLoading(true);
+    } else {
+      setHasError(true);
+      setIsLoading(false);
+    }
+  };
+
+  if (!currentSrc || hasError) {
     if (fallbackIcon) {
       return (
         <div className={`flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-lg ${className}`}>
@@ -33,12 +55,13 @@ export const WikiImage: React.FC<WikiImageProps> = ({
       const initials = fallbackText
         .split(' ')
         .map((w) => w[0])
+        .filter(Boolean)
         .slice(0, 2)
         .join('')
         .toUpperCase();
       return (
         <div className={`flex items-center justify-center bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs rounded-lg select-none ${className}`}>
-          {initials}
+          {initials || '?'}
         </div>
       );
     }
@@ -56,15 +79,12 @@ export const WikiImage: React.FC<WikiImageProps> = ({
         <div className="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-lg" />
       )}
       <img
-        src={src}
+        src={currentSrc}
         alt={alt}
         referrerPolicy="no-referrer"
         loading="lazy"
         onLoad={() => setIsLoading(false)}
-        onError={() => {
-          setHasError(true);
-          setIsLoading(false);
-        }}
+        onError={handleError}
         className={`w-full h-full object-contain transition-opacity duration-200 ${
           isLoading ? 'opacity-0' : 'opacity-100'
         }`}

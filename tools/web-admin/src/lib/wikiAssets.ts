@@ -177,6 +177,53 @@ export function getStardewWikiImageUrl(filename: string): string {
   return `https://stardewvalleywiki.com/mediawiki/images/${firstChar}/${firstTwo}/${encodeURIComponent(cleanName)}`;
 }
 
+/**
+ * Cleans localized token wrappers like [LocalizedText Strings\NPCNames:Abigail]
+ * into standard character names like "Abigail".
+ */
+export function cleanDisplayName(rawName: string): string {
+  if (!rawName) return '';
+  let str = rawName.trim();
+  // Strip [LocalizedText Strings\NPCNames:Abigail] or [LocalizedText ...:Name]
+  const tokenMatch = str.match(/\[(?:LocalizedText\s+)?[^:]+:([^\]]+)\]/i);
+  if (tokenMatch && tokenMatch[1]) {
+    str = tokenMatch[1].trim();
+  }
+  // Strip Strings\NPCNames:Abigail or Strings/NPCNames:Abigail
+  if (str.includes(':') && (str.startsWith('Strings\\') || str.startsWith('Strings/'))) {
+    str = str.split(':').pop()?.replace(/\]$/, '').trim() || str;
+  }
+  return str;
+}
+
+/**
+ * Builds the official Stardew Valley Expanded Wiki (wiki.gg) URL for a given image filename.
+ */
+export function getSveWikiImageUrl(filename: string): string {
+  if (!filename) return '';
+  const cleanName = filename.trim().replace(/ /g, '_');
+  return `https://stardewvalleyexpanded.wiki.gg/images/${encodeURIComponent(cleanName)}`;
+}
+
+// Map of Stardew Valley Expanded (SVE) NPC names to their wiki.gg portrait images
+const SVE_NPC_PORTRAIT_MAP: Record<string, string> = {
+  Andy: 'Andy_Portrait.png',
+  Olivia: 'Olivia_Portrait.png',
+  Sophia: 'Sophia_Portrait.png',
+  Susan: 'Susan_Portrait.png',
+  Victor: 'Victor_Portrait.png',
+  Claire: 'Claire_Portrait.png',
+  Lance: 'Lance_Portrait.png',
+  Martin: 'Martin_Portrait.png',
+  Morgan: 'Morgan_Portrait.png',
+  Apples: 'Apples_Portrait.png',
+  Camilla: 'Camilla_Portrait.png',
+  Scarlett: 'Scarlett_Portrait.png',
+  Isaac: 'Isaac_Portrait.png',
+  Alesia: 'Alesia_Portrait.png',
+  Jadu: 'Jadu_Portrait.png',
+};
+
 // Map of NPC internal / game names to their canonical Stardew Valley Wiki portrait image names
 const NPC_PORTRAIT_MAP: Record<string, string> = {
   Wizard: 'Wizard.png',
@@ -234,10 +281,26 @@ const NPC_PORTRAIT_MAP: Record<string, string> = {
 
 /**
  * Returns the wiki image URL for an NPC portrait.
+ * Checks Stardew Valley Expanded (wiki.gg) first for modded NPCs, then vanilla Stardew Valley Wiki.
  */
 export function getNpcPortraitUrl(npcName: string): string {
-  const mapped = NPC_PORTRAIT_MAP[npcName] || `${npcName.replace(/ /g, '_')}.png`;
+  const clean = cleanDisplayName(npcName);
+  if (SVE_NPC_PORTRAIT_MAP[clean]) {
+    return getSveWikiImageUrl(SVE_NPC_PORTRAIT_MAP[clean]);
+  }
+  const mapped = NPC_PORTRAIT_MAP[clean] || `${clean.replace(/ /g, '_')}.png`;
   return getStardewWikiImageUrl(mapped);
+}
+
+/**
+ * Returns a fallback wiki image URL for an NPC portrait if the primary fails.
+ */
+export function getNpcPortraitFallbackUrl(npcName: string): string {
+  const clean = cleanDisplayName(npcName);
+  if (SVE_NPC_PORTRAIT_MAP[clean]) {
+    return getStardewWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
+  }
+  return getSveWikiImageUrl(`${clean.replace(/ /g, '_')}_Portrait.png`);
 }
 
 // Map of Community Center Rooms to wiki image files
@@ -495,22 +558,66 @@ const ITEM_MAP: Record<string, string> = {
   'Obsidian Edge': 'Obsidian_Edge.png',
 };
 
+// Map of Stardew Valley Expanded (SVE) items to their wiki.gg image names
+const SVE_ITEM_MAP: Record<string, string> = {
+  Butterfish: 'Butterfish.png',
+  Kittyfish: 'Kittyfish.png',
+  Puppyfish: 'Puppyfish.png',
+  'Big Bark Burger': 'Big_Bark_Burger.png',
+  'Blue Moon Wine': 'Blue_Moon_Wine.png',
+  'Aged Blue Moon Wine': 'Aged_Blue_Moon_Wine.png',
+  'Ferngill Mayonnaise': 'Ferngill_Mayonnaise.png',
+  'Grampleton Orange': 'Grampleton_Orange.png',
+  'Starved Minnow': 'Starved_Minnow.png',
+  'Razor Trout': 'Razor_Trout.png',
+  'King Salmon': 'King_Salmon.png',
+  'Frog Egg': 'Frog_Egg.png',
+  'Void Pebble': 'Void_Pebble.png',
+  'Void Shard': 'Void_Shard.png',
+  'Shiny Berry': 'Shiny_Berry.png',
+  'Armor Elixir': 'Armor_Elixir.png',
+  'Haste Elixir': 'Haste_Elixir.png',
+  'Hero Elixir': 'Hero_Elixir.png',
+};
+
 export function getItemImageUrl(itemName: string): string {
   if (!itemName || itemName.toLowerCase() === 'unknown crop' || itemName.toLowerCase() === 'unknown') {
     return '';
   }
 
-  // Clean prefixes like "(O)", "(W)", "(B)", "(BC)", "(Q)" and quality markers in parentheses
-  let clean = itemName
+  // Clean localized tokens, prefixes, and quality markers
+  let clean = cleanDisplayName(itemName)
     .replace(/^\([A-Za-z0-9_]+\)\s*/, '')
     .replace(/^\[[A-Za-z0-9_]+\]\s*/, '')
     .replace(/\s*\((Gold|Silver|Iridium)\)\s*/i, '')
     .trim();
 
+  if (SVE_ITEM_MAP[clean]) {
+    return getSveWikiImageUrl(SVE_ITEM_MAP[clean]);
+  }
+
   if (ITEM_MAP[clean]) {
     return getStardewWikiImageUrl(ITEM_MAP[clean]);
   }
 
-  // Fallback to Item_Name.png
+  // Default to official Stardew Valley Wiki format
   return getStardewWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
 }
+
+/**
+ * Fallback item image URL (e.g. tries SVE wiki.gg if vanilla wiki fails, and vice versa).
+ */
+export function getItemImageFallbackUrl(itemName: string): string {
+  if (!itemName) return '';
+  let clean = cleanDisplayName(itemName)
+    .replace(/^\([A-Za-z0-9_]+\)\s*/, '')
+    .replace(/^\[[A-Za-z0-9_]+\]\s*/, '')
+    .replace(/\s*\((Gold|Silver|Iridium)\)\s*/i, '')
+    .trim();
+
+  if (SVE_ITEM_MAP[clean]) {
+    return getStardewWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
+  }
+  return getSveWikiImageUrl(`${clean.replace(/ /g, '_')}.png`);
+}
+
