@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using JunimoServer.Services.ChatCommands;
+using JunimoServer.Services.Lobby;
 using JunimoServer.Services.Redis;
 using JunimoServer.Util;
 using Microsoft.Xna.Framework;
@@ -11,8 +12,9 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
-using StardewValley.Tools;
+using StardewValley.Locations;
 using StardewValley.Objects;
+using StardewValley.Tools;
 
 namespace JunimoServer.Services.Profession;
 
@@ -154,7 +156,7 @@ public class ProfessionService : ModService
                 bool alreadyDeliveredV2 = await HasKitV2DeliveredAsync(farmerId);
                 bool hasItems = current.HasValue && onlineFarmer != null && PlayerHasAnyStarterKitItem(onlineFarmer, current.Value);
 
-                if (alreadyDeliveredV2 || hasItems)
+                if (alreadyDeliveredV2 && hasItems)
                 {
                     _helper.SendPrivateMessage(
                         farmerId,
@@ -246,6 +248,13 @@ public class ProfessionService : ModService
                 $"[green][Profesi] Selamat! Anda telah memilih profesi: [{GetProfessionDisplayName(selectedProfession)}]."
             );
 
+            // Populate starter gift box in player's cabin
+            var cabin = FindPlayerCabin(farmerId);
+            if (cabin != null)
+            {
+                PopulateCabinStarterGiftBox(farmerId, selectedProfession, cabin);
+            }
+
             // Notify JunimoClientSync UI if present
             try
             {
@@ -276,34 +285,49 @@ public class ProfessionService : ModService
             {
                 _helper.SendPrivateMessage(
                     farmerId,
-                    "[aqua][Profesi] Starter kit Anda akan otomatis masuk ke tas ransel begitu Anda login (!login <password>) dan tiba di area pertanian (Farm)."
+                    $"[aqua][Profesi] Seluruh paket keuntungan profesi [{GetProfessionDisplayName(selectedProfession)}] telah dimasukkan ke dalam KADO STARTER di lantai Cabin rumah Anda! Buka kado tersebut setelah login (!login <password>)."
                 );
             }
             else
             {
-                bool alreadyDeliveredV2 = await HasKitV2DeliveredAsync(farmerId);
-                if (!alreadyDeliveredV2 && onlineFarmer != null)
+                Chest? unopenedBox = cabin?.objects.Values.OfType<Chest>().FirstOrDefault(c => c.giftbox.Value || c.giftboxIsStarterGift.Value);
+                if (unopenedBox != null)
                 {
-                    _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
-
-                    void DeliverNow(object? s, OneSecondUpdateTickedEventArgs ev)
+                    _helper.SendPrivateMessage(
+                        farmerId,
+                        $"[green][Profesi] Seluruh paket keuntungan profesi [{GetProfessionDisplayName(selectedProfession)}] tersedia di dalam KADO STARTER di lantai Cabin rumah Anda! Buka kado tersebut untuk mengambilnya."
+                    );
+                }
+                else
+                {
+                    bool alreadyDeliveredV2 = await HasKitV2DeliveredAsync(farmerId);
+                    bool hasItems = onlineFarmer != null && PlayerHasAnyStarterKitItem(onlineFarmer, selectedProfession);
+                    if (!alreadyDeliveredV2 || !hasItems)
                     {
-                        _helper.Events.GameLoop.OneSecondUpdateTicked -= DeliverNow;
-                        try
+                        if (onlineFarmer != null)
                         {
-                            var f = Game1.GetPlayer(farmerId);
-                            if (f != null)
+                            _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
+
+                            void DeliverNow(object? s, OneSecondUpdateTickedEventArgs ev)
                             {
-                                bool ok = DeliverStarterKit(f, selectedProfession);
-                                if (ok)
+                                _helper.Events.GameLoop.OneSecondUpdateTicked -= DeliverNow;
+                                try
                                 {
-                                    _ = MarkStarterKitReceivedAsync(farmerId);
+                                    var f = Game1.GetPlayer(farmerId);
+                                    if (f != null)
+                                    {
+                                        bool ok = DeliverStarterKit(f, selectedProfession);
+                                        if (ok)
+                                        {
+                                            _ = MarkStarterKitReceivedAsync(farmerId);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _monitor.Log($"[Profession] Failed immediate delivery: {ex.Message}", LogLevel.Error);
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            _monitor.Log($"[Profession] Failed immediate delivery: {ex.Message}", LogLevel.Error);
                         }
                     }
                 }
@@ -345,38 +369,38 @@ public class ProfessionService : ModService
             }
 
             bool alreadyDeliveredV2 = await HasKitV2DeliveredAsync(farmerId);
-            if (alreadyDeliveredV2)
-            {
-                _helper.SendPrivateMessage(
-                    farmerId,
-                    "[yellow][Profesi] Starter kit Anda sudah berhasil diterima dan dicatat di server. Starter kit hanya diberikan 1 kali."
-                );
-                return;
-            }
-
-            bool hasKit = await HasKitBeenGrantedAsync(farmerId);
             bool hasItems = PlayerHasAnyStarterKitItem(onlineFarmer, profession.Value);
 
-            if (hasKit && hasItems)
+            if (alreadyDeliveredV2 && hasItems)
             {
-                // Mark v2 to permanently prevent duplicate claims
-                onlineFarmer.modData["svserver/starter_kit_delivered_v2"] = "1";
-                _ = _redis.SetStringAsync(StarterKitKeyPrefix + "v2:" + farmerId, "1");
                 _helper.SendPrivateMessage(
                     farmerId,
-                    "[yellow][Profesi] Anda sudah memiliki paket starter kit di ransel Anda! Starter kit hanya dapat diambil 1 kali."
+                    "[yellow][Profesi] Starter kit Anda sudah berhasil diterima di ransel Anda! Starter kit hanya diberikan 1 kali."
                 );
                 return;
             }
 
-            if (hasKit && !hasItems)
+            // Check if unopened starter gift box exists in their cabin
+            var cabin = FindPlayerCabin(farmerId);
+            Chest? unopenedBox = cabin?.objects.Values
+                .OfType<Chest>()
+                .FirstOrDefault(c => c.giftbox.Value || c.giftboxIsStarterGift.Value);
+
+            if (unopenedBox != null)
             {
-                _monitor.Log($"[Profession] Player {onlineFarmer.Name} had kit marked granted but 0 items in backpack. Healing and delivering directly into inventory...", LogLevel.Warn);
+                PopulateCabinStarterGiftBox(farmerId, profession.Value, cabin);
                 _helper.SendPrivateMessage(
                     farmerId,
-                    "[aqua][Profesi] Memulihkan perlengkapan starter kit langsung ke dalam ransel Anda..."
+                    $"[green][Profesi] Paket starter kit [{GetProfessionDisplayName(profession.Value)}] telah dimasukkan ke dalam KADO STARTER di lantai Cabin rumah Anda! Silakan buka kado tersebut untuk mengambil seluruh perlengkapan Anda."
                 );
+                return;
             }
+
+            _monitor.Log($"[Profession] Player {onlineFarmer.Name} claiming kit directly into inventory...", LogLevel.Info);
+            _helper.SendPrivateMessage(
+                farmerId,
+                "[aqua][Profesi] Memulihkan perlengkapan starter kit langsung ke dalam ransel Anda..."
+            );
 
             _helper.Events.GameLoop.OneSecondUpdateTicked += DeliverNow;
 
@@ -410,15 +434,35 @@ public class ProfessionService : ModService
 
         Task.Run(async () =>
         {
-            await Task.Delay(3500);
+            await Task.Delay(2500);
             var profession = await GetPlayerProfessionAsync(farmerId);
             if (!profession.HasValue)
             {
                 _helper.SendPrivateMessage(
                     farmerId,
-                    "[Profesi] Selamat datang! Pilih peran profesi RPG Anda dengan mengetik: !profesi farmer (atau miner, fisherman, rancher, forager) untuk mengambil starter kit spesialisasi Anda!"
+                    "[Profesi] Selamat datang! Klik tombol [Pilih Profesi RPG] di layar Anda atau ketik: !profesi <farmer | miner | fisherman | rancher | forager> untuk memilih profesi Anda!"
                 );
                 _ = SendProfessionUIModalToClientAsync(farmerId);
+            }
+            else
+            {
+                try
+                {
+                    _helper.Multiplayer.SendMessage(
+                        profession.Value.ToString(),
+                        "ProfessionConfirmed",
+                        modIDs: new[] { "JunimoHost.ClientSync" },
+                        playerIDs: new[] { farmerId }
+                    );
+                }
+                catch { }
+
+                var cabin = FindPlayerCabin(farmerId);
+                Chest? unopenedBox = cabin?.objects.Values.OfType<Chest>().FirstOrDefault(c => c.giftbox.Value || c.giftboxIsStarterGift.Value);
+                if (unopenedBox != null)
+                {
+                    PopulateCabinStarterGiftBox(farmerId, profession.Value, cabin);
+                }
             }
         });
     }
@@ -721,7 +765,10 @@ public class ProfessionService : ModService
 
     private void OnPlayerWarped(object? sender, WarpedEventArgs e)
     {
-        if (e.Player == null || e.Player.IsMainPlayer) return;
+        if (e.Player == null || e.Player.IsMainPlayer)
+        {
+            return;
+        }
 
         // Only deliver kit once player leaves the lobby and is on Farm or Cabin
         string locName = e.NewLocation?.NameOrUniqueName ?? "";
@@ -741,19 +788,23 @@ public class ProfessionService : ModService
                 return;
             }
 
-            bool alreadyDeliveredV2 = await HasKitV2DeliveredAsync(farmerId);
-            if (alreadyDeliveredV2)
+            var cabin = FindPlayerCabin(farmerId);
+            Chest? unopenedBox = cabin?.objects.Values.OfType<Chest>().FirstOrDefault(c => c.giftbox.Value || c.giftboxIsStarterGift.Value);
+            if (unopenedBox != null)
             {
+                PopulateCabinStarterGiftBox(farmerId, profession.Value, cabin);
+                _helper.SendPrivateMessage(
+                    farmerId,
+                    $"[green][Profesi] Selamat datang! Seluruh paket keuntungan profesi [{GetProfessionDisplayName(profession.Value)}] tersedia di KADO STARTER di lantai Cabin rumah Anda. Buka kado tersebut untuk mengambilnya!"
+                );
                 return;
             }
 
-            bool hasKit = await HasKitBeenGrantedAsync(farmerId);
+            bool alreadyDeliveredV2 = await HasKitV2DeliveredAsync(farmerId);
             bool hasItems = PlayerHasAnyStarterKitItem(e.Player, profession.Value);
 
-            if (hasKit && hasItems)
+            if (alreadyDeliveredV2 && hasItems)
             {
-                e.Player.modData["svserver/starter_kit_delivered_v2"] = "1";
-                _ = _redis.SetStringAsync(StarterKitKeyPrefix + "v2:" + farmerId, "1");
                 return;
             }
 
@@ -778,9 +829,192 @@ public class ProfessionService : ModService
         });
     }
 
+    public static List<Item> GetStarterKitItems(ProfessionType profession)
+    {
+        var items = new List<Item>();
+
+        // 15x Seasonal Seeds (matches vanilla starter gift box)
+        string seedId = Game1.currentSeason switch
+        {
+            "summer" => "(O)487", // Corn Seeds
+            "fall" => "(O)490",   // Eggplant Seeds
+            "winter" => "(O)495", // Winter Seeds
+            _ => "(O)472",        // Parsnip Seeds (Spring default)
+        };
+        items.Add(ItemRegistry.Create(seedId, 15));
+
+        switch (profession)
+        {
+            case ProfessionType.Farmer:
+                // 1x Quality Sprinkler + 15x Basic Fertilizer
+                items.Add(ItemRegistry.Create("(O)621", 1));
+                items.Add(ItemRegistry.Create("(O)368", 15));
+                break;
+
+            case ProfessionType.Miner:
+                // 1x Copper Pickaxe + 10x Torches + 3x Cherry Bombs + 2x Miner's Treat
+                items.Add(new Pickaxe { UpgradeLevel = 1 });
+                items.Add(ItemRegistry.Create("(O)93", 10));
+                items.Add(ItemRegistry.Create("(O)286", 3));
+                items.Add(ItemRegistry.Create("(O)243", 2));
+                break;
+
+            case ProfessionType.Fisherman:
+                // 1x Fiberglass Rod + 20x Bait + 2x Crab Pot + 2x Dish o' The Sea
+                items.Add(new FishingRod(2));
+                items.Add(ItemRegistry.Create("(O)685", 20));
+                items.Add(ItemRegistry.Create("(O)710", 2));
+                items.Add(ItemRegistry.Create("(O)242", 2));
+                break;
+
+            case ProfessionType.Rancher:
+                // 30x Hay + 1x Milk Pail + 1x Shears
+                items.Add(ItemRegistry.Create("(O)178", 30));
+                items.Add(new MilkPail());
+                items.Add(new Shears());
+                break;
+
+            case ProfessionType.Forager:
+                // 1x Copper Axe + 1x Charcoal Kiln + 10x Tree Fertilizer + 2x Survival Burger
+                items.Add(new Axe { UpgradeLevel = 1 });
+                items.Add(ItemRegistry.Create("(BC)114", 1));
+                items.Add(ItemRegistry.Create("(O)805", 10));
+                items.Add(ItemRegistry.Create("(O)241", 2));
+                break;
+        }
+
+        return items;
+    }
+
+    public static Cabin? FindPlayerCabin(long playerId)
+    {
+        var farm = Game1.getFarm();
+        if (farm == null)
+        {
+            return null;
+        }
+
+        foreach (var building in farm.buildings)
+        {
+            if (!building.isCabin || LobbyService.IsLobbyCabin(building))
+            {
+                continue;
+            }
+            var cabin = building.GetIndoors<Cabin>();
+            if (cabin == null)
+            {
+                continue;
+            }
+
+            if (cabin.owner?.UniqueMultiplayerID == playerId)
+            {
+                return cabin;
+            }
+            if (cabin.farmhandReference.defined.Value && cabin.farmhandReference.uid.Value == playerId)
+            {
+                return cabin;
+            }
+        }
+
+        if (Game1.otherFarmers.TryGetValue(playerId, out var player))
+        {
+            var homeLoc = player.homeLocation?.Value;
+            if (!string.IsNullOrEmpty(homeLoc))
+            {
+                foreach (var building in farm.buildings)
+                {
+                    if (!building.isCabin || LobbyService.IsLobbyCabin(building))
+                    {
+                        continue;
+                    }
+                    var cabin = building.GetIndoors<Cabin>();
+                    if (cabin != null && cabin.NameOrUniqueName == homeLoc)
+                    {
+                        return cabin;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public bool PopulateCabinStarterGiftBox(long farmerId, ProfessionType profession, Cabin? cabin = null)
+    {
+        cabin ??= FindPlayerCabin(farmerId);
+        if (cabin == null)
+        {
+            _monitor.Log($"[Profession] Could not find cabin for farmer {farmerId} to populate starter gift box.", LogLevel.Warn);
+            return false;
+        }
+
+        Chest? starterBox = cabin.objects.Values
+            .OfType<Chest>()
+            .FirstOrDefault(c => c.giftbox.Value || c.giftboxIsStarterGift.Value);
+
+        if (starterBox == null)
+        {
+            Vector2 tile = new Vector2(3f, 4f);
+            if (cabin.objects.ContainsKey(tile))
+            {
+                Vector2[] candidates = new[] { new Vector2(3f, 4f), new Vector2(3f, 5f), new Vector2(4f, 4f), new Vector2(2f, 4f) };
+                foreach (var c in candidates)
+                {
+                    if (!cabin.objects.ContainsKey(c))
+                    {
+                        tile = c;
+                        break;
+                    }
+                }
+            }
+
+            starterBox = new Chest(playerChest: true, tile);
+            starterBox.giftbox.Value = true;
+            starterBox.giftboxIsStarterGift.Value = true;
+            cabin.objects[tile] = starterBox;
+            _monitor.Log($"[Profession] Created fresh starter gift box at ({tile.X}, {tile.Y}) in {cabin.NameOrUniqueName}", LogLevel.Info);
+        }
+
+        starterBox.giftbox.Value = true;
+        starterBox.giftboxIsStarterGift.Value = true;
+
+        var items = GetStarterKitItems(profession);
+        starterBox.Items.Clear();
+        foreach (var it in items)
+        {
+            if (it != null)
+            {
+                starterBox.Items.Add(it);
+            }
+        }
+
+        _monitor.Log($"[Profession] Populated starter gift box for farmer {farmerId} ({profession}) with {starterBox.Items.Count} items in {cabin.NameOrUniqueName}", LogLevel.Info);
+
+        if (profession == ProfessionType.Rancher)
+        {
+            var farmer = Game1.GetPlayer(farmerId);
+            if (farmer != null)
+            {
+                try
+                {
+                    SetupRancherCoopAndAnimals(farmer);
+                }
+                catch (Exception ex)
+                {
+                    _monitor.Log($"[Profession] Error setting up coop/animals for Rancher {farmer.Name}: {ex.Message}", LogLevel.Error);
+                }
+            }
+        }
+
+        return true;
+    }
+
     public static bool PlayerHasAnyStarterKitItem(Farmer farmer, ProfessionType profession)
     {
-        if (farmer?.Items == null) return false;
+        if (farmer?.Items == null)
+        {
+            return false;
+        }
 
         return profession switch
         {
@@ -795,7 +1029,10 @@ public class ProfessionService : ModService
 
     public bool DeliverStarterKit(Farmer farmer, ProfessionType profession)
     {
-        if (farmer == null) return false;
+        if (farmer == null)
+        {
+            return false;
+        }
 
         farmer.modData["svserver/profession"] = profession.ToString();
 
@@ -820,96 +1057,46 @@ public class ProfessionService : ModService
             }
         }
 
-        var starterItems = new List<Item>();
-
-        switch (profession)
+        if (profession == ProfessionType.Rancher)
         {
-            case ProfessionType.Farmer:
-                // 1x Quality Sprinkler
-                starterItems.Add(ItemRegistry.Create("(O)621", 1));
+            try
+            {
+                SetupRancherCoopAndAnimals(farmer);
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Profession] Error setting up coop/animals for {farmer.Name}: {ex.Message}", LogLevel.Error);
+            }
+        }
 
-                // 15x Seasonal Seeds
-                string seedId = Game1.currentSeason switch
-                {
-                    "summer" => "(O)487", // Corn Seeds
-                    "fall" => "(O)490",   // Eggplant Seeds
-                    "winter" => "(O)495", // Winter Seeds
-                    _ => "(O)472",        // Parsnip Seeds (Spring default)
-                };
-                starterItems.Add(ItemRegistry.Create(seedId, 15));
+        var starterItems = GetStarterKitItems(profession);
 
-                // 15x Basic Fertilizer
-                starterItems.Add(ItemRegistry.Create("(O)368", 15));
-                break;
-
-            case ProfessionType.Miner:
-                // Upgrade Pickaxe to Copper in-place if farmer has one, otherwise add it
-                var existingPickaxe = farmer.Items.OfType<Pickaxe>().FirstOrDefault();
-                if (existingPickaxe != null)
-                {
-                    existingPickaxe.UpgradeLevel = Math.Max(existingPickaxe.UpgradeLevel, 1);
-                }
-                else
-                {
-                    starterItems.Add(new Pickaxe { UpgradeLevel = 1 });
-                }
-
-                // 10x Torches, 3x Cherry Bombs, 2x Miner's Treat
-                starterItems.Add(ItemRegistry.Create("(O)93", 10));
-                starterItems.Add(ItemRegistry.Create("(O)286", 3));
-                starterItems.Add(ItemRegistry.Create("(O)243", 2));
-                break;
-
-            case ProfessionType.Fisherman:
-                // Fiberglass Rod
-                starterItems.Add(new FishingRod(2));
-
-                // 20x Bait, 2x Crab Pot, 2x Dish o' The Sea
-                starterItems.Add(ItemRegistry.Create("(O)685", 20));
-                starterItems.Add(ItemRegistry.Create("(O)710", 2));
-                starterItems.Add(ItemRegistry.Create("(O)242", 2));
-                break;
-
-            case ProfessionType.Rancher:
-                // Setup Coop and chickens on Farm
-                try
-                {
-                    SetupRancherCoopAndAnimals(farmer);
-                }
-                catch (Exception ex)
-                {
-                    _monitor.Log($"[Profession] Error setting up coop/animals for {farmer.Name}: {ex.Message}", LogLevel.Error);
-                }
-
-                // 30x Hay, Milk Pail, Shears
-                starterItems.Add(ItemRegistry.Create("(O)178", 30));
-                starterItems.Add(new MilkPail());
-                starterItems.Add(new Shears());
-                break;
-
-            case ProfessionType.Forager:
-                // Upgrade Axe to Copper in-place if farmer has one, otherwise add it
-                var existingAxe = farmer.Items.OfType<Axe>().FirstOrDefault();
-                if (existingAxe != null)
-                {
-                    existingAxe.UpgradeLevel = Math.Max(existingAxe.UpgradeLevel, 1);
-                }
-                else
-                {
-                    starterItems.Add(new Axe { UpgradeLevel = 1 });
-                }
-
-                // 1x Charcoal Kiln, 10x Tree Fertilizer, 2x Survival Burger
-                starterItems.Add(ItemRegistry.Create("(BC)114", 1));
-                starterItems.Add(ItemRegistry.Create("(O)805", 10));
-                starterItems.Add(ItemRegistry.Create("(O)241", 2));
-                break;
+        if (profession == ProfessionType.Miner)
+        {
+            var existingPickaxe = farmer.Items.OfType<Pickaxe>().FirstOrDefault();
+            if (existingPickaxe != null)
+            {
+                existingPickaxe.UpgradeLevel = Math.Max(existingPickaxe.UpgradeLevel, 1);
+                starterItems.RemoveAll(i => i is Pickaxe);
+            }
+        }
+        else if (profession == ProfessionType.Forager)
+        {
+            var existingAxe = farmer.Items.OfType<Axe>().FirstOrDefault();
+            if (existingAxe != null)
+            {
+                existingAxe.UpgradeLevel = Math.Max(existingAxe.UpgradeLevel, 1);
+                starterItems.RemoveAll(i => i is Axe);
+            }
         }
 
         var overflow = new List<Item>();
         foreach (var item in starterItems)
         {
-            if (item == null) continue;
+            if (item == null)
+            {
+                continue;
+            }
             var remaining = farmer.addItemToInventory(item);
             if (remaining != null)
             {

@@ -30,7 +30,6 @@ public class ModEntry : Mod
     private bool _syncCompleted;
     private bool _restartNeeded;
     private int _updatedCount;
-
     private Rectangle _lobbyButtonBounds = Rectangle.Empty;
     private Rectangle _modalOkButtonBounds = Rectangle.Empty;
     private Rectangle _modalQuitButtonBounds = Rectangle.Empty;
@@ -38,6 +37,7 @@ public class ModEntry : Mod
 
     private Rectangle _professionHudButtonBounds = Rectangle.Empty;
     private bool _isHoveringProfessionHudButton;
+    private bool _hasAutoRequestedProfession;
 
     public override void Entry(IModHelper helper)
     {
@@ -45,6 +45,8 @@ public class ModEntry : Mod
         Config = helper.ReadConfig<ModConfig>();
 
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+        helper.Events.GameLoop.SaveLoaded += (s, ev) => _hasAutoRequestedProfession = false;
+        helper.Events.GameLoop.OneSecondUpdateTicked += OnOneSecondUpdateTicked;
         helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
         helper.Events.Display.RenderedHud += OnRenderedHud;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
@@ -189,7 +191,10 @@ public class ModEntry : Mod
     private bool IsInTitleOrLobbyMenu()
     {
         var menu = Game1.activeClickableMenu;
-        if (menu == null) return false;
+        if (menu == null)
+        {
+            return false;
+        }
 
         string typeName = menu.GetType().Name;
         return typeName.Contains("Title") || typeName.Contains("Coop") || menu is TitleMenu || menu is CoopMenu;
@@ -291,7 +296,7 @@ public class ModEntry : Mod
         );
 
         // Header Title
-        string title = $"Junimo Mod Sync v{ModManifest.Version}";
+        string title = _syncCompleted ? $"Junimo Mod Sync v{ModManifest.Version} (Completed)" : $"Junimo Mod Sync v{ModManifest.Version}";
         var titleSize = Game1.dialogueFont.MeasureString(title);
         var titlePos = new Vector2(modalX + (modalW - titleSize.X) / 2f, modalY + 24);
         Utility.drawTextWithShadow(b, title, Game1.dialogueFont, titlePos, Game1.textColor);
@@ -398,7 +403,6 @@ public class ModEntry : Mod
 
         _isSyncing = true;
         _showModal = true;
-        _syncCompleted = false;
         _restartNeeded = false;
         _progress = 0.05f;
         _syncStatus = "Connecting to dedicated server...";
@@ -559,7 +563,10 @@ public class ModEntry : Mod
                                 {
                                     retries++;
                                     Monitor.Log($"[JunimoClientSync] Chunk {start}-{end} failed (attempt {retries}/3): {ex.Message}. Retrying...", LogLevel.Warn);
-                                    if (retries >= 3) throw;
+                                    if (retries >= 3)
+                                    {
+                                        throw;
+                                    }
                                     await Task.Delay(1000);
                                     fileStream.Seek(start, SeekOrigin.Begin);
                                 }
@@ -631,7 +638,6 @@ public class ModEntry : Mod
         catch (Exception ex)
         {
             _isSyncing = false;
-            _syncCompleted = true;
             _restartNeeded = false;
             _syncStatus = "Sync failed: " + ex.Message;
             _syncDetail = "Check SMAPI console log or verify server connection.";
@@ -641,8 +647,14 @@ public class ModEntry : Mod
 
     private static bool IsVersionOlder(string current, string required)
     {
-        if (string.IsNullOrWhiteSpace(required)) return false;
-        if (string.IsNullOrWhiteSpace(current)) return true;
+        if (string.IsNullOrWhiteSpace(required))
+        {
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            return true;
+        }
 
         try
         {
@@ -654,8 +666,14 @@ public class ModEntry : Mod
             {
                 int cur = i < curParts.Length ? curParts[i] : 0;
                 int req = i < reqParts.Length ? reqParts[i] : 0;
-                if (cur < req) return true;
-                if (cur > req) return false;
+                if (cur < req)
+                {
+                    return true;
+                }
+                if (cur > req)
+                {
+                    return false;
+                }
             }
             return false;
         }
@@ -668,12 +686,34 @@ public class ModEntry : Mod
     private static string FormatBytes(long bytes)
     {
         if (bytes >= 1024 * 1024 * 1024)
+        {
             return $"{(bytes / (1024.0 * 1024.0 * 1024.0)):F2} GB";
+        }
         if (bytes >= 1024 * 1024)
+        {
             return $"{(bytes / (1024.0 * 1024.0)):F1} MB";
+        }
         if (bytes >= 1024)
+        {
             return $"{(bytes / 1024.0):F0} KB";
+        }
         return $"{bytes} B";
+    }
+
+    private void OnOneSecondUpdateTicked(object? sender, OneSecondUpdateTickedEventArgs e)
+    {
+        if (Context.IsWorldReady && Context.IsMultiplayer && !_hasAutoRequestedProfession)
+        {
+            _hasAutoRequestedProfession = true;
+            if (!Game1.player.modData.ContainsKey("svserver/profession"))
+            {
+                try
+                {
+                    Helper.Multiplayer.SendMessage("REQ", "RequestProfessionUI", modIDs: new[] { "JunimoHost.Server" });
+                }
+                catch { }
+            }
+        }
     }
 
     private void OnRenderedHud(object? sender, RenderedHudEventArgs e)
@@ -684,11 +724,9 @@ public class ModEntry : Mod
             return;
         }
 
-        string locName = Game1.currentLocation?.NameOrUniqueName ?? "";
-        bool inLobby = locName.Contains("Lobby", StringComparison.OrdinalIgnoreCase);
         bool hasProfession = Game1.player.modData.ContainsKey("svserver/profession");
 
-        if (inLobby || !hasProfession)
+        if (!hasProfession)
         {
             DrawProfessionHudButton(e.SpriteBatch);
         }
@@ -750,7 +788,10 @@ public class ModEntry : Mod
 
     private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
     {
-        if (e.FromModID != "JunimoHost.Server") return;
+        if (e.FromModID != "JunimoHost.Server")
+        {
+            return;
+        }
 
         if (e.Type == "ShowProfessionUI")
         {
@@ -767,6 +808,7 @@ public class ModEntry : Mod
         {
             string chosen = e.ReadAs<string>();
             Game1.player.modData["svserver/profession"] = chosen;
+            _professionHudButtonBounds = Rectangle.Empty;
             Game1.playSound("reward");
             Monitor.Log($"[JunimoClientSync] Profession confirmed as '{chosen}'.", LogLevel.Info);
         }

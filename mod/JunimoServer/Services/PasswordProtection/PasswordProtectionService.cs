@@ -1026,6 +1026,23 @@ public class PasswordProtectionService : ModService
             KickPlayerMissingCabin(authData.PlayerId, "warp destination");
             return;
         }
+
+        if (_professionService != null)
+        {
+            try
+            {
+                var prof = _professionService.GetCachedProfession(authData.PlayerId);
+                if (prof.HasValue)
+                {
+                    _professionService.PopulateCabinStarterGiftBox(authData.PlayerId, prof.Value, cabinIndoors);
+                }
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Auth] Error populating starter gift box on warp: {ex.Message}", LogLevel.Warn);
+            }
+        }
+
         var entry = cabinIndoors.getEntryLocation();
         var location = cabinIndoors.NameOrUniqueName;
         var tileX = entry.X;
