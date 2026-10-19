@@ -44,7 +44,7 @@ public class ProfessionSelectionMenu : IClickableMenu
     private int _hoveredButtonIndex = -1;
 
     public ProfessionSelectionMenu(IModHelper helper, IMonitor monitor, int rancherCount = 0, int rancherMax = 2, string currentProfession = "")
-        : base(0, 0, 960, 560, showUpperRightCloseButton: true)
+        : base(0, 0, 1060, 620, showUpperRightCloseButton: true)
     {
         _helper = helper;
         _monitor = monitor;
@@ -63,86 +63,86 @@ public class ProfessionSelectionMenu : IClickableMenu
         _options.Add(new ProfessionOption(
             "farmer",
             "Petani",
-            "Agrikultur",
-            "Ahli bercocok tanam otomatis & panen melimpah.",
+            "PETANI",
+            "Pakar budidaya tanaman & sprinkler siram otomatis.",
             new List<string>
             {
-                "- 1x Quality Sprinkler (8 petak)",
-                "- 15x Bibit Tanaman Musiman",
-                "- 15x Basic Fertilizer"
+                "1x Quality Sprinkler (8 petak)",
+                "15x Bibit Tanaman Musiman",
+                "15x Basic Fertilizer"
             }
         ));
 
         _options.Add(new ProfessionOption(
             "miner",
             "Penambang",
-            "Tambang & Gua",
-            "Ahli penjelajah gua, bebatuan, & bijih logam.",
+            "TAMBANG",
+            "Ahli eksplorasi gua, bebatuan, & bijih logam.",
             new List<string>
             {
-                "- 1x Copper Pickaxe (Upgrade)",
-                "- 10x Obor Tambang (Torches)",
-                "- 3x Cherry Bombs",
-                "- 2x Miner's Treat (+1 Mining)"
+                "1x Copper Pickaxe (Level 1)",
+                "10x Obor Tambang (Torches)",
+                "3x Cherry Bombs",
+                "2x Miner's Treat (+1 Mining)"
             }
         ));
 
         _options.Add(new ProfessionOption(
             "fisherman",
             "Nelayan",
-            "Bahari & Sungai",
-            "Pemasok ikan & makanan energi untuk tim.",
+            "BAHARI",
+            "Penyedia ikan segar, tangkapan laut, & energi tim.",
             new List<string>
             {
-                "- 1x Fiberglass Rod (Pancing)",
-                "- 20x Umpan Ikan (Bait)",
-                "- 2x Crab Pot (Bubu Kepiting)",
-                "- 2x Dish o' The Sea (+3 Fishing)"
+                "1x Fiberglass Rod (Pancing)",
+                "20x Umpan Ikan (Bait)",
+                "2x Bubu Kepiting (Crabpot)",
+                "2x Dish o' The Sea (+3 Fish)"
             }
         ));
 
         string rancherNote = _rancherCount >= _rancherMax
-            ? $"Peternak (Penuh {_rancherCount}/{_rancherMax})"
+            ? $"Peternak ({_rancherCount}/{_rancherMax})"
             : $"Peternak ({_rancherCount}/{_rancherMax})";
 
         _options.Add(new ProfessionOption(
             "rancher",
             rancherNote,
-            "Ternak Hewan",
+            "TERNAK",
             "Spesialis kandang, unggas, & produk harian.",
             new List<string>
             {
-                "- 1x Kandang Ayam (Coop) di Farm",
-                "- 2x Ekor Ayam Penghasil Telur",
-                "- 30x Jerami (Hay)",
-                "- 1x Milk Pail & 1x Shears"
+                "1x Kandang Ayam (Coop Instan)",
+                "2x Ekor Ayam Penghasil Telur",
+                "30x Jerami Makanan (Hay)",
+                "1x Milk Pail & 1x Shears"
             }
         ));
 
         _options.Add(new ProfessionOption(
             "forager",
             "Penebang",
-            "Hutan & Alam",
-            "Penebang kayu, pembuka lahan & ekspedisi liar.",
+            "HUTAN",
+            "Penebang kayu, pembuka lahan, & ekspedisi alam.",
             new List<string>
             {
-                "- 1x Copper Axe (Upgrade Kapak)",
-                "- 1x Charcoal Kiln (Tungku Arang)",
-                "- 10x Tree Fertilizer",
-                "- 2x Survival Burger (+3 Foraging)"
+                "1x Copper Axe (Level 1)",
+                "1x Charcoal Kiln (Tungku)",
+                "10x Tree Fertilizer",
+                "2x Survival Burger (+3 Forage)"
             }
         ));
     }
 
     private void Reposition()
     {
-        width = Math.Min(960, Game1.uiViewport.Width - 32);
-        height = Math.Min(560, Game1.uiViewport.Height - 32);
+        width = Math.Min(1060, Game1.uiViewport.Width - 32);
+        height = Math.Min(620, Game1.uiViewport.Height - 32);
         xPositionOnScreen = (Game1.uiViewport.Width - width) / 2;
         yPositionOnScreen = (Game1.uiViewport.Height - height) / 2;
 
         _closeButton = new ClickableTextureComponent(
-            new Rectangle(xPositionOnScreen + width - 40, yPositionOnScreen + 16, 28, 28),
+            new Rectangle(xPositionOnScreen + width - 42, yPositionOnScreen + 16, 28, 28),
             Game1.mouseCursors,
             new Rectangle(337, 494, 12, 12),
             2.5f
@@ -152,21 +152,21 @@ public class ProfessionSelectionMenu : IClickableMenu
         _buttonBounds.Clear();
 
         int numCards = _options.Count;
-        int paddingSide = 24;
+        int paddingSide = 20;
         int gap = 12;
         int availWidth = width - (paddingSide * 2) - (gap * (numCards - 1));
         int cardWidth = availWidth / numCards;
-        int cardHeight = height - 144;
-        int startY = yPositionOnScreen + 88;
+        int cardHeight = height - 124;
+        int startY = yPositionOnScreen + 84;
 
         for (int i = 0; i < numCards; i++)
         {
             int cardX = xPositionOnScreen + paddingSide + i * (cardWidth + gap);
             _cardBounds.Add(new Rectangle(cardX, startY, cardWidth, cardHeight));
 
-            int btnH = 36;
-            int btnW = cardWidth - 24;
-            int btnX = cardX + 12;
+            int btnH = 38;
+            int btnW = cardWidth - 20;
+            int btnX = cardX + 10;
             int btnY = startY + cardHeight - btnH - 12;
             _buttonBounds.Add(new Rectangle(btnX, btnY, btnW, btnH));
         }
@@ -271,6 +271,15 @@ public class ProfessionSelectionMenu : IClickableMenu
         exitThisMenu();
     }
 
+    private static void DrawScaledText(SpriteBatch b, string text, SpriteFont font, Vector2 position, Color color, float scale = 1f, bool shadow = true)
+    {
+        if (shadow)
+        {
+            b.DrawString(font, text, position + new Vector2(1f, 1f), Game1.textShadowColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+        }
+        b.DrawString(font, text, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+    }
+
     public override void draw(SpriteBatch b)
     {
         // Background dim
@@ -299,18 +308,19 @@ public class ProfessionSelectionMenu : IClickableMenu
         var titleSize = Game1.dialogueFont.MeasureString(title);
         var titlePos = new Vector2(
             xPositionOnScreen + (width - titleSize.X) / 2f,
-            yPositionOnScreen + 20
+            yPositionOnScreen + 18
         );
         Utility.drawTextWithShadow(b, title, Game1.dialogueFont, titlePos, Game1.textColor);
 
         // Subtitle
         string subtitle = "Pilih 1 peran untuk petualangan Lembah Pelikan (Pilihan permanen 1 kali)";
-        var subSize = Game1.smallFont.MeasureString(subtitle);
+        float subScale = 0.85f;
+        var subSize = Game1.smallFont.MeasureString(subtitle) * subScale;
         var subPos = new Vector2(
             xPositionOnScreen + (width - subSize.X) / 2f,
-            yPositionOnScreen + 56
+            yPositionOnScreen + 52
         );
-        Utility.drawTextWithShadow(b, subtitle, Game1.smallFont, subPos, new Color(71, 85, 105));
+        DrawScaledText(b, subtitle, Game1.smallFont, subPos, new Color(71, 85, 105), subScale, shadow: false);
 
         // Draw Close Button
         _closeButton?.draw(b);
@@ -327,7 +337,7 @@ public class ProfessionSelectionMenu : IClickableMenu
             bool isRancherFull = opt.Key == "rancher" && _rancherCount >= _rancherMax && !string.Equals(_currentProfession, "rancher", StringComparison.OrdinalIgnoreCase);
 
             // Card box
-            Color cardBg = isCardHovered ? new Color(254, 252, 240) : Color.White;
+            Color cardBg = isCardHovered ? new Color(255, 253, 245) : Color.White;
             drawTextureBox(
                 b,
                 Game1.menuTexture,
@@ -338,54 +348,66 @@ public class ProfessionSelectionMenu : IClickableMenu
                 card.Height,
                 cardBg,
                 1f,
-                drawShadow: false
+                drawShadow: isCardHovered
             );
 
-            // Card outline accent
+            // Accent color
             Color accentColor = opt.Key switch
             {
-                "farmer" => new Color(34, 139, 34),
-                "miner" => new Color(184, 115, 51),
-                "fisherman" => new Color(30, 144, 255),
-                "rancher" => new Color(218, 165, 32),
-                "forager" => new Color(46, 139, 87),
+                "farmer" => new Color(46, 125, 50),
+                "miner" => new Color(194, 65, 12),
+                "fisherman" => new Color(2, 132, 199),
+                "rancher" => new Color(180, 83, 9),
+                "forager" => new Color(13, 148, 136),
                 _ => Color.DarkSlateGray
             };
 
-            // Category Badge
-            string catText = $"[{opt.Category.ToUpper()}]";
-            var catSize = Game1.tinyFont.MeasureString(catText);
-            var catPos = new Vector2(card.X + (card.Width - catSize.X) / 2f, card.Y + 12);
-            Utility.drawTextWithShadow(b, catText, Game1.tinyFont, catPos, accentColor);
+            // 1. Category Tag (Short, uppercase, non-overlapping)
+            string catText = $"[{opt.Category}]";
+            float catScale = 0.72f;
+            float catW = Game1.tinyFont.MeasureString(catText).X * catScale;
+            Vector2 catPos = new Vector2(card.X + (card.Width - catW) / 2f, card.Y + 12);
+            DrawScaledText(b, catText, Game1.tinyFont, catPos, accentColor, catScale, shadow: false);
 
-            // Profession Title
+            // 2. Profession Title
             string profName = opt.DisplayName;
-            var profSize = Game1.smallFont.MeasureString(profName);
-            var profPos = new Vector2(card.X + (card.Width - profSize.X) / 2f, card.Y + 28);
-            Utility.drawTextWithShadow(b, profName, Game1.smallFont, profPos, Game1.textColor);
+            float profScale = 0.85f;
+            float profW = Game1.smallFont.MeasureString(profName).X * profScale;
+            Vector2 profPos = new Vector2(card.X + (card.Width - profW) / 2f, card.Y + 30);
+            DrawScaledText(b, profName, Game1.smallFont, profPos, Game1.textColor, profScale, shadow: true);
 
-            // Divider line
-            b.Draw(Game1.staminaRect, new Rectangle(card.X + 12, card.Y + 54, card.Width - 24, 2), new Color(226, 232, 240));
+            // 3. Top Divider
+            b.Draw(Game1.staminaRect, new Rectangle(card.X + 10, card.Y + 56, card.Width - 20, 1), new Color(226, 232, 240));
 
-            // Description
-            string desc = Game1.parseText(opt.Description, Game1.tinyFont, card.Width - 16);
-            var descPos = new Vector2(card.X + 8, card.Y + 62);
-            b.DrawString(Game1.tinyFont, desc, descPos, new Color(51, 65, 85));
+            // 4. Role Summary (1-2 lines, nicely scaled)
+            float descScale = 0.72f;
+            int maxDescWidth = (int)((card.Width - 16) / descScale);
+            string desc = Game1.parseText(opt.Description, Game1.tinyFont, maxDescWidth);
+            Vector2 descPos = new Vector2(card.X + 8, card.Y + 64);
+            DrawScaledText(b, desc, Game1.tinyFont, descPos, new Color(71, 85, 105), descScale, shadow: false);
 
-            // Bonus Label
-            var bonusLabelPos = new Vector2(card.X + 8, card.Y + 116);
-            b.DrawString(Game1.tinyFont, "Paket Perlengkapan:", bonusLabelPos, new Color(15, 23, 42));
+            // 5. Middle Divider
+            b.Draw(Game1.staminaRect, new Rectangle(card.X + 10, card.Y + 116, card.Width - 20, 1), new Color(226, 232, 240));
 
-            // Starter item list
-            float itemY = card.Y + 134;
+            // 6. Bonus Header Label
+            float bonusHdrScale = 0.72f;
+            Vector2 bonusLabelPos = new Vector2(card.X + 8, card.Y + 124);
+            DrawScaledText(b, "Paket Hadiah Starter:", Game1.smallFont, bonusLabelPos, new Color(30, 41, 59), bonusHdrScale, shadow: false);
+
+            // 7. Starter Item List
+            float itemY = card.Y + 148;
+            float itemScale = 0.70f;
+            int maxItemWidth = (int)((card.Width - 16) / itemScale);
+
             foreach (var itemText in opt.StarterItems)
             {
-                string parsedItem = Game1.parseText(itemText, Game1.tinyFont, card.Width - 16);
-                b.DrawString(Game1.tinyFont, parsedItem, new Vector2(card.X + 8, itemY), new Color(71, 85, 105));
-                itemY += Game1.tinyFont.MeasureString(parsedItem).Y + 4f;
+                string bullet = $"• {itemText}";
+                string parsedItem = Game1.parseText(bullet, Game1.tinyFont, maxItemWidth);
+                DrawScaledText(b, parsedItem, Game1.tinyFont, new Vector2(card.X + 8, itemY), new Color(51, 65, 85), itemScale, shadow: false);
+                itemY += Game1.tinyFont.MeasureString(parsedItem).Y * itemScale + 4f;
             }
 
-            // Button Box
+            // 8. Button Box (Fixed at bottom)
             Color btnColor = isRancherFull ? Color.LightGray : (isBtnHovered ? Color.Wheat : Color.White);
             drawTextureBox(
                 b,
@@ -400,15 +422,16 @@ public class ProfessionSelectionMenu : IClickableMenu
                 drawShadow: !isRancherFull
             );
 
-            // Button Text
+            // 9. Button Text (Centered inside button)
             string btnText = isRancherFull ? "KUOTA PENUH" : "PILIH ROLE";
             Color btnTextColor = isRancherFull ? Color.DimGray : (isBtnHovered ? Color.DarkSlateBlue : Game1.textColor);
-            var btnTextSize = Game1.smallFont.MeasureString(btnText);
+            float btnScale = 0.80f;
+            var btnTextSize = Game1.smallFont.MeasureString(btnText) * btnScale;
             var btnTextPos = new Vector2(
                 btn.X + (btn.Width - btnTextSize.X) / 2f,
                 btn.Y + (btn.Height - btnTextSize.Y) / 2f
             );
-            Utility.drawTextWithShadow(b, btnText, Game1.smallFont, btnTextPos, btnTextColor);
+            DrawScaledText(b, btnText, Game1.smallFont, btnTextPos, btnTextColor, btnScale, shadow: !isRancherFull);
         }
 
         // Draw Mouse Cursor

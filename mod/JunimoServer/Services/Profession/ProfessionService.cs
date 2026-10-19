@@ -260,6 +260,15 @@ public class ProfessionService : ModService
                 PopulateCabinStarterGiftBox(farmerId, selectedProfession, cabin);
             }
 
+            if (selectedProfession == ProfessionType.Rancher)
+            {
+                var targetFarmer = Game1.GetPlayer(farmerId);
+                if (targetFarmer != null)
+                {
+                    SetupRancherCoopAndAnimals(targetFarmer);
+                }
+            }
+
             // Notify JunimoClientSync UI if present
             try
             {
@@ -1018,6 +1027,11 @@ public class ProfessionService : ModService
                 return;
             }
 
+            if (profession.Value == ProfessionType.Rancher)
+            {
+                SetupRancherCoopAndAnimals(e.Player);
+            }
+
             var cabin = FindPlayerCabin(farmerId);
             Chest? unopenedBox = cabin?.objects.Values.OfType<Chest>().FirstOrDefault(c => c.giftbox.Value || c.giftboxIsStarterGift.Value);
             if (unopenedBox != null)
@@ -1359,101 +1373,166 @@ public class ProfessionService : ModService
         return true;
     }
 
-    private void SetupRancherCoopAndAnimals(Farmer farmer)
+    public void SetupRancherCoopAndAnimals(Farmer farmer)
     {
-        var farm = Game1.getFarm();
-        if (farm == null || farmer == null) return;
+        if (farmer == null) return;
 
-        // Ensure farmer is customized and has a valid name before creating chickens
-        string farmerName = farmer.Name?.Trim() ?? "";
-        if (string.IsNullOrWhiteSpace(farmerName) || !farmer.isCustomized.Value)
+        GameThreadOneShot.Run(_helper, _monitor, "SetupRancherCoopAndAnimals", () =>
         {
-            _monitor.Log($"[Profession] Deferring chicken spawn for farmer {farmer.UniqueMultiplayerID} because character is not yet customized or name is empty", LogLevel.Debug);
-            return;
-        }
+            var farm = Game1.getFarm();
+            if (farm == null) return;
 
-        // Clean up any orphaned animals left from previous abandoned sessions
-        CleanupOrphanedAnimals();
-
-        // Find existing coop or create one
-        var coop = farm.buildings.FirstOrDefault(b =>
-            b.buildingType.Value.Contains("Coop", StringComparison.OrdinalIgnoreCase) ||
-            b.GetIndoors() is AnimalHouse
-        );
-
-        if (coop == null)
-        {
-            Vector2 coopTile = new Vector2(48, 14);
-
-            // Clear ground tiles
-            for (int x = (int)coopTile.X; x < (int)coopTile.X + 6; x++)
+            string farmerName = farmer.Name?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(farmerName))
             {
-                for (int y = (int)coopTile.Y; y < (int)coopTile.Y + 3; y++)
+                farmerName = !string.IsNullOrWhiteSpace(farmer.displayName)
+                    ? farmer.displayName
+                    : $"Peternak_{farmer.UniqueMultiplayerID % 1000}";
+            }
+
+            // Clean up any orphaned animals left from previous abandoned sessions
+            CleanupOrphanedAnimals();
+
+            // Find existing coop with space or any coop
+            Building? coop = farm.buildings.FirstOrDefault(b =>
+                (b.buildingType.Value.Contains("Coop", StringComparison.OrdinalIgnoreCase) || b.GetIndoors() is AnimalHouse) &&
+                b.GetIndoors() is AnimalHouse ah && ah.animals.Length + 2 <= ah.animalLimit.Value
+            );
+
+            if (coop == null)
+            {
+                coop = farm.buildings.FirstOrDefault(b =>
+                    b.buildingType.Value.Contains("Coop", StringComparison.OrdinalIgnoreCase) ||
+                    b.GetIndoors() is AnimalHouse
+                );
+            }
+
+            if (coop == null)
+            {
+                Vector2 coopTile = new Vector2(48, 14);
+                if (farm.getBuildingAt(coopTile) != null)
                 {
-                    var pos = new Vector2(x, y);
-                    farm.terrainFeatures.Remove(pos);
-                    farm.Objects.Remove(pos);
-                    for (int i = farm.resourceClumps.Count - 1; i >= 0; i--)
+                    coopTile = new Vector2(56, 14);
+                }
+                if (farm.getBuildingAt(coopTile) != null)
+                {
+                    coopTile = new Vector2(40, 14);
+                }
+
+                // Clear ground tiles
+                for (int x = (int)coopTile.X; x < (int)coopTile.X + 6; x++)
+                {
+                    for (int y = (int)coopTile.Y; y < (int)coopTile.Y + 3; y++)
                     {
-                        if (farm.resourceClumps[i].Tile == pos)
+                        var pos = new Vector2(x, y);
+                        farm.terrainFeatures.Remove(pos);
+                        farm.Objects.Remove(pos);
+                        for (int i = farm.resourceClumps.Count - 1; i >= 0; i--)
                         {
-                            farm.resourceClumps.RemoveAt(i);
+                            if (farm.resourceClumps[i].Tile == pos)
+                            {
+                                farm.resourceClumps.RemoveAt(i);
+                            }
                         }
                     }
                 }
+
+                coop = new Building("Coop", coopTile);
+                if (farm.buildStructure(coop, coopTile, Game1.player, skipSafetyChecks: true))
+                {
+                    coop.ClearTerrainBelow();
+                    coop.daysOfConstructionLeft.Value = 0;
+                    coop.load();
+                    _monitor.Log($"[Profession] Spawned new Starter Coop via buildStructure at ({coopTile.X}, {coopTile.Y})", LogLevel.Info);
+                }
+                else
+                {
+                    coop.daysOfConstructionLeft.Value = 0;
+                    farm.buildings.Add(coop);
+                    coop.ClearTerrainBelow();
+                    coop.load();
+                    _monitor.Log($"[Profession] Spawned new Starter Coop via direct add at ({coopTile.X}, {coopTile.Y})", LogLevel.Info);
+                }
+            }
+            else
+            {
+                coop.daysOfConstructionLeft.Value = 0;
             }
 
-            coop = new Building("Coop", coopTile);
-            coop.daysOfConstructionLeft.Value = 0;
-            farm.buildings.Add(coop);
-            coop.load();
-            _monitor.Log("[Profession] Spawned new Starter Coop at (48, 14)", LogLevel.Info);
-        }
-
-        if (coop.GetIndoors() is not AnimalHouse animalHouse)
-        {
-            _monitor.Log("[Profession] Coop indoors is not AnimalHouse", LogLevel.Warn);
-            return;
-        }
-
-        // Determine if this farmer already has animals in the coop
-        bool alreadyHasAnimals = animalHouse.animals.Values.Any(a => a.ownerID.Value == farmer.UniqueMultiplayerID);
-        if (alreadyHasAnimals)
-        {
-            return;
-        }
-
-        // Check if there is already another rancher with white chickens
-        bool hasWhiteChickens = animalHouse.animals.Values.Any(a => a.type.Value.Contains("White", StringComparison.OrdinalIgnoreCase));
-        bool isFirstRancher = !hasWhiteChickens;
-
-        string chickenType = isFirstRancher ? "White Chicken" : "Brown Chicken";
-        string prefixName1 = isFirstRancher ? "Clucky" : "Chicky";
-        string prefixName2 = isFirstRancher ? "Pipit" : "Nugget";
-
-        var names = new[] { $"[{farmerName}] {prefixName1}", $"[{farmerName}] {prefixName2}" };
-
-        foreach (var name in names)
-        {
-            long animalId = Game1.Multiplayer.getNewID();
-            var animal = new FarmAnimal(chickenType, animalId, farmer.UniqueMultiplayerID)
+            // Ensure AnimalHouse indoors is properly loaded
+            var indoors = coop.GetIndoors();
+            if (indoors == null)
             {
-                Name = name,
-                displayName = name,
-                home = coop,
-            };
-            animal.ownerID.Value = farmer.UniqueMultiplayerID;
-            animal.modData["svserver/owner_name"] = farmerName;
-            animal.modData["svserver/owner_id"] = farmer.UniqueMultiplayerID.ToString();
-            animal.Position = new Vector2(3 * 64, 3 * 64);
+                coop.ReloadBuildingData();
+                indoors = coop.GetIndoors();
+            }
+            if (indoors == null)
+            {
+                var newAnimalHouse = new AnimalHouse("Maps\\Coop", "Coop");
+                newAnimalHouse.isStructure.Value = true;
+                newAnimalHouse.uniqueName.Value = "Coop_" + Guid.NewGuid();
+                coop.indoors.Value = newAnimalHouse;
+                coop.updateInteriorWarps();
+                indoors = newAnimalHouse;
+            }
 
-            animalHouse.animals.Add(animalId, animal);
-            _monitor.Log($"[Profession] Spawned {chickenType} '{name}' for {farmerName}", LogLevel.Info);
-        }
+            if (indoors is not AnimalHouse animalHouse)
+            {
+                _monitor.Log("[Profession] Coop indoors is not AnimalHouse after initialization attempts", LogLevel.Warn);
+                return;
+            }
 
-        _helper.SendPrivateMessage(
-            farmer.UniqueMultiplayerID,
-            $"[green][Profesi] Kandang ayam (Coop) instan Anda telah siap di area Farm (koordinat X:48, Y:14)! Masuk ke dalam pintu kandang untuk menemui ayam Anda ({prefixName1} & {prefixName2})."
-        );
+            if (animalHouse.animalLimit.Value < 4)
+            {
+                animalHouse.animalLimit.Value = 4;
+            }
+
+            // Determine if this farmer already has animals in the coop
+            bool alreadyHasAnimals = animalHouse.animals.Values.Any(a =>
+                a.ownerID.Value == farmer.UniqueMultiplayerID ||
+                (a.modData.TryGetValue("svserver/owner_id", out var oid) && oid == farmer.UniqueMultiplayerID.ToString())
+            );
+
+            if (alreadyHasAnimals)
+            {
+                _monitor.Log($"[Profession] Farmer {farmer.UniqueMultiplayerID} already has animals in the coop.", LogLevel.Debug);
+                return;
+            }
+
+            // Check if there is already another rancher with white chickens
+            bool hasWhiteChickens = animalHouse.animals.Values.Any(a => a.type.Value.Contains("White", StringComparison.OrdinalIgnoreCase));
+            bool isFirstRancher = !hasWhiteChickens;
+
+            string chickenType = isFirstRancher ? "White Chicken" : "Brown Chicken";
+            string prefixName1 = isFirstRancher ? "Clucky" : "Chicky";
+            string prefixName2 = isFirstRancher ? "Pipit" : "Nugget";
+
+            var names = new[] { $"[{farmerName}] {prefixName1}", $"[{farmerName}] {prefixName2}" };
+            int offset = 0;
+
+            foreach (var name in names)
+            {
+                long animalId = Game1.Multiplayer.getNewID();
+                var animal = new FarmAnimal(chickenType, animalId, farmer.UniqueMultiplayerID)
+                {
+                    Name = name,
+                    displayName = name,
+                    home = coop,
+                };
+                animal.ownerID.Value = farmer.UniqueMultiplayerID;
+                animal.modData["svserver/owner_name"] = farmerName;
+                animal.modData["svserver/owner_id"] = farmer.UniqueMultiplayerID.ToString();
+                animal.Position = new Vector2((3 + offset) * 64, 3 * 64);
+                offset += 2;
+
+                animalHouse.animals.Add(animalId, animal);
+                _monitor.Log($"[Profession] Spawned {chickenType} '{name}' (ID: {animalId}) for {farmerName}", LogLevel.Info);
+            }
+
+            _helper.SendPrivateMessage(
+                farmer.UniqueMultiplayerID,
+                $"[green][Profesi] Kandang ayam (Coop) instan Anda telah siap di area Farm (koordinat X:{coop.tileX.Value}, Y:{coop.tileY.Value})! Masuk ke dalam pintu kandang untuk menemui ayam Anda ({prefixName1} & {prefixName2})."
+            );
+        });
     }
 }
