@@ -1163,6 +1163,7 @@ public class ProfessionService : ModService
             }
 
             coop = new Building("Coop", coopTile);
+            coop.daysOfConstructionLeft.Value = 0;
             farm.buildings.Add(coop);
             coop.load();
             _monitor.Log("[Profession] Spawned new Starter Coop at (48, 14)", LogLevel.Info);
@@ -1208,5 +1209,10 @@ public class ProfessionService : ModService
             animalHouse.animals.Add(animalId, animal);
             _monitor.Log($"[Profession] Spawned {chickenType} '{name}' for {farmer.Name}", LogLevel.Info);
         }
+
+        _helper.SendPrivateMessage(
+            farmer.UniqueMultiplayerID,
+            $"[green][Profesi] Kandang ayam (Coop) instan Anda telah siap di area Farm (koordinat X:48, Y:14)! Masuk ke dalam pintu kandang untuk menemui ayam Anda ({prefixName1} & {prefixName2})."
+        );
     }
 }
