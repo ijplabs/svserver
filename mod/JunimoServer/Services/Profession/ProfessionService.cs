@@ -29,6 +29,7 @@ public class ProfessionService : ModService
     private readonly IMonitor _monitor;
     private readonly IRedisService _redis;
     private readonly ChatCommandsService _chatCommandsService;
+    private readonly Auth.AccountLinkingService? _accountLinking;
 
     private const string ProfessionKeyPrefix = "player:profession:";
     private const string StarterKitKeyPrefix = "player:starter_kit:";
@@ -43,15 +44,18 @@ public class ProfessionService : ModService
         IModHelper helper,
         IMonitor monitor,
         IRedisService redis,
-        ChatCommandsService chatCommandsService
+        ChatCommandsService chatCommandsService,
+        Auth.AccountLinkingService? accountLinking = null
     ) : base(helper, monitor)
     {
         _helper = helper;
         _monitor = monitor;
         _redis = redis;
         _chatCommandsService = chatCommandsService;
+        _accountLinking = accountLinking;
 
         RegisterCommands();
+        _helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         _helper.Events.Player.Warped += OnPlayerWarped;
         _helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
         _helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
@@ -180,6 +184,7 @@ public class ProfessionService : ModService
                 if (current == ProfessionType.Rancher)
                 {
                     await _redis.HashDeleteAsync(RancherSetKey, farmerId.ToString());
+                    CleanupAnimalsForFarmer(farmerId);
                 }
 
                 if (onlineFarmer != null)
@@ -435,6 +440,31 @@ public class ProfessionService : ModService
         Task.Run(async () =>
         {
             await Task.Delay(2500);
+
+            // Check if this farmer is uncustomized (new player)
+            bool isUncustomized = false;
+            var farmhandData = Game1.netWorldState?.Value?.farmhandData;
+            if (farmhandData != null && farmhandData.TryGetValue(farmerId, out var farmhand))
+            {
+                if (farmhand == null || !farmhand.isCustomized.Value)
+                {
+                    isUncustomized = true;
+                }
+            }
+
+            if (isUncustomized)
+            {
+                // Purge any residual ghost data for this uncustomized slot
+                await PurgeStaleFarmerDataAsync(farmerId);
+
+                _helper.SendPrivateMessage(
+                    farmerId,
+                    "[Profesi] Selamat datang! Klik tombol [Pilih Profesi RPG] di layar Anda atau ketik: !profesi <farmer | miner | fisherman | rancher | forager> untuk memilih profesi Anda!"
+                );
+                _ = SendProfessionUIModalToClientAsync(farmerId);
+                return;
+            }
+
             var profession = await GetPlayerProfessionAsync(farmerId);
             if (!profession.HasValue)
             {
@@ -596,6 +626,146 @@ public class ProfessionService : ModService
         return null;
     }
 
+    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                // 1. Clean up orphaned animals on the farm from deleted/uncustomized farmers
+                CleanupOrphanedAnimals();
+
+                // 2. Reconcile ranchers quota against real customized farmers
+                await GetRancherCountAsync();
+
+                // 3. Purge stale redis keys for any uncustomized farmhands currently in the save
+                var farmhandData = Game1.netWorldState?.Value?.farmhandData;
+                if (farmhandData != null)
+                {
+                    foreach (var kvp in farmhandData.FieldDict)
+                    {
+                        var farmhand = kvp.Value.Value;
+                        if (farmhand != null && !farmhand.isCustomized.Value)
+                        {
+                            await PurgeStaleFarmerDataAsync(farmhand.UniqueMultiplayerID);
+                        }
+                    }
+                }
+
+                _monitor.Log("[Profession] Completed OnSaveLoaded reconciliation of professions, rancher quota, and farm animals.", LogLevel.Info);
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Profession] Error during OnSaveLoaded reconciliation: {ex.Message}", LogLevel.Error);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Purges all profession, kit, web-auth, and animal records for a farmer slot that is uncustomized or reset.
+    /// </summary>
+    public async Task PurgeStaleFarmerDataAsync(long farmerId)
+    {
+        try
+        {
+            _professionCache.TryRemove(farmerId, out _);
+            _kitGrantedCache.TryRemove(farmerId, out _);
+
+            await _redis.DeleteAsync(ProfessionKeyPrefix + farmerId);
+            await _redis.DeleteAsync(StarterKitKeyPrefix + farmerId);
+            await _redis.DeleteAsync(StarterKitKeyPrefix + "v2:" + farmerId);
+            await _redis.HashDeleteAsync(RancherSetKey, farmerId.ToString());
+
+            CleanupAnimalsForFarmer(farmerId);
+
+            if (_accountLinking != null)
+            {
+                try
+                {
+                    await _accountLinking.DeleteUserAsync(farmerId);
+                }
+                catch { }
+            }
+
+            _monitor.Log($"[Profession] Purged stale profession and kit data for farmer slot {farmerId}", LogLevel.Info);
+        }
+        catch (Exception ex)
+        {
+            _monitor.Log($"[Profession] Error purging stale data for farmer {farmerId}: {ex.Message}", LogLevel.Error);
+        }
+    }
+
+    /// <summary>
+    /// Removes all animals owned by farmerId from coops and barns.
+    /// </summary>
+    public void CleanupAnimalsForFarmer(long farmerId)
+    {
+        try
+        {
+            var farm = Game1.getFarm();
+            if (farm == null) return;
+
+            foreach (var building in farm.buildings)
+            {
+                if (building.GetIndoors() is AnimalHouse animalHouse)
+                {
+                    var toRemove = animalHouse.animals.Values
+                        .Where(a => a.ownerID.Value == farmerId)
+                        .Select(a => a.myID.Value)
+                        .ToList();
+
+                    foreach (var id in toRemove)
+                    {
+                        animalHouse.animals.Remove(id);
+                        _monitor.Log($"[Profession] Removed animal {id} belonging to farmer {farmerId}", LogLevel.Info);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _monitor.Log($"[Profession] Error cleaning up animals for farmer {farmerId}: {ex.Message}", LogLevel.Error);
+        }
+    }
+
+    /// <summary>
+    /// Cleans up orphaned animals whose owner ID does not belong to any valid, customized farmer in the game.
+    /// </summary>
+    public void CleanupOrphanedAnimals()
+    {
+        try
+        {
+            var farm = Game1.getFarm();
+            if (farm == null) return;
+
+            var validFarmers = Game1.getAllFarmers()
+                .Where(f => f.isCustomized.Value)
+                .Select(f => f.UniqueMultiplayerID)
+                .ToHashSet();
+
+            foreach (var building in farm.buildings)
+            {
+                if (building.GetIndoors() is AnimalHouse animalHouse)
+                {
+                    var toRemove = animalHouse.animals.Values
+                        .Where(a => a.ownerID.Value != 0 && a.ownerID.Value != Game1.player.UniqueMultiplayerID && !validFarmers.Contains(a.ownerID.Value))
+                        .Select(a => a.myID.Value)
+                        .ToList();
+
+                    foreach (var id in toRemove)
+                    {
+                        animalHouse.animals.Remove(id);
+                        _monitor.Log($"[Profession] Cleaned up orphaned animal {id} from AnimalHouse (no active customized owner)", LogLevel.Info);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _monitor.Log($"[Profession] Error cleaning up orphaned animals: {ex.Message}", LogLevel.Error);
+        }
+    }
+
     /// <summary>
     /// Returns server-wide profession counts for all assigned farmers.
     /// </summary>
@@ -610,38 +780,54 @@ public class ProfessionService : ModService
             ["forager"] = 0,
         };
 
-        var seenIds = new HashSet<long>();
-        foreach (var kvp in _professionCache)
-        {
-            seenIds.Add(kvp.Key);
-            string key = kvp.Value.ToString().ToLowerInvariant();
-            if (counts.ContainsKey(key))
-            {
-                counts[key]++;
-            }
-        }
-
         try
         {
-            foreach (var farmer in Game1.getAllFarmhands())
+            var validFarmers = Game1.getAllFarmers()
+                .Where(f => f.isCustomized.Value)
+                .Select(f => f.UniqueMultiplayerID)
+                .ToHashSet();
+
+            // Prune cache of non-existent or uncustomized farmers
+            foreach (var key in _professionCache.Keys)
             {
-                if (farmer == null || seenIds.Contains(farmer.UniqueMultiplayerID)) continue;
-                if (farmer.modData.TryGetValue("svserver/profession", out var val) && !string.IsNullOrEmpty(val))
+                if (!validFarmers.Contains(key))
                 {
-                    if (Enum.TryParse<ProfessionType>(val, true, out var parsed))
+                    _professionCache.TryRemove(key, out _);
+                }
+            }
+
+            foreach (var farmerId in validFarmers)
+            {
+                if (_professionCache.TryGetValue(farmerId, out var prof))
+                {
+                    string key = prof.ToString().ToLowerInvariant();
+                    if (counts.ContainsKey(key))
                     {
-                        seenIds.Add(farmer.UniqueMultiplayerID);
-                        _professionCache[farmer.UniqueMultiplayerID] = parsed;
-                        string key = parsed.ToString().ToLowerInvariant();
-                        if (counts.ContainsKey(key))
+                        counts[key]++;
+                    }
+                }
+                else
+                {
+                    var farmer = Game1.GetPlayer(farmerId);
+                    if (farmer != null && farmer.modData.TryGetValue("svserver/profession", out var val) && !string.IsNullOrEmpty(val))
+                    {
+                        if (Enum.TryParse<ProfessionType>(val, true, out var parsed))
                         {
-                            counts[key]++;
+                            _professionCache[farmerId] = parsed;
+                            string key = parsed.ToString().ToLowerInvariant();
+                            if (counts.ContainsKey(key))
+                            {
+                                counts[key]++;
+                            }
                         }
                     }
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _monitor.Log($"[Profession] Error calculating profession counts: {ex.Message}", LogLevel.Trace);
+        }
 
         return counts;
     }
@@ -700,7 +886,37 @@ public class ProfessionService : ModService
         try
         {
             var hash = await _redis.HashGetAllAsync(RancherSetKey);
-            return hash != null ? hash.Count : 0;
+            if (hash == null || hash.Count == 0) return 0;
+
+            var validFarmers = Game1.getAllFarmers()
+                .Where(f => f.isCustomized.Value)
+                .Select(f => f.UniqueMultiplayerID)
+                .ToHashSet();
+
+            int count = 0;
+            var staleKeys = new List<string>();
+
+            foreach (var key in hash.Keys)
+            {
+                if (long.TryParse(key, out long fid) && validFarmers.Contains(fid))
+                {
+                    var prof = await GetPlayerProfessionAsync(fid);
+                    if (prof == ProfessionType.Rancher)
+                    {
+                        count++;
+                        continue;
+                    }
+                }
+                staleKeys.Add(key);
+            }
+
+            foreach (var stale in staleKeys)
+            {
+                await _redis.HashDeleteAsync(RancherSetKey, stale);
+                _monitor.Log($"[Profession] Pruned stale rancher from quota: {stale}", LogLevel.Info);
+            }
+
+            return count;
         }
         catch
         {
@@ -1132,7 +1348,18 @@ public class ProfessionService : ModService
     private void SetupRancherCoopAndAnimals(Farmer farmer)
     {
         var farm = Game1.getFarm();
-        if (farm == null) return;
+        if (farm == null || farmer == null) return;
+
+        // Ensure farmer is customized and has a valid name before creating chickens
+        string farmerName = farmer.Name?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(farmerName) || !farmer.isCustomized.Value)
+        {
+            _monitor.Log($"[Profession] Deferring chicken spawn for farmer {farmer.UniqueMultiplayerID} because character is not yet customized or name is empty", LogLevel.Debug);
+            return;
+        }
+
+        // Clean up any orphaned animals left from previous abandoned sessions
+        CleanupOrphanedAnimals();
 
         // Find existing coop or create one
         var coop = farm.buildings.FirstOrDefault(b =>
@@ -1190,7 +1417,7 @@ public class ProfessionService : ModService
         string prefixName1 = isFirstRancher ? "Clucky" : "Chicky";
         string prefixName2 = isFirstRancher ? "Pipit" : "Nugget";
 
-        var names = new[] { $"[{farmer.Name}] {prefixName1}", $"[{farmer.Name}] {prefixName2}" };
+        var names = new[] { $"[{farmerName}] {prefixName1}", $"[{farmerName}] {prefixName2}" };
 
         foreach (var name in names)
         {
@@ -1202,12 +1429,12 @@ public class ProfessionService : ModService
                 home = coop,
             };
             animal.ownerID.Value = farmer.UniqueMultiplayerID;
-            animal.modData["svserver/owner_name"] = farmer.Name;
+            animal.modData["svserver/owner_name"] = farmerName;
             animal.modData["svserver/owner_id"] = farmer.UniqueMultiplayerID.ToString();
             animal.Position = new Vector2(3 * 64, 3 * 64);
 
             animalHouse.animals.Add(animalId, animal);
-            _monitor.Log($"[Profession] Spawned {chickenType} '{name}' for {farmer.Name}", LogLevel.Info);
+            _monitor.Log($"[Profession] Spawned {chickenType} '{name}' for {farmerName}", LogLevel.Info);
         }
 
         _helper.SendPrivateMessage(

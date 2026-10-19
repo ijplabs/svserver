@@ -341,6 +341,12 @@ public class PasswordProtectionService : ModService
         var authData = new PlayerAuthData(farmerId) { IsNewPlayer = isNewPlayer };
         _playerAuthData[farmerId] = authData;
 
+        // If this is a fresh or uncustomized player slot, purge any stale ghost data in Redis/farm
+        if (isNewPlayer && _instance._professionService != null)
+        {
+            _ = _instance._professionService.PurgeStaleFarmerDataAsync(farmerId);
+        }
+
         // Register with LobbyService to exclude from sleep ready-checks
         _lobbyService.RegisterUnauthenticatedPlayer(farmerId);
     }
