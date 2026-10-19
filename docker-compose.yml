@@ -98,7 +98,10 @@ services:
 
   # Discord bot for server status display and chat relay
   discord-bot:
-    image: sdvd/discord-bot:${IMAGE_VERSION:-preview}
+    build:
+      context: ./tools/discord-bot
+      dockerfile: Dockerfile
+    image: sdvd-discord-bot:custom
     container_name: sdvd-discord-bot
     environment:
       - API_URL=http://server:${API_PORT:-8080}

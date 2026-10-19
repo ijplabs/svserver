@@ -125,7 +125,10 @@ services:
 
   # Discord Bot (Optional - starts automatically if DISCORD_BOT_TOKEN is set)
   discord-bot:
-    image: sdvd/discord-bot:${IMAGE_VERSION:-preview}
+    build:
+      context: ./tools/discord-bot
+      dockerfile: Dockerfile
+    image: sdvd-discord-bot:custom
     container_name: sdvd-discord-bot
     restart: on-failure
     environment:

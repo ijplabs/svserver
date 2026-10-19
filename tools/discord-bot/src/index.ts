@@ -706,20 +706,30 @@ async function runDashboardUpdate(channel: PostableChannel, embed: EmbedBuilder)
 const COMMANDS = ["!status", "!players", "!profesi", "!role", "!server", "!weather", "!crops", "!backups", "!help"];
 
 /**
- * The command in a message addressed to this bot (`@Bot !status`), or null. The mention
- * is what tells several bots in one Discord server apart and keeps these commands from
- * colliding with the game's own `!` commands typed into the chat relay.
+ * Parses a command in a message.
+ * - If the bot is @mentioned (e.g. `@Bot !profesi`), always responds regardless of channel.
+ * - If NOT @mentioned (e.g. `!profesi`), responds in channels other than the in-game chat relay.
+ *   (In the in-game chat relay, unmentioned commands like `!help` or `!profesi` are relayed to the game).
  */
 function parseCommand(message: Message): string | null {
     const botId = client.user?.id;
-    if (!botId || !message.mentions.has(botId)) {
-        return null;
+    const isMentioned = botId ? message.mentions.has(botId) : false;
+    let content = message.content.trim();
+    if (botId && isMentioned) {
+        content = content.replace(new RegExp(`<@!?${botId}>`, "g"), "").trim();
     }
-    const input = message.content
-        .replace(new RegExp(`<@!?${botId}>`, "g"), "")
-        .trim()
-        .toLowerCase();
-    return COMMANDS.includes(input) ? input : null;
+    const input = content.toLowerCase();
+
+    if (isMentioned && COMMANDS.includes(input)) {
+        return input;
+    }
+
+    const inChatRelay = CHAT_CHANNEL !== null && isConfiguredChannel(message.channel, CHAT_CHANNEL);
+    if (!inChatRelay && COMMANDS.includes(input)) {
+        return input;
+    }
+
+    return null;
 }
 
 /** Replies to a message, logging instead of throwing when the bot may not post in that channel. */
@@ -743,12 +753,7 @@ client.on(Events.MessageCreate, async (message: Message) => {
     // BOT COMMAND HANDLING
     // --------------------------------------------------------------------------
 
-    // The relay and dashboard channels keep their own purpose; commands there are
-    // treated like any other message (relayed into the game, or ignored).
-    const inOwnChannel =
-        (CHAT_CHANNEL !== null && isConfiguredChannel(message.channel, CHAT_CHANNEL)) ||
-        (DASHBOARD_CHANNEL !== null && isConfiguredChannel(message.channel, DASHBOARD_CHANNEL));
-    const input = inOwnChannel ? null : parseCommand(message);
+    const input = parseCommand(message);
     if (input) {
         if (isRateLimited(message.author.id)) {
             const warning = await reply(message, "Too many commands; please wait a moment before trying again.");

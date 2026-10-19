@@ -100,7 +100,7 @@ export function buildStatusFields(status: ServerStatus, includeInvite = true): A
         fields.push({ name: "Invite code", value, inline: false });
     }
 
-    if (status.professions && Object.keys(status.professions).length > 0) {
+    if (status.professions) {
         const profSummary = formatProfessionsSummary(status.professions);
         if (profSummary) {
             fields.push({ name: "Profesi (RPG Roles)", value: profSummary, inline: false });
