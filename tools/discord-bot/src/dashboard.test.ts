@@ -6,6 +6,8 @@ import {
     type EmbedLike,
     formatFooter,
     formatPresence,
+    formatProfessionName,
+    formatProfessionsSummary,
     formatRefreshRate,
     isDashboardEmbed,
     parseDashboardState,
@@ -152,6 +154,70 @@ describe("buildDashboardEmbed", () => {
             "In-game date": "`Spring 14, Year 1 · 6:50 AM`",
             "Build Version": "`1.5.0-preview.134`",
         });
+    });
+
+    test("online with professions renders Profesi (RPG Roles) field", () => {
+        const statusWithProf: ServerStatus = {
+            ...ONLINE_STATUS,
+            professions: { farmer: 2, miner: 1, fisherman: 0, rancher: 1, forager: 0 },
+        };
+        const embed = buildDashboardEmbed(statusWithProf, resolveServerState(statusWithProf), FOOTER, null, NOW).toJSON();
+        expect(embed.fields?.map((f) => [f.name, f.inline])).toEqual([
+            ["Players", true],
+            ["In-game date", true],
+            ["Build Version", false],
+            ["Invite code", false],
+            ["Profesi (RPG Roles)", false],
+        ]);
+        expect(fields(statusWithProf)["Profesi (RPG Roles)"]).toBe(
+            "`Petani: 2` · `Penambang: 1` · `Nelayan: 0` · `Peternak: 1/2` · `Penebang: 0`",
+        );
+    });
+
+    test("online with connected players renders Pemain Online field", () => {
+        const statusWithPlayers: ServerStatus = {
+            ...ONLINE_STATUS,
+            players: [
+                { id: 123, name: "Alice", isOnline: true, profession: "miner" },
+                { id: 456, name: "Bob", isOnline: true, profession: "None" },
+                { id: 789, name: "Charlie", isOnline: false, profession: "farmer" },
+            ],
+        };
+        const embed = buildDashboardEmbed(statusWithPlayers, resolveServerState(statusWithPlayers), FOOTER, null, NOW).toJSON();
+        expect(embed.fields?.map((f) => [f.name, f.inline])).toEqual([
+            ["Players", true],
+            ["In-game date", true],
+            ["Build Version", false],
+            ["Invite code", false],
+            ["Pemain Online", false],
+        ]);
+        expect(fields(statusWithPlayers)["Pemain Online"]).toBe(
+            "• Alice — `Penambang`\n• Bob — _(belum pilih)_",
+        );
+    });
+});
+
+describe("profession formatting", () => {
+    test("formatProfessionName translates correctly", () => {
+        expect(formatProfessionName("farmer")).toBe("Petani");
+        expect(formatProfessionName("miner")).toBe("Penambang");
+        expect(formatProfessionName("fisherman")).toBe("Nelayan");
+        expect(formatProfessionName("rancher")).toBe("Peternak");
+        expect(formatProfessionName("forager")).toBe("Penebang");
+        expect(formatProfessionName(undefined)).toBe("None");
+        expect(formatProfessionName("CustomRole")).toBe("CustomRole");
+    });
+
+    test("formatProfessionsSummary formats 5 roles with rancher quota", () => {
+        expect(
+            formatProfessionsSummary({
+                farmer: 1,
+                miner: 3,
+                fisherman: 2,
+                rancher: 2,
+                forager: 0,
+            }),
+        ).toBe("`Petani: 1` · `Penambang: 3` · `Nelayan: 2` · `Peternak: 2/2` · `Penebang: 0`");
     });
 });
 

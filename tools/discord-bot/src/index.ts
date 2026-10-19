@@ -27,6 +27,8 @@ import {
     type DashboardMessageKind,
     formatFooter,
     formatPresence,
+    formatProfessionName,
+    formatProfessionsSummary,
     formatStateLine,
     parseDashboardState,
     parseOwnerId,
@@ -79,6 +81,8 @@ interface PlayerInfo {
     id: number;
     name: string;
     isOnline: boolean;
+    location?: string;
+    profession?: string;
 }
 
 interface PlayersResponse {
@@ -699,7 +703,7 @@ async function runDashboardUpdate(channel: PostableChannel, embed: EmbedBuilder)
 // MAIN MESSAGE EVENT ROUTER (Commands + Chat Relay)
 // ============================================================================
 
-const COMMANDS = ["!status", "!players", "!server", "!weather", "!crops", "!backups", "!help"];
+const COMMANDS = ["!status", "!players", "!profesi", "!role", "!server", "!weather", "!crops", "!backups", "!help"];
 
 /**
  * The command in a message addressed to this bot (`@Bot !status`), or null. The mention
@@ -789,7 +793,13 @@ client.on(Events.MessageCreate, async (message: Message) => {
                     ),
                 ]);
 
-                const online = playersRes.players.filter((p) => p.isOnline).map((p) => p.name);
+                const online = playersRes.players.filter((p) => p.isOnline).map((p) => {
+                    const prof =
+                        p.profession && p.profession !== "None"
+                            ? ` [${formatProfessionName(p.profession)}]`
+                            : "";
+                    return `${p.name}${prof}`;
+                });
 
                 const lines = [
                     `**Online (${online.length}):** ${online.length ? online.join(", ") : "nobody"}`,
@@ -799,6 +809,54 @@ client.on(Events.MessageCreate, async (message: Message) => {
                 await reply(message, lines.join("\n"));
             } catch (_e) {
                 await reply(message, "Could not load the player list.");
+            }
+            return;
+        }
+
+        // COMMAND: !profesi or !role
+        if (input === "!profesi" || input === "!role") {
+            try {
+                const sharedSignal = AbortSignal.timeout(5000);
+                const [statusRes, playersRes]: [ServerStatus | null, PlayersResponse | null] = await Promise.all([
+                    fetchServerStatus().catch(() => null),
+                    fetch(`${API_URL}/players`, { headers: getApiHeaders(), signal: sharedSignal })
+                        .then((r) => r.json() as Promise<PlayersResponse>)
+                        .catch(() => null),
+                ]);
+
+                const profCounts = statusRes?.professions;
+                const summary = profCounts ? formatProfessionsSummary(profCounts) : "Data profesi belum tersedia.";
+
+                const onlineWithProf = playersRes?.players.filter((p) => p.isOnline).map((p) => {
+                    const prof =
+                        p.profession && p.profession !== "None"
+                            ? `\`${formatProfessionName(p.profession)}\``
+                            : "_(belum pilih)_";
+                    return `• **${p.name}**: ${prof}`;
+                });
+
+                const lines = [
+                    "**Junimo Valley RPG Professions:**",
+                    `Distribusi: ${summary}`,
+                    "",
+                    "**Pemain Online:**",
+                    onlineWithProf && onlineWithProf.length > 0
+                        ? onlineWithProf.join("\n")
+                        : "Tidak ada pemain yang online saat ini.",
+                    "",
+                    "**Daftar Starter Kit Profesi:**",
+                    "• **Petani (Farmer)**: 1x Quality Sprinkler, 15 bibit musiman, 15 fertilizer",
+                    "• **Penambang (Miner)**: Copper Pickaxe, 10 torch, 3 bomb, miner's treat",
+                    "• **Nelayan (Fisherman)**: Fiberglass Rod, 20 bait, 2 crabpot, dish o' the sea",
+                    "• **Peternak (Rancher)**: 1 Kandang Coop, 2 Ayam, 30 jerami, milk pail, shears [Maks 2]",
+                    "• **Penebang (Forager)**: Copper Axe, charcoal kiln, tree fertilizer",
+                    "",
+                    "Gunakan perintah `!profesi <pilihan>` di dalam game untuk memilih peran Anda.",
+                ];
+
+                await reply(message, lines.join("\n"));
+            } catch (_e) {
+                await reply(message, "Gagal memuat status profesi server.");
             }
             return;
         }
@@ -933,6 +991,7 @@ client.on(Events.MessageCreate, async (message: Message) => {
                 `**Commands** (mention me, e.g. <@${client.user?.id}> !status):`,
                 `\`!status\` - server state, players, in-game date, versions, tick rate, and the invite code`,
                 `\`!players\` - who is online, and cabin availability`,
+                `\`!profesi\` (atau \`!role\`) - status distribusi peran RPG, pemain online, dan daftar starter kit`,
                 `\`!server\` - tick rate, memory, and gameplay settings`,
                 `\`!weather\` - current weather condition and tomorrow's forecast`,
                 `\`!crops\` - farm crops count, watered status, and ready-to-harvest tally`,

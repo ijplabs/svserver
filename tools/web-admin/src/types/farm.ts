@@ -26,6 +26,8 @@ export interface ServerStatus {
   pauseRemainingSeconds?: number;
   tps: number;
   sequence: number;
+  players?: PlayerInfo[];
+  professions?: Record<string, number>;
 }
 
 export interface PlayerInfo {

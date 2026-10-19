@@ -12,6 +12,7 @@ import {
     formatUptime,
     joinableInviteCode,
     type ServerStatus,
+    type PlayerInfo,
 } from "./serverState";
 
 export const DASHBOARD_TITLE = "Server Status";
@@ -37,6 +38,37 @@ export function formatPresence(status: ServerStatus): string {
     const players = `${status.playerCount}/${status.maxPlayers} players`;
     const invite = joinableInviteCode(status);
     return invite ? `${players}, code ${invite}` : players;
+}
+
+/** Translates internal profession IDs to Indonesian RPG role names. */
+export function formatProfessionName(prof?: string): string {
+    if (!prof) return "None";
+    const lower = prof.toLowerCase();
+    switch (lower) {
+        case "farmer":
+            return "Petani";
+        case "miner":
+            return "Penambang";
+        case "fisherman":
+            return "Nelayan";
+        case "rancher":
+            return "Peternak";
+        case "forager":
+            return "Penebang";
+        default:
+            return prof;
+    }
+}
+
+/** Formats profession distribution with code chips. */
+export function formatProfessionsSummary(professions?: Record<string, number>): string {
+    if (!professions) return "";
+    const farmer = professions.farmer ?? professions.Petani ?? 0;
+    const miner = professions.miner ?? professions.Penambang ?? 0;
+    const fisherman = professions.fisherman ?? professions.Nelayan ?? 0;
+    const rancher = professions.rancher ?? professions.Peternak ?? 0;
+    const forager = professions.forager ?? professions.Penebang ?? 0;
+    return `\`Petani: ${farmer}\` · \`Penambang: ${miner}\` · \`Nelayan: ${fisherman}\` · \`Peternak: ${rancher}/2\` · \`Penebang: ${forager}\``;
 }
 
 /** Version strings as code chips; a version the mod has not reported yet shows a dash. */
@@ -67,6 +99,30 @@ export function buildStatusFields(status: ServerStatus, includeInvite = true): A
             : `_${text ?? "not yet available"}_`;
         fields.push({ name: "Invite code", value, inline: false });
     }
+
+    if (status.professions && Object.keys(status.professions).length > 0) {
+        const profSummary = formatProfessionsSummary(status.professions);
+        if (profSummary) {
+            fields.push({ name: "Profesi (RPG Roles)", value: profSummary, inline: false });
+        }
+    }
+
+    if (status.players && status.players.length > 0) {
+        const online = status.players.filter((p) => p.isOnline);
+        if (online.length > 0) {
+            const playerList = online
+                .map((p) => {
+                    const prof =
+                        p.profession && p.profession !== "None"
+                            ? ` — \`${formatProfessionName(p.profession)}\``
+                            : " — _(belum pilih)_";
+                    return `• ${p.name}${prof}`;
+                })
+                .join("\n");
+            fields.push({ name: "Pemain Online", value: playerList, inline: false });
+        }
+    }
+
     return fields;
 }
 

@@ -34,6 +34,14 @@ export type ConnectionStatusCode =
     | "steamSessionDown"
     | "inviteUnavailable";
 
+export interface PlayerInfo {
+    id: number;
+    name: string;
+    isOnline: boolean;
+    location?: string;
+    profession?: string;
+}
+
 /**
  * The mod's /status response. Owner: `ServerStatus` in mod/JunimoServer/Services/Api/ApiService.cs
  * (camelCased by the JSON serializer); keep the two in sync.
@@ -69,6 +77,8 @@ export interface ServerStatus extends StatusSignals {
     /** Measured game ticks per second, averaged over the last 30 seconds. */
     tps: number;
     version: number;
+    players?: PlayerInfo[];
+    professions?: Record<string, number>;
 }
 
 export type ServerStateKind =

@@ -158,6 +158,12 @@ public class ServerStatus
     /// satisfies the requested filters.
     /// </summary>
     public long Sequence { get; set; }
+
+    /// <summary>List of connected players.</summary>
+    public List<PlayerInfo> Players { get; set; } = new();
+
+    /// <summary>Server-wide profession counts (e.g. "farmer": 1, "miner": 2).</summary>
+    public Dictionary<string, int> Professions { get; set; } = new();
 }
 
 /// <summary>
@@ -1540,6 +1546,15 @@ public partial class ApiService : ModService
                     reason,
                     timestamp = DateTime.UtcNow.ToString("o")
                 });
+            };
+        }
+
+        if (_professionService != null)
+        {
+            _professionService.OnPlayerSelectedProfession += (farmerId, name, prof) =>
+            {
+                string profName = Profession.ProfessionService.GetProfessionDisplayName(prof);
+                BroadcastChatMessage("Server", $"[Profesi] {name} telah memilih profesi {profName}!");
             };
         }
 
@@ -3609,6 +3624,8 @@ public partial class ApiService : ModService
                 SteamSessionState = steamSessionState,
                 AuthReadiness = authReadiness,
                 ConnectionStatusCode = connectionStatusCode,
+                Players = new(),
+                Professions = _professionService?.GetProfessionCounts() ?? new(),
             };
         }
 
@@ -3645,6 +3662,8 @@ public partial class ApiService : ModService
             WeatherTomorrow = snap.WeatherTomorrow,
             Tps = tps,
             Sequence = snap.Sequence,
+            Players = snap.Players.ToList(),
+            Professions = _professionService?.GetProfessionCounts() ?? new(),
         };
     }
 

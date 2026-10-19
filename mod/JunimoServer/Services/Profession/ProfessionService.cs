@@ -35,6 +35,8 @@ public class ProfessionService : ModService
     private readonly ConcurrentDictionary<long, ProfessionType> _professionCache = new();
     private readonly ConcurrentDictionary<long, bool> _kitGrantedCache = new();
 
+    public event Action<long, string, ProfessionType>? OnPlayerSelectedProfession;
+
     public ProfessionService(
         IModHelper helper,
         IMonitor monitor,
@@ -257,6 +259,16 @@ public class ProfessionService : ModService
             catch { }
 
             var onlineFarmer = Game1.GetPlayer(farmerId);
+            string playerName = onlineFarmer?.Name ?? onlineFarmer?.displayName ?? $"Farmer {farmerId}";
+            try
+            {
+                OnPlayerSelectedProfession?.Invoke(farmerId, playerName, selectedProfession);
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"[Profession] Error triggering OnPlayerSelectedProfession: {ex.Message}", LogLevel.Trace);
+            }
+
             string locName = onlineFarmer?.currentLocation?.NameOrUniqueName ?? "";
             bool inLobby = locName.Contains("Lobby", StringComparison.OrdinalIgnoreCase);
 
@@ -522,7 +534,72 @@ public class ProfessionService : ModService
         {
             return cached;
         }
+
+        try
+        {
+            var farmer = Game1.GetPlayer(farmerId);
+            if (farmer != null && farmer.modData.TryGetValue("svserver/profession", out var val) && !string.IsNullOrEmpty(val))
+            {
+                if (Enum.TryParse<ProfessionType>(val, true, out var parsed))
+                {
+                    _professionCache[farmerId] = parsed;
+                    return parsed;
+                }
+            }
+        }
+        catch { }
+
         return null;
+    }
+
+    /// <summary>
+    /// Returns server-wide profession counts for all assigned farmers.
+    /// </summary>
+    public Dictionary<string, int> GetProfessionCounts()
+    {
+        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["farmer"] = 0,
+            ["miner"] = 0,
+            ["fisherman"] = 0,
+            ["rancher"] = 0,
+            ["forager"] = 0,
+        };
+
+        var seenIds = new HashSet<long>();
+        foreach (var kvp in _professionCache)
+        {
+            seenIds.Add(kvp.Key);
+            string key = kvp.Value.ToString().ToLowerInvariant();
+            if (counts.ContainsKey(key))
+            {
+                counts[key]++;
+            }
+        }
+
+        try
+        {
+            foreach (var farmer in Game1.getAllFarmhands())
+            {
+                if (farmer == null || seenIds.Contains(farmer.UniqueMultiplayerID)) continue;
+                if (farmer.modData.TryGetValue("svserver/profession", out var val) && !string.IsNullOrEmpty(val))
+                {
+                    if (Enum.TryParse<ProfessionType>(val, true, out var parsed))
+                    {
+                        seenIds.Add(farmer.UniqueMultiplayerID);
+                        _professionCache[farmer.UniqueMultiplayerID] = parsed;
+                        string key = parsed.ToString().ToLowerInvariant();
+                        if (counts.ContainsKey(key))
+                        {
+                            counts[key]++;
+                        }
+                    }
+                }
+            }
+        }
+        catch { }
+
+        return counts;
     }
 
     public async Task<ProfessionType?> GetPlayerProfessionAsync(long farmerId)
