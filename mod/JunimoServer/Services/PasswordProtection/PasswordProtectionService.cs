@@ -755,20 +755,10 @@ public class PasswordProtectionService : ModService
                         var chosenProfession = _professionService.GetPlayerProfessionAsync(playerId).GetAwaiter().GetResult();
                         if (!chosenProfession.HasValue)
                         {
-                            if (!authData.ProfessionWarningSent)
-                            {
-                                authData.ProfessionWarningSent = true;
-                                _helper.SendPrivateMessage(playerId, "[aqua]Pilihlah profesi spesialisasi Anda terlebih dahulu!");
-                                _helper.SendPrivateMessage(playerId, "[yellow]Ketik: !profesi <farmer | miner | fisherman | rancher | forager>");
-                                _helper.SendPrivateMessage(playerId, "[gray]Catatan: Jika mengetik !login sekali lagi tanpa memilih, Anda akan otomatis menjadi Petani (Farmer).");
-                                return new AuthenticationResult(false, "Pilih profesi terlebih dahulu via !profesi <nama>.");
-                            }
-                            else
-                            {
-                                // Default to Farmer on 2nd login attempt
-                                _professionService.SetPlayerProfessionAsync(playerId, Profession.ProfessionType.Farmer).GetAwaiter().GetResult();
-                                _helper.SendPrivateMessage(playerId, "[aqua]Profesi Anda otomatis ditetapkan sebagai: [green]Petani (Farmer)[white].");
-                            }
+                            _helper.SendPrivateMessage(playerId, "[aqua]Pilihlah profesi spesialisasi Anda terlebih dahulu sebelum login!");
+                            _helper.SendPrivateMessage(playerId, "[yellow]Ketik di chat: !profesi <farmer | miner | fisherman | rancher | forager>");
+                            _helper.SendPrivateMessage(playerId, "[gray]Contoh: !profesi miner");
+                            return new AuthenticationResult(false, "Pilih profesi terlebih dahulu via !profesi <nama>.");
                         }
                     }
                     catch (Exception ex)
@@ -1307,6 +1297,11 @@ public class PasswordProtectionService : ModService
         foreach (var line in lines)
         {
             _helper.SendPrivateMessage(authData.PlayerId, line);
+        }
+
+        if (_professionService != null)
+        {
+            _ = _professionService.SendProfessionUIModalToClientAsync(authData.PlayerId);
         }
     }
 

@@ -36,6 +36,9 @@ public class ModEntry : Mod
     private Rectangle _modalQuitButtonBounds = Rectangle.Empty;
     private bool _isHoveringLobbyButton;
 
+    private Rectangle _professionHudButtonBounds = Rectangle.Empty;
+    private bool _isHoveringProfessionHudButton;
+
     public override void Entry(IModHelper helper)
     {
         Instance = this;
@@ -43,8 +46,10 @@ public class ModEntry : Mod
 
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
+        helper.Events.Display.RenderedHud += OnRenderedHud;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
         helper.Events.Input.CursorMoved += OnCursorMoved;
+        helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
 
         Monitor.Log($"[JunimoClientSync] Loaded v{ModManifest.Version} (Chunked Range & Signed). Ready to sync.", LogLevel.Info);
 
@@ -56,6 +61,18 @@ public class ModEntry : Mod
                 Monitor.Log("[JunimoClientSync] Manual sync triggered via console command.", LogLevel.Info);
                 _ = TriggerSyncWorkflowAsync();
             }
+        );
+
+        helper.ConsoleCommands.Add(
+            "profesi",
+            "Buka menu pemilihan profesi RPG Lembah Pelikan. Usage: profesi",
+            (cmd, args) => OpenProfessionMenu()
+        );
+
+        helper.ConsoleCommands.Add(
+            "role",
+            "Buka menu pemilihan peran RPG Lembah Pelikan. Usage: role",
+            (cmd, args) => OpenProfessionMenu()
         );
     }
 
@@ -103,6 +120,13 @@ public class ModEntry : Mod
         {
             Game1.playSound("Cowboy_gunshot");
         }
+
+        bool wasHoveringProf = _isHoveringProfessionHudButton;
+        _isHoveringProfessionHudButton = _professionHudButtonBounds.Contains(mousePos);
+        if (_isHoveringProfessionHudButton && !wasHoveringProf)
+        {
+            Game1.playSound("shiny4");
+        }
     }
 
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
@@ -135,6 +159,17 @@ public class ModEntry : Mod
             // Click outside or modal absorbed
             Helper.Input.Suppress(e.Button);
             return;
+        }
+
+        if (Context.IsWorldReady && Context.IsMultiplayer && Game1.activeClickableMenu == null)
+        {
+            if (_professionHudButtonBounds.Contains(mousePos))
+            {
+                Helper.Input.Suppress(e.Button);
+                Game1.playSound("bigSelect");
+                OpenProfessionMenu();
+                return;
+            }
         }
 
         if (Config.ShowLobbyButton && IsInTitleOrLobbyMenu())
@@ -639,6 +674,118 @@ public class ModEntry : Mod
         if (bytes >= 1024)
             return $"{(bytes / 1024.0):F0} KB";
         return $"{bytes} B";
+    }
+
+    private void OnRenderedHud(object? sender, RenderedHudEventArgs e)
+    {
+        if (!Context.IsWorldReady || !Context.IsMultiplayer || Game1.activeClickableMenu != null)
+        {
+            _professionHudButtonBounds = Rectangle.Empty;
+            return;
+        }
+
+        string locName = Game1.currentLocation?.NameOrUniqueName ?? "";
+        bool inLobby = locName.Contains("Lobby", StringComparison.OrdinalIgnoreCase);
+        bool hasProfession = Game1.player.modData.ContainsKey("svserver/profession");
+
+        if (inLobby || !hasProfession)
+        {
+            DrawProfessionHudButton(e.SpriteBatch);
+        }
+        else
+        {
+            _professionHudButtonBounds = Rectangle.Empty;
+        }
+    }
+
+    private void DrawProfessionHudButton(SpriteBatch b)
+    {
+        int btnW = 190;
+        int btnH = 44;
+        int btnX = 16;
+        int btnY = 16;
+
+        _professionHudButtonBounds = new Rectangle(btnX, btnY, btnW, btnH);
+
+        Color boxColor = _isHoveringProfessionHudButton ? Color.Wheat : Color.White;
+        IClickableMenu.drawTextureBox(
+            b,
+            Game1.menuTexture,
+            new Rectangle(0, 256, 60, 60),
+            btnX,
+            btnY,
+            btnW,
+            btnH,
+            boxColor,
+            1f,
+            drawShadow: true
+        );
+
+        string label = "Pilih Profesi RPG";
+        var textSize = Game1.smallFont.MeasureString(label);
+        var textPos = new Vector2(
+            btnX + (btnW - textSize.X) / 2f,
+            btnY + (btnH - textSize.Y) / 2f
+        );
+
+        Color textColor = _isHoveringProfessionHudButton ? Color.DarkSlateBlue : Game1.textColor;
+        Utility.drawTextWithShadow(b, label, Game1.smallFont, textPos, textColor);
+
+        if (_isHoveringProfessionHudButton)
+        {
+            Game1.mouseCursorTransparency = 1f;
+            b.Draw(
+                Game1.mouseCursors,
+                new Vector2(Game1.getMouseX(), Game1.getMouseY()),
+                Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16),
+                Color.White,
+                0f,
+                Vector2.Zero,
+                4f + Game1.dialogueButtonScale / 150f,
+                SpriteEffects.None,
+                1f
+            );
+        }
+    }
+
+    private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
+    {
+        if (e.FromModID != "JunimoHost.Server") return;
+
+        if (e.Type == "ShowProfessionUI")
+        {
+            string payload = e.ReadAs<string>();
+            var parts = payload.Split('|');
+            string currentProf = parts.Length > 0 ? parts[0] : "";
+            int rancherCount = (parts.Length > 1 && int.TryParse(parts[1], out int rc)) ? rc : 0;
+            int rancherMax = (parts.Length > 2 && int.TryParse(parts[2], out int rm)) ? rm : 2;
+
+            Monitor.Log($"[JunimoClientSync] Received ShowProfessionUI modal request (current='{currentProf}', rancher={rancherCount}/{rancherMax})", LogLevel.Info);
+            Game1.activeClickableMenu = new ProfessionSelectionMenu(Helper, Monitor, rancherCount, rancherMax, currentProf);
+        }
+        else if (e.Type == "ProfessionConfirmed")
+        {
+            string chosen = e.ReadAs<string>();
+            Game1.player.modData["svserver/profession"] = chosen;
+            Game1.playSound("reward");
+            Monitor.Log($"[JunimoClientSync] Profession confirmed as '{chosen}'.", LogLevel.Info);
+        }
+    }
+
+    public void OpenProfessionMenu()
+    {
+        int rancherCount = 0;
+        int rancherMax = 2;
+        string currentProf = Game1.player.modData.TryGetValue("svserver/profession", out var p) ? p : "";
+
+        // Also ask server for latest quota
+        try
+        {
+            Helper.Multiplayer.SendMessage("REQ", "RequestProfessionUI", modIDs: new[] { "JunimoHost.Server" });
+        }
+        catch { }
+
+        Game1.activeClickableMenu = new ProfessionSelectionMenu(Helper, Monitor, rancherCount, rancherMax, currentProf);
     }
 }
 

@@ -898,12 +898,12 @@ export const ModManagementCard: React.FC = () => {
 
                 <div className="space-y-2 pt-2">
                   <a
-                    href="/JunimoClientSync-v1.1.1.zip?v=1.1.1"
-                    download="JunimoClientSync-v1.1.1.zip"
+                    href="/JunimoClientSync-v1.1.2.zip?v=1.1.2"
+                    download="JunimoClientSync-v1.1.2.zip"
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
                   >
                     <Download className="w-4 h-4" />
-                    Unduh JunimoClientSync v1.1.1 (.zip)
+                    Unduh JunimoClientSync v1.1.2 (.zip)
                   </a>
                   <a
                     href="/JunimoSecurityCert.cer"
@@ -941,7 +941,7 @@ export const ModManagementCard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const cmd = `powershell -NoProfile -Command "try { $m = 'D:\\SteamLibrary\\steamapps\\common\\Stardew Valley\\Mods'; if (-not (Test-Path $m)) { $m = '$env:APPDATA\\StardewValley\\Mods' }; Remove-Item -Path \\"$m\\Junimo Client Sync\\", \\"$m\\JunimoClientSync\\" -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory -Path \\"$m\\JunimoClientSync\\" -Force | Out-Null; $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.1.zip?v=1.1.1', 'JunimoClientSync.zip'); Expand-Archive -Path 'JunimoClientSync.zip' -DestinationPath \\"$m\\JunimoClientSync\\" -Force; Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.1.1 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
+                      const cmd = `powershell -NoProfile -Command "try { $m = 'D:\\SteamLibrary\\steamapps\\common\\Stardew Valley\\Mods'; if (-not (Test-Path $m)) { $m = '$env:APPDATA\\StardewValley\\Mods' }; Remove-Item -Path \\"$m\\Junimo Client Sync\\", \\"$m\\JunimoClientSync\\" -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory -Path \\"$m\\JunimoClientSync\\" -Force | Out-Null; $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.2.zip?v=1.1.2', 'JunimoClientSync.zip'); Expand-Archive -Path 'JunimoClientSync.zip' -DestinationPath \\"$m\\JunimoClientSync\\" -Force; Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.1.2 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
                       navigator.clipboard.writeText(cmd);
                       setCopiedScript(true);
                       setTimeout(() => setCopiedScript(false), 2500);
@@ -963,7 +963,7 @@ export const ModManagementCard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const cmd = `curl -fsSL https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.1.zip -o /tmp/JunimoClientSync.zip && mkdir -p "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && unzip -o /tmp/JunimoClientSync.zip -d "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && rm /tmp/JunimoClientSync.zip && echo "JunimoClientSync v1.1.1 Berhasil Dipasang!"`;
+                      const cmd = `curl -fsSL https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.2.zip -o /tmp/JunimoClientSync.zip && mkdir -p "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && unzip -o /tmp/JunimoClientSync.zip -d "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && rm /tmp/JunimoClientSync.zip && echo "JunimoClientSync v1.1.2 Berhasil Dipasang!"`;
                       navigator.clipboard.writeText(cmd);
                       setCopiedMacScript(true);
                       setTimeout(() => setCopiedMacScript(false), 2500);
