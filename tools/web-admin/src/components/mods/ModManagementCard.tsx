@@ -49,6 +49,7 @@ export const ModManagementCard: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'required' | 'blacklisted' | 'server' | 'custom' | 'audit' | 'distribution'>('required');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [copiedScript, setCopiedScript] = useState(false);
+  const [copiedMacScript, setCopiedMacScript] = useState(false);
 
   // Upload state
   const [uploading, setUploading] = useState(false);
@@ -955,7 +956,29 @@ export const ModManagementCard: React.FC = () => {
                     ) : (
                       <>
                         <Copy className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Salin Perintah PowerShell (Tanpa Download)</span>
+                        <span>Salin Perintah PowerShell (Windows)</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cmd = `curl -fsSL https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.1.zip -o /tmp/JunimoClientSync.zip && mkdir -p "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && unzip -o /tmp/JunimoClientSync.zip -d "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && rm /tmp/JunimoClientSync.zip && echo "JunimoClientSync v1.1.1 Berhasil Dipasang!"`;
+                      navigator.clipboard.writeText(cmd);
+                      setCopiedMacScript(true);
+                      setTimeout(() => setCopiedMacScript(false), 2500);
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-[11px] font-medium rounded-lg border border-slate-800 transition cursor-pointer"
+                  >
+                    {copiedMacScript ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400 font-semibold">Perintah macOS Disalin!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Salin Perintah Terminal (macOS)</span>
                       </>
                     )}
                   </button>
