@@ -45,6 +45,29 @@ internal class Env
     public static readonly bool ForceNewDebugGame = ParseBool("FORCE_NEW_DEBUG_GAME", false);
 
     /// <summary>
+    /// Interval in minutes for mid-day auto-saving (default: 10). Set to 0 to disable periodic auto-save.
+    /// </summary>
+    public static readonly int AutoSaveIntervalMinutes = Math.Max(
+        0,
+        ParseInt("AUTO_SAVE_INTERVAL_MINUTES", 10)
+    );
+
+    /// <summary>
+    /// Whether to auto-save when a player disconnects (default: true).
+    /// </summary>
+    public static readonly bool AutoSaveOnDisconnect = ParseBool("AUTO_SAVE_ON_DISCONNECT", true);
+
+    /// <summary>
+    /// Whether to auto-save when a new player completes character customization (default: true).
+    /// </summary>
+    public static readonly bool AutoSaveOnCustomization = ParseBool("AUTO_SAVE_ON_CUSTOMIZATION", true);
+
+    /// <summary>
+    /// Whether to auto-save when the server receives SIGTERM / ProcessExit (default: true).
+    /// </summary>
+    public static readonly bool AutoSaveOnShutdown = ParseBool("AUTO_SAVE_ON_SHUTDOWN", true);
+
+    /// <summary>
     /// When true (default), crops tracked by CropSaver survive lightning strikes:
     /// CropSaverOverrides.KillCrop_Prefix suppresses the strike's Crop.Kill. Set false
     /// to restore vanilla lightning kills for managed crops (the killed crop's tracking

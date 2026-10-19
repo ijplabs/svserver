@@ -54,6 +54,10 @@ services:
       - CROP_SAVER_LIGHTNING_IMMUNITY
       - VERBOSE_LOGGING
       - LOCK_PLAYER_CHESTS
+      - AUTO_SAVE_INTERVAL_MINUTES
+      - AUTO_SAVE_ON_DISCONNECT
+      - AUTO_SAVE_ON_CUSTOMIZATION
+      - AUTO_SAVE_ON_SHUTDOWN
     depends_on:
       steam-auth:
         condition: service_healthy

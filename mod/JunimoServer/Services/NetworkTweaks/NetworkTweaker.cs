@@ -402,13 +402,27 @@ public class NetworkTweaker : ModService
             return;
         }
 
-        if (!string.IsNullOrEmpty(farmhand.Value.Name) && !farmhand.Value.isCustomized.Value)
+        var name = farmhand.Value.Name?.Trim();
+        bool isPlaceholder = string.IsNullOrEmpty(name)
+            || name.Equals("New Farmer", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("Farmhand", StringComparison.OrdinalIgnoreCase);
+
+        if (!farmhand.Value.isCustomized.Value && !isPlaceholder)
         {
             _monitor.Log(
-                $"[SaveFarmhand] Fixing isCustomized for '{farmhand.Value.Name}' ({farmhand.Value.UniqueMultiplayerID}): name was synced but isCustomized was not",
+                $"[SaveFarmhand] Fixing isCustomized for '{farmhand.Value.Name}' ({farmhand.Value.UniqueMultiplayerID}): real name was synced but isCustomized was not",
                 LogLevel.Info
             );
             farmhand.Value.isCustomized.Value = true;
+        }
+        else if (farmhand.Value.isCustomized.Value && isPlaceholder)
+        {
+            _monitor.Log(
+                $"[SaveFarmhand] Resetting invalid isCustomized flag on uncustomized placeholder '{farmhand.Value.Name}' ({farmhand.Value.UniqueMultiplayerID})",
+                LogLevel.Warn
+            );
+            farmhand.Value.isCustomized.Value = false;
+            farmhand.Value.Name = "";
         }
     }
 

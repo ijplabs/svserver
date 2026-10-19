@@ -279,12 +279,27 @@ public class FarmhandSenderService : ModService
         var claimedFarmers = new List<NetRef<Farmer>>();
         foreach (var farmhandRef in availableFarmers)
         {
-            if (farmhandRef.Value.isCustomized.Value)
+            var fh = farmhandRef.Value;
+            var name = fh.Name?.Trim();
+            bool isPlaceholder = string.IsNullOrEmpty(name)
+                || name.Equals("New Farmer", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Farmhand", StringComparison.OrdinalIgnoreCase);
+
+            if (fh.isCustomized.Value && !isPlaceholder)
             {
                 claimedFarmers.Add(farmhandRef);
             }
             else if (firstUnclaimed?.Value == null)
             {
+                if (fh.isCustomized.Value && isPlaceholder)
+                {
+                    _monitor.Log(
+                        $"[FarmhandSender] Slot {fh.UniqueMultiplayerID} has placeholder name '{fh.Name}' with isCustomized=true. Resetting to uncustomized.",
+                        LogLevel.Warn
+                    );
+                    fh.isCustomized.Value = false;
+                    fh.Name = "";
+                }
                 firstUnclaimed = farmhandRef;
             }
         }

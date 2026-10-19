@@ -1,3 +1,4 @@
+using System;
 using StardewModdingAPI;
 using StardewValley;
 
@@ -33,13 +34,21 @@ public static class SaveNow
             return false;
         }
 
-        // Game1.multiplayer is protected; reach it via the established reflective accessor.
-        helper.GetMultiplayer().saveFarmhands();
+        try
+        {
+            // Game1.multiplayer is protected; reach it via the established reflective accessor.
+            helper.GetMultiplayer().saveFarmhands();
 
-        var save = SaveGame.getSaveEnumerator();
-        while (save.MoveNext()) { }
+            var save = SaveGame.getSaveEnumerator();
+            while (save.MoveNext()) { }
 
-        error = null;
-        return true;
+            error = null;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
     }
 }

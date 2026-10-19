@@ -638,16 +638,30 @@ public class ProfessionService : ModService
                 // 2. Reconcile ranchers quota against real customized farmers
                 await GetRancherCountAsync();
 
-                // 3. Purge stale redis keys for any uncustomized farmhands currently in the save
+                // 3. Purge stale redis keys for any uncustomized or placeholder farmhands currently in the save
                 var farmhandData = Game1.netWorldState?.Value?.farmhandData;
                 if (farmhandData != null)
                 {
                     foreach (var kvp in farmhandData.FieldDict)
                     {
                         var farmhand = kvp.Value.Value;
-                        if (farmhand != null && !farmhand.isCustomized.Value)
+                        if (farmhand != null)
                         {
-                            await PurgeStaleFarmerDataAsync(farmhand.UniqueMultiplayerID);
+                            var name = farmhand.Name?.Trim();
+                            bool isPlaceholder = string.IsNullOrEmpty(name)
+                                || name.Equals("New Farmer", StringComparison.OrdinalIgnoreCase)
+                                || name.Equals("Farmhand", StringComparison.OrdinalIgnoreCase);
+
+                            if (!farmhand.isCustomized.Value || isPlaceholder)
+                            {
+                                if (farmhand.isCustomized.Value && isPlaceholder)
+                                {
+                                    _monitor.Log($"[Profession] Resetting falsely customized placeholder farmhand '{farmhand.Name}' ({farmhand.UniqueMultiplayerID}) to uncustomized.", LogLevel.Warn);
+                                    farmhand.isCustomized.Value = false;
+                                    farmhand.Name = "";
+                                }
+                                await PurgeStaleFarmerDataAsync(farmhand.UniqueMultiplayerID);
+                            }
                         }
                     }
                 }

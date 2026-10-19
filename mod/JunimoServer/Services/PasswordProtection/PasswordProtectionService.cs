@@ -330,6 +330,21 @@ public class PasswordProtectionService : ModService
             return;
         }
 
+        var name = farmer.Value.Name?.Trim();
+        var isPlaceholder = string.IsNullOrEmpty(name)
+            || name.Equals("New Farmer", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("Farmhand", StringComparison.OrdinalIgnoreCase);
+
+        if (farmer.Value.isCustomized.Value && isPlaceholder)
+        {
+            _monitor.Log(
+                $"[Auth] Resetting invalid isCustomized flag on placeholder '{farmer.Value.Name}' ({farmerId})",
+                LogLevel.Warn
+            );
+            farmer.Value.isCustomized.Value = false;
+            farmer.Value.Name = "";
+        }
+
         var isNewPlayer = !farmer.Value.isCustomized.Value;
         var playerType = isNewPlayer ? "new" : "returning";
         _monitor.Log(
