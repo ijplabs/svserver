@@ -870,30 +870,32 @@ export const ModManagementCard: React.FC = () => {
               {/* Card 1: Mod Klien JunimoClientSync */}
               <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-indigo-400">
-                      <Laptop className="w-5 h-5" />
-                      <h4 className="text-sm font-semibold text-slate-200">Mod Klien SMAPI</h4>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        v1.2.0
-                      </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 text-indigo-400 min-w-0">
+                      <Laptop className="w-5 h-5 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="text-sm font-semibold text-slate-200">Mod Klien SMAPI</h4>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                            v1.2.0
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
                       <ShieldCheck className="w-3 h-3 text-emerald-400" /> Terverifikasi
                     </span>
                   </div>
                   <p className="text-xs text-slate-400">
                     Mod klien berukuran kecil (~38 KB) dengan antarmuka pemilihan profesi responsif 2-tier (anti-tumpang tindih), auto-sync manifest verifier, dukungan <strong>Chunked Download (5 MB parts)</strong> & sertifikat digital resmi. Tombol sinkronisasi langsung di Lobby Co-op & Title Menu.
                   </p>
-                  <div className="space-y-1">
+                  <div className="space-y-1 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-400">Versi Saat Ini:</span>
-                      <span className="font-mono text-emerald-400 font-semibold">v1.2.0 (Responsive Profession UI)</span>
+                      <span className="text-slate-400">Versi Klien:</span>
+                      <span className="font-mono text-emerald-400 font-semibold">v1.2.0</span>
                     </div>
-                    <p className="text-[11px] font-mono text-slate-400 truncate">Penerbit: Junimo Dedicated Server Security Authority</p>
-                    <p className="text-[10px] font-mono text-slate-500 truncate" title="SHA-256: 7D37BC62637ADF216B4CB0530893E1811AE197FA5F24F3AA6717CF4669BCFAE2">
-                      SHA256: 7D37BC62637ADF21...
-                    </p>
+                    <p className="text-[11px] text-slate-300 truncate">Fitur: UI Profesi Responsif 2-Tier</p>
+                    <p className="text-[10px] font-mono text-slate-500 truncate">Penerbit: Junimo Dedicated Security</p>
                   </div>
                 </div>
 
@@ -989,28 +991,32 @@ export const ModManagementCard: React.FC = () => {
               {/* Card 3: Server Engine SMAPI (JunimoServer) */}
               <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-amber-400">
-                      <Server className="w-5 h-5" />
-                      <h4 className="text-sm font-semibold text-slate-200">Server Engine SMAPI</h4>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        v1.4.1
-                      </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 text-amber-400 min-w-0">
+                      <Server className="w-5 h-5 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="text-sm font-semibold text-slate-200">Server Engine SMAPI</h4>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            v1.4.1
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
                       <ShieldCheck className="w-3 h-3 text-amber-400" /> Host Core
                     </span>
                   </div>
                   <p className="text-xs text-slate-400">
                     Mod engine server lengkap (<code className="text-amber-300">JunimoServer.zip</code> ~1.8 MB) berisi sistem 5-Profesi RPG, Ekonomi Kas Desa & Dompet Terpisah, Multi-Layer Ownership Tracking, Auto-Relokasi Starter Coop, dan API Sinkronisasi Mod.
                   </p>
-                  <div className="space-y-1">
+                  <div className="space-y-1 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-slate-400">Versi Engine:</span>
-                      <span className="font-mono text-amber-400 font-semibold">v1.4.1 (Stabilized + Coop Relocation)</span>
+                      <span className="font-mono text-amber-400 font-semibold">v1.4.1</span>
                     </div>
-                    <p className="text-[11px] font-mono text-slate-400 truncate">Paket: JunimoServer.dll + Shared + Dependensi</p>
-                    <p className="text-[10px] font-mono text-slate-500 truncate">Target: Dedicated Server / Host SMAPI 4.0+</p>
+                    <p className="text-[11px] text-slate-300 truncate">Fitur: RPG Economy & Coop Relocation</p>
+                    <p className="text-[10px] font-mono text-slate-500 truncate">Target: Dedicated Server / Host SMAPI</p>
                   </div>
                 </div>
 
