@@ -19,7 +19,8 @@ import {
   HardDrive,
   FileArchive,
   Copy,
-  Check
+  Check,
+  Server
 } from 'lucide-react';
 import { api, type UploadProgressData } from '../../lib/api';
 import type {
@@ -864,8 +865,8 @@ export const ModManagementCard: React.FC = () => {
               </div>
             </div>
 
-            {/* 3 Download Action Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            {/* 4 Download Action Cards: Client, 1-Click Script, Server Engine & Modpack */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 pt-2">
               {/* Card 1: Mod Klien JunimoClientSync */}
               <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
@@ -874,7 +875,7 @@ export const ModManagementCard: React.FC = () => {
                       <Laptop className="w-5 h-5" />
                       <h4 className="text-sm font-semibold text-slate-200">Mod Klien SMAPI</h4>
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        v1.1.1
+                        v1.2.0
                       </span>
                     </div>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -882,12 +883,12 @@ export const ModManagementCard: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400">
-                    Mod klien berukuran kecil (~25 KB) dengan dukungan <strong>Chunked Download (5 MB parts)</strong> & sertifikat digital resmi. Tombol sinkronisasi langsung di Lobby Co-op & Title Menu.
+                    Mod klien berukuran kecil (~38 KB) dengan antarmuka pemilihan profesi responsif 2-tier (anti-tumpang tindih), auto-sync manifest verifier, dukungan <strong>Chunked Download (5 MB parts)</strong> & sertifikat digital resmi. Tombol sinkronisasi langsung di Lobby Co-op & Title Menu.
                   </p>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-slate-400">Versi Saat Ini:</span>
-                      <span className="font-mono text-emerald-400 font-semibold">v1.1.1 (Chunked & Path Fixed)</span>
+                      <span className="font-mono text-emerald-400 font-semibold">v1.2.0 (Responsive Profession UI)</span>
                     </div>
                     <p className="text-[11px] font-mono text-slate-400 truncate">Penerbit: Junimo Dedicated Server Security Authority</p>
                     <p className="text-[10px] font-mono text-slate-500 truncate" title="SHA-256: 7D37BC62637ADF216B4CB0530893E1811AE197FA5F24F3AA6717CF4669BCFAE2">
@@ -898,12 +899,12 @@ export const ModManagementCard: React.FC = () => {
 
                 <div className="space-y-2 pt-2">
                   <a
-                    href="/JunimoClientSync-v1.1.2.zip?v=1.1.2"
-                    download="JunimoClientSync-v1.1.2.zip"
+                    href="/JunimoClientSync-v1.2.0.zip?v=1.2.0"
+                    download="JunimoClientSync-v1.2.0.zip"
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
                   >
                     <Download className="w-4 h-4" />
-                    Unduh JunimoClientSync v1.1.2 (.zip)
+                    Unduh JunimoClientSync v1.2.0 (.zip)
                   </a>
                   <a
                     href="/JunimoSecurityCert.cer"
@@ -921,10 +922,10 @@ export const ModManagementCard: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-emerald-400">
                     <FileCode className="w-5 h-5" />
-                    <h4 className="text-sm font-semibold text-slate-200">Script 1-Klik (Windows)</h4>
+                    <h4 className="text-sm font-semibold text-slate-200">Script 1-Klik EZ Setup</h4>
                   </div>
                   <p className="text-xs text-slate-400">
-                    Script otomatis untuk teman yang belum paham cara pasang mod. Otomatis mendeteksi folder Steam, memasang mod sync, dan mendaftarkan sertifikat keamanan ke Windows.
+                    Script otomatis untuk pemain yang belum terbiasa memasang mod. Otomatis mendeteksi folder Steam, memasang JunimoClientSync v1.2.0, dan mendaftarkan sertifikat keamanan ke sistem.
                   </p>
                   <p className="text-xs font-mono text-slate-500">Eksekusi: sync-mods.bat</p>
                 </div>
@@ -941,7 +942,7 @@ export const ModManagementCard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const cmd = `powershell -NoProfile -Command "try { $m = 'D:\\SteamLibrary\\steamapps\\common\\Stardew Valley\\Mods'; if (-not (Test-Path $m)) { $m = '$env:APPDATA\\StardewValley\\Mods' }; Remove-Item -Path \\"$m\\Junimo Client Sync\\", \\"$m\\JunimoClientSync\\" -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory -Path \\"$m\\JunimoClientSync\\" -Force | Out-Null; $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.2.zip?v=1.1.2', 'JunimoClientSync.zip'); Expand-Archive -Path 'JunimoClientSync.zip' -DestinationPath \\"$m\\JunimoClientSync\\" -Force; Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.1.2 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
+                      const cmd = `powershell -NoProfile -Command "try { $m = 'D:\\SteamLibrary\\steamapps\\common\\Stardew Valley\\Mods'; if (-not (Test-Path $m)) { $m = '$env:APPDATA\\StardewValley\\Mods' }; Remove-Item -Path \\"$m\\Junimo Client Sync\\", \\"$m\\JunimoClientSync\\" -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory -Path \\"$m\\JunimoClientSync\\" -Force | Out-Null; $wc = New-Object System.Net.WebClient; $wc.DownloadFile('https://svmonitor.ijplabs.dev/JunimoClientSync-v1.2.0.zip?v=1.2.0', 'JunimoClientSync.zip'); Expand-Archive -Path 'JunimoClientSync.zip' -DestinationPath \\"$m\\JunimoClientSync\\" -Force; Remove-Item 'JunimoClientSync.zip'; Write-Host '[OK] JunimoClientSync v1.2.0 Berhasil Dipasang!' -ForegroundColor Green } catch { Write-Host $_.Exception.Message -ForegroundColor Red }"`;
                       navigator.clipboard.writeText(cmd);
                       setCopiedScript(true);
                       setTimeout(() => setCopiedScript(false), 2500);
@@ -956,14 +957,14 @@ export const ModManagementCard: React.FC = () => {
                     ) : (
                       <>
                         <Copy className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Salin Perintah PowerShell (Windows)</span>
+                        <span>Salin PowerShell (Windows)</span>
                       </>
                     )}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      const cmd = `curl -fsSL https://svmonitor.ijplabs.dev/JunimoClientSync-v1.1.2.zip -o /tmp/JunimoClientSync.zip && mkdir -p "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && unzip -o /tmp/JunimoClientSync.zip -d "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && rm /tmp/JunimoClientSync.zip && echo "JunimoClientSync v1.1.2 Berhasil Dipasang!"`;
+                      const cmd = `curl -fsSL https://svmonitor.ijplabs.dev/JunimoClientSync-v1.2.0.zip -o /tmp/JunimoClientSync.zip && mkdir -p "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && unzip -o /tmp/JunimoClientSync.zip -d "$HOME/Library/Application Support/Steam/steamapps/common/Stardew Valley/Contents/MacOS/Mods" && rm /tmp/JunimoClientSync.zip && echo "JunimoClientSync v1.2.0 Berhasil Dipasang!"`;
                       navigator.clipboard.writeText(cmd);
                       setCopiedMacScript(true);
                       setTimeout(() => setCopiedMacScript(false), 2500);
@@ -978,14 +979,63 @@ export const ModManagementCard: React.FC = () => {
                     ) : (
                       <>
                         <Copy className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Salin Perintah Terminal (macOS)</span>
+                        <span>Salin Terminal (macOS)</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Card 3: Full Server Modpack */}
+              {/* Card 3: Server Engine SMAPI (JunimoServer) */}
+              <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-400">
+                      <Server className="w-5 h-5" />
+                      <h4 className="text-sm font-semibold text-slate-200">Server Engine SMAPI</h4>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        v1.4.1
+                      </span>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      <ShieldCheck className="w-3 h-3 text-amber-400" /> Host Core
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Mod engine server lengkap (<code className="text-amber-300">JunimoServer.zip</code> ~1.8 MB) berisi sistem 5-Profesi RPG, Ekonomi Kas Desa & Dompet Terpisah, Multi-Layer Ownership Tracking, Auto-Relokasi Starter Coop, dan API Sinkronisasi Mod.
+                  </p>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-400">Versi Engine:</span>
+                      <span className="font-mono text-amber-400 font-semibold">v1.4.1 (Stabilized + Coop Relocation)</span>
+                    </div>
+                    <p className="text-[11px] font-mono text-slate-400 truncate">Paket: JunimoServer.dll + Shared + Dependensi</p>
+                    <p className="text-[10px] font-mono text-slate-500 truncate">Target: Dedicated Server / Host SMAPI 4.0+</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <a
+                    href="/JunimoServer-v1.4.1.zip?v=1.4.1"
+                    download="JunimoServer-v1.4.1.zip"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-xl transition shadow-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Unduh Server Engine v1.4.1 (.zip)
+                  </a>
+                  <a
+                    href="https://stardew-api.ijplabs.dev/api/mods/sync/server-engine"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-[11px] font-medium rounded-lg border border-slate-800 transition"
+                  >
+                    <Server className="w-3.5 h-3.5 text-amber-400" />
+                    Unduh via Server API Endpoint
+                  </a>
+                </div>
+              </div>
+
+              {/* Card 4: Full Server Modpack */}
               <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-cyan-400">
@@ -993,20 +1043,22 @@ export const ModManagementCard: React.FC = () => {
                     <h4 className="text-sm font-semibold text-slate-200">Paket Lengkap Modpack</h4>
                   </div>
                   <p className="text-xs text-slate-400">
-                    Paket zip utuh berisi seluruh folder mod yang aktif di server (SVE, Content Patcher, dsb) untuk pemain yang ingin ekstraksi manual secara offline.
+                    Paket zip utuh berisi seluruh folder mod yang aktif di server (SVE, Content Patcher, dsb) untuk pemain yang ingin ekstraksi manual secara offline tanpa auto-sync SMAPI.
                   </p>
                   <p className="text-xs font-mono text-slate-500">Ukuran: Sesuai total folder mod server</p>
                 </div>
 
-                <a
-                  href="https://stardew-api.ijplabs.dev/api/mods/sync/bundle"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition"
-                >
-                  <Download className="w-4 h-4" />
-                  Unduh Modpack Server (.zip)
-                </a>
+                <div className="pt-2">
+                  <a
+                    href="https://stardew-api.ijplabs.dev/api/mods/sync/bundle"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700 transition"
+                  >
+                    <Download className="w-4 h-4" />
+                    Unduh Modpack Server (.zip)
+                  </a>
+                </div>
               </div>
             </div>
           </div>

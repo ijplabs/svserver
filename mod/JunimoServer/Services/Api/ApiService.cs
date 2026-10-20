@@ -2700,6 +2700,9 @@ public partial class ApiService : ModService
                     case "/api/mods/sync/client-mod":
                         await HandleGetClientModZipAsync(request, response);
                         break;
+                    case "/api/mods/sync/server-engine":
+                        await HandleGetServerEngineZipAsync(request, response);
+                        break;
                     case "/api/mods/sync/download":
                         await HandleGetModZipDownloadAsync(request, response);
                         break;
@@ -7082,6 +7085,7 @@ public partial class ApiService : ModService
         return path == "/api/mods/sync/manifest"
             || path == "/api/mods/sync/bundle"
             || path == "/api/mods/sync/client-mod"
+            || path == "/api/mods/sync/server-engine"
             || path.StartsWith("/api/mods/sync/download");
     }
 
@@ -7190,6 +7194,29 @@ public partial class ApiService : ModService
 
         response.StatusCode = 404;
         await WriteJsonAsync(response, new { error = "Client sync mod package (JunimoClientSync.zip) not found." });
+    }
+
+    private async Task HandleGetServerEngineZipAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var searchPaths = new[]
+        {
+            Path.Combine(Helper.DirectoryPath, "JunimoServer.zip"),
+            Path.Combine(Path.GetDirectoryName(Helper.DirectoryPath) ?? "", "JunimoServer.zip"),
+            Path.Combine(Directory.GetCurrentDirectory(), "mods", "JunimoServer.zip"),
+            Path.Combine(Directory.GetCurrentDirectory(), "JunimoServer.zip"),
+            Path.Combine(Directory.GetCurrentDirectory(), "tools", "web-admin", "public", "JunimoServer.zip")
+        };
+
+        string? foundPath = searchPaths.FirstOrDefault(File.Exists);
+        if (foundPath != null)
+        {
+            var bytes = await File.ReadAllBytesAsync(foundPath);
+            await ServeBytesWithRangeSupportAsync(request, response, bytes, "application/zip", "JunimoServer-v1.4.1.zip");
+            return;
+        }
+
+        response.StatusCode = 404;
+        await WriteJsonAsync(response, new { error = "Server engine mod package (JunimoServer.zip) not found." });
     }
 
     private async Task HandleGetFarmerProfileAsync(HttpListenerRequest request, HttpListenerResponse response)
