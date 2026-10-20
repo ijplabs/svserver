@@ -189,6 +189,11 @@ public class ProfessionService : ModService
 
                 if (onlineFarmer != null)
                 {
+                    onlineFarmer.professions.Remove(0);
+                    onlineFarmer.professions.Remove(1);
+                    onlineFarmer.professions.Remove(6);
+                    onlineFarmer.professions.Remove(12);
+                    onlineFarmer.professions.Remove(18);
                     onlineFarmer.modData.Remove("svserver/profession");
                     onlineFarmer.modData.Remove("svserver/starter_kit_granted");
                     onlineFarmer.modData.Remove("svserver/starter_kit_delivered_v2");
@@ -253,6 +258,28 @@ public class ProfessionService : ModService
                 $"[green][Profesi] Selamat! Anda telah memilih profesi: [{GetProfessionDisplayName(selectedProfession)}]."
             );
 
+            var targetFarmer = Game1.GetPlayer(farmerId);
+            if (targetFarmer != null)
+            {
+                targetFarmer.modData["svserver/profession"] = selectedProfession.ToString();
+
+                int vanillaProfessionId = selectedProfession switch
+                {
+                    ProfessionType.Rancher => 0,
+                    ProfessionType.Farmer => 1,
+                    ProfessionType.Fisherman => 6,
+                    ProfessionType.Miner => 12,
+                    ProfessionType.Forager => 18,
+                    _ => -1
+                };
+
+                if (vanillaProfessionId >= 0 && !targetFarmer.professions.Contains(vanillaProfessionId))
+                {
+                    targetFarmer.professions.Add(vanillaProfessionId);
+                    _monitor.Log($"[Profession] Replicated native vanilla profession {vanillaProfessionId} to {targetFarmer.Name} ({farmerId})", LogLevel.Info);
+                }
+            }
+
             // Populate starter gift box in player's cabin
             var cabin = FindPlayerCabin(farmerId);
             if (cabin != null)
@@ -260,14 +287,25 @@ public class ProfessionService : ModService
                 PopulateCabinStarterGiftBox(farmerId, selectedProfession, cabin);
             }
 
-            if (selectedProfession == ProfessionType.Rancher)
+            if (selectedProfession == ProfessionType.Rancher && targetFarmer != null)
             {
-                var targetFarmer = Game1.GetPlayer(farmerId);
-                if (targetFarmer != null)
+                SetupRancherCoopAndAnimals(targetFarmer);
+            }
+
+            // TASK-07: Immediate mid-day save on game thread to persist character creation, cabin gift, and profession
+            void SaveOnNextTick(object? s, UpdateTickedEventArgs ev)
+            {
+                _helper.Events.GameLoop.UpdateTicked -= SaveOnNextTick;
+                if (SaveNow.TrySave(_helper, out var saveErr))
                 {
-                    SetupRancherCoopAndAnimals(targetFarmer);
+                    _monitor.Log($"[Profession] World snapshot saved successfully after profession confirmation for {farmerId}", LogLevel.Info);
+                }
+                else
+                {
+                    _monitor.Log($"[Profession] AutoSave on profession selection skipped/deferred: {saveErr}", LogLevel.Trace);
                 }
             }
+            _helper.Events.GameLoop.UpdateTicked += SaveOnNextTick;
 
             // Notify JunimoClientSync UI if present
             try
@@ -466,11 +504,10 @@ public class ProfessionService : ModService
                 // Purge any residual ghost data for this uncustomized slot
                 await PurgeStaleFarmerDataAsync(farmerId);
 
-                _helper.SendPrivateMessage(
-                    farmerId,
-                    "[Profesi] Selamat datang! Klik tombol [Pilih Profesi RPG] di layar Anda atau ketik: !profesi <farmer | miner | fisherman | rancher | forager> untuk memilih profesi Anda!"
+                _monitor.Log(
+                    $"[Profession] Player {farmerId} is currently creating character (uncustomized). Deferring profession UI modal until customization is completed.",
+                    LogLevel.Debug
                 );
-                _ = SendProfessionUIModalToClientAsync(farmerId);
                 return;
             }
 
@@ -485,6 +522,26 @@ public class ProfessionService : ModService
             }
             else
             {
+                var returningFarmer = Game1.GetPlayer(farmerId);
+                if (returningFarmer != null)
+                {
+                    returningFarmer.modData["svserver/profession"] = profession.Value.ToString();
+                    int vanillaProfessionId = profession.Value switch
+                    {
+                        ProfessionType.Rancher => 0,
+                        ProfessionType.Farmer => 1,
+                        ProfessionType.Fisherman => 6,
+                        ProfessionType.Miner => 12,
+                        ProfessionType.Forager => 18,
+                        _ => -1
+                    };
+                    if (vanillaProfessionId >= 0 && !returningFarmer.professions.Contains(vanillaProfessionId))
+                    {
+                        returningFarmer.professions.Add(vanillaProfessionId);
+                        _monitor.Log($"[Profession] Re-synced native vanilla profession {vanillaProfessionId} for returning player {returningFarmer.Name} ({farmerId})", LogLevel.Info);
+                    }
+                }
+
                 try
                 {
                     _helper.Multiplayer.SendMessage(
@@ -701,6 +758,19 @@ public class ProfessionService : ModService
 
             CleanupAnimalsForFarmer(farmerId);
 
+            var onlineFarmer = Game1.GetPlayer(farmerId);
+            if (onlineFarmer != null)
+            {
+                onlineFarmer.professions.Remove(0);
+                onlineFarmer.professions.Remove(1);
+                onlineFarmer.professions.Remove(6);
+                onlineFarmer.professions.Remove(12);
+                onlineFarmer.professions.Remove(18);
+                onlineFarmer.modData.Remove("svserver/profession");
+                onlineFarmer.modData.Remove("svserver/starter_kit_granted");
+                onlineFarmer.modData.Remove("svserver/starter_kit_delivered_v2");
+            }
+
             if (_accountLinking != null)
             {
                 try
@@ -740,6 +810,7 @@ public class ProfessionService : ModService
                     foreach (var id in toRemove)
                     {
                         animalHouse.animals.Remove(id);
+                        animalHouse.animalsThatLiveHere.Remove(id);
                         _monitor.Log($"[Profession] Removed animal {id} belonging to farmer {farmerId}", LogLevel.Info);
                     }
                 }
@@ -778,6 +849,7 @@ public class ProfessionService : ModService
                     foreach (var id in toRemove)
                     {
                         animalHouse.animals.Remove(id);
+                        animalHouse.animalsThatLiveHere.Remove(id);
                         _monitor.Log($"[Profession] Cleaned up orphaned animal {id} from AnimalHouse (no active customized owner)", LogLevel.Info);
                     }
                 }
@@ -791,6 +863,7 @@ public class ProfessionService : ModService
 
     /// <summary>
     /// Returns server-wide profession counts for all assigned farmers.
+    /// Preserves entries in cache so players authenticated in lobby are not pruned.
     /// </summary>
     public Dictionary<string, int> GetProfessionCounts()
     {
@@ -805,43 +878,37 @@ public class ProfessionService : ModService
 
         try
         {
-            var validFarmers = Game1.getAllFarmers()
-                .Where(f => f.isCustomized.Value)
-                .Select(f => f.UniqueMultiplayerID)
-                .ToHashSet();
+            var countedFarmers = new HashSet<long>();
 
-            // Prune cache of non-existent or uncustomized farmers
-            foreach (var key in _professionCache.Keys)
+            // 1. Count from active cache (includes farmers in lobby)
+            foreach (var kvp in _professionCache)
             {
-                if (!validFarmers.Contains(key))
+                string key = kvp.Value.ToString().ToLowerInvariant();
+                if (counts.ContainsKey(key))
                 {
-                    _professionCache.TryRemove(key, out _);
+                    counts[key]++;
+                    countedFarmers.Add(kvp.Key);
                 }
             }
 
-            foreach (var farmerId in validFarmers)
+            // 2. Discover any in-game farmers not yet present in cache
+            foreach (var farmer in Game1.getAllFarmers())
             {
-                if (_professionCache.TryGetValue(farmerId, out var prof))
+                if (countedFarmers.Contains(farmer.UniqueMultiplayerID))
                 {
-                    string key = prof.ToString().ToLowerInvariant();
-                    if (counts.ContainsKey(key))
-                    {
-                        counts[key]++;
-                    }
+                    continue;
                 }
-                else
+
+                if (farmer.modData.TryGetValue("svserver/profession", out var val) && !string.IsNullOrEmpty(val))
                 {
-                    var farmer = Game1.GetPlayer(farmerId);
-                    if (farmer != null && farmer.modData.TryGetValue("svserver/profession", out var val) && !string.IsNullOrEmpty(val))
+                    if (Enum.TryParse<ProfessionType>(val, true, out var parsed))
                     {
-                        if (Enum.TryParse<ProfessionType>(val, true, out var parsed))
+                        _professionCache[farmer.UniqueMultiplayerID] = parsed;
+                        string key = parsed.ToString().ToLowerInvariant();
+                        if (counts.ContainsKey(key))
                         {
-                            _professionCache[farmerId] = parsed;
-                            string key = parsed.ToString().ToLowerInvariant();
-                            if (counts.ContainsKey(key))
-                            {
-                                counts[key]++;
-                            }
+                            counts[key]++;
+                            countedFarmers.Add(farmer.UniqueMultiplayerID);
                         }
                     }
                 }
@@ -1443,6 +1510,7 @@ public class ProfessionService : ModService
                     coop.ClearTerrainBelow();
                     coop.daysOfConstructionLeft.Value = 0;
                     coop.load();
+                    farm.OnBuildingConstructed(coop, Game1.player);
                     _monitor.Log($"[Profession] Spawned new Starter Coop via buildStructure at ({coopTile.X}, {coopTile.Y})", LogLevel.Info);
                 }
                 else
@@ -1451,12 +1519,14 @@ public class ProfessionService : ModService
                     farm.buildings.Add(coop);
                     coop.ClearTerrainBelow();
                     coop.load();
+                    farm.OnBuildingConstructed(coop, Game1.player);
                     _monitor.Log($"[Profession] Spawned new Starter Coop via direct add at ({coopTile.X}, {coopTile.Y})", LogLevel.Info);
                 }
             }
             else
             {
                 coop.daysOfConstructionLeft.Value = 0;
+                coop.load();
             }
 
             // Ensure AnimalHouse indoors is properly loaded
@@ -1522,11 +1592,13 @@ public class ProfessionService : ModService
                 animal.ownerID.Value = farmer.UniqueMultiplayerID;
                 animal.modData["svserver/owner_name"] = farmerName;
                 animal.modData["svserver/owner_id"] = farmer.UniqueMultiplayerID.ToString();
+
+                // Adopt animal via official vanilla method (populates animalsThatLiveHere and homeInterior)
+                animalHouse.adoptAnimal(animal);
                 animal.Position = new Vector2((3 + offset) * 64, 3 * 64);
                 offset += 2;
 
-                animalHouse.animals.Add(animalId, animal);
-                _monitor.Log($"[Profession] Spawned {chickenType} '{name}' (ID: {animalId}) for {farmerName}", LogLevel.Info);
+                _monitor.Log($"[Profession] Adopted {chickenType} '{name}' (ID: {animalId}) into Coop for {farmerName}", LogLevel.Info);
             }
 
             _helper.SendPrivateMessage(

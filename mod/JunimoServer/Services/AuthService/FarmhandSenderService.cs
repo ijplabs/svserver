@@ -32,6 +32,7 @@ public class FarmhandSenderService : ModService
     private static LobbyService _lobbyService;
     private static CabinManagerService _cabinManager;
     private static FarmhandOwnershipService _farmhandOwnership;
+    private static Profession.ProfessionService? _professionService;
 
     // Cache the serializer globally
     private static readonly object SerializerLock = new object();
@@ -62,7 +63,8 @@ public class FarmhandSenderService : ModService
         Harmony harmony,
         LobbyService lobbyService,
         CabinManagerService cabinManager,
-        FarmhandOwnershipService farmhandOwnership
+        FarmhandOwnershipService farmhandOwnership,
+        Profession.ProfessionService? professionService = null
     )
     {
         if (_instance != null)
@@ -80,6 +82,7 @@ public class FarmhandSenderService : ModService
         _lobbyService = lobbyService;
         _cabinManager = cabinManager;
         _farmhandOwnership = farmhandOwnership;
+        _professionService = professionService;
 
         harmony.Patch(
             original: AccessTools.Method(
@@ -301,6 +304,12 @@ public class FarmhandSenderService : ModService
                     fh.Name = "";
                 }
                 firstUnclaimed = farmhandRef;
+
+                // TASK-03: Ensure any stale ghost data in Redis from an abandoned session is purged immediately
+                if (_professionService != null)
+                {
+                    _ = _professionService.PurgeStaleFarmerDataAsync(fh.UniqueMultiplayerID);
+                }
             }
         }
         availableFarmers = claimedFarmers;

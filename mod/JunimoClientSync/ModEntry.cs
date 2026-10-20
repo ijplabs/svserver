@@ -704,6 +704,12 @@ public class ModEntry : Mod
     {
         if (Context.IsWorldReady && Context.IsMultiplayer && !_hasAutoRequestedProfession)
         {
+            // Protect character creation: do not request profession UI while player is customizing
+            if (Game1.activeClickableMenu is CharacterCustomization || !Game1.player.isCustomized.Value)
+            {
+                return;
+            }
+
             _hasAutoRequestedProfession = true;
             if (!Game1.player.modData.ContainsKey("svserver/profession"))
             {
@@ -795,6 +801,12 @@ public class ModEntry : Mod
 
         if (e.Type == "ShowProfessionUI")
         {
+            if (Game1.activeClickableMenu is CharacterCustomization || !Game1.player.isCustomized.Value)
+            {
+                Monitor.Log("[JunimoClientSync] Deferring ShowProfessionUI modal because player is still creating character (CharacterCustomization).", LogLevel.Debug);
+                return;
+            }
+
             string payload = e.ReadAs<string>();
             var parts = payload.Split('|');
             string currentProf = parts.Length > 0 ? parts[0] : "";

@@ -42,6 +42,7 @@ public class ProfessionSelectionMenu : IClickableMenu
     private ClickableTextureComponent? _closeButton;
     private int _hoveredCardIndex = -1;
     private int _hoveredButtonIndex = -1;
+    private bool _isTwoTier;
 
     public ProfessionSelectionMenu(IModHelper helper, IMonitor monitor, int rancherCount = 0, int rancherMax = 2, string currentProfession = "")
         : base(0, 0, 1060, 620, showUpperRightCloseButton: true)
@@ -136,39 +137,100 @@ public class ProfessionSelectionMenu : IClickableMenu
 
     private void Reposition()
     {
-        width = Math.Min(1060, Game1.uiViewport.Width - 32);
-        height = Math.Min(620, Game1.uiViewport.Height - 32);
-        xPositionOnScreen = (Game1.uiViewport.Width - width) / 2;
-        yPositionOnScreen = (Game1.uiViewport.Height - height) / 2;
-
-        _closeButton = new ClickableTextureComponent(
-            new Rectangle(xPositionOnScreen + width - 42, yPositionOnScreen + 16, 28, 28),
-            Game1.mouseCursors,
-            new Rectangle(337, 494, 12, 12),
-            2.5f
-        );
+        _isTwoTier = Game1.uiViewport.Width < 1000;
 
         _cardBounds.Clear();
         _buttonBounds.Clear();
 
-        int numCards = _options.Count;
-        int paddingSide = 20;
-        int gap = 12;
-        int availWidth = width - (paddingSide * 2) - (gap * (numCards - 1));
-        int cardWidth = availWidth / numCards;
-        int cardHeight = height - 124;
-        int startY = yPositionOnScreen + 84;
-
-        for (int i = 0; i < numCards; i++)
+        if (!_isTwoTier)
         {
-            int cardX = xPositionOnScreen + paddingSide + i * (cardWidth + gap);
-            _cardBounds.Add(new Rectangle(cardX, startY, cardWidth, cardHeight));
+            width = Math.Min(1060, Game1.uiViewport.Width - 32);
+            height = Math.Min(620, Game1.uiViewport.Height - 32);
+            xPositionOnScreen = (Game1.uiViewport.Width - width) / 2;
+            yPositionOnScreen = (Game1.uiViewport.Height - height) / 2;
 
-            int btnH = 38;
-            int btnW = cardWidth - 20;
-            int btnX = cardX + 10;
-            int btnY = startY + cardHeight - btnH - 12;
-            _buttonBounds.Add(new Rectangle(btnX, btnY, btnW, btnH));
+            _closeButton = new ClickableTextureComponent(
+                new Rectangle(xPositionOnScreen + width - 42, yPositionOnScreen + 16, 28, 28),
+                Game1.mouseCursors,
+                new Rectangle(337, 494, 12, 12),
+                2.5f
+            );
+
+            int numCards = _options.Count; // 5
+            int paddingSide = 20;
+            int gap = 12;
+            int availWidth = width - (paddingSide * 2) - (gap * (numCards - 1));
+            int cardWidth = Math.Max(180, availWidth / numCards);
+            int cardHeight = height - 120;
+            int startY = yPositionOnScreen + 84;
+
+            for (int i = 0; i < numCards; i++)
+            {
+                int cardX = xPositionOnScreen + paddingSide + i * (cardWidth + gap);
+                var cardRect = new Rectangle(cardX, startY, cardWidth, cardHeight);
+                _cardBounds.Add(cardRect);
+
+                int btnH = 38;
+                int btnW = cardWidth - 20;
+                int btnX = cardX + 10;
+                int btnY = cardRect.Bottom - btnH - 12;
+                _buttonBounds.Add(new Rectangle(btnX, btnY, btnW, btnH));
+            }
+        }
+        else
+        {
+            // Dynamic Two-Tier Layout: 3 cards top row, 2 cards bottom row
+            width = Math.Min(840, Game1.uiViewport.Width - 24);
+            height = Math.Min(660, Game1.uiViewport.Height - 24);
+            xPositionOnScreen = (Game1.uiViewport.Width - width) / 2;
+            yPositionOnScreen = (Game1.uiViewport.Height - height) / 2;
+
+            _closeButton = new ClickableTextureComponent(
+                new Rectangle(xPositionOnScreen + width - 40, yPositionOnScreen + 14, 28, 28),
+                Game1.mouseCursors,
+                new Rectangle(337, 494, 12, 12),
+                2.5f
+            );
+
+            int paddingSide = 16;
+            int gap = 12;
+            int availWidth = width - (paddingSide * 2) - (gap * 2);
+            int cardWidth = Math.Max(180, availWidth / 3);
+            int headerH = 68;
+            int rowGap = 10;
+            int cardHeight = Math.Max(210, (height - headerH - rowGap - 24) / 2);
+            int row1Y = yPositionOnScreen + headerH;
+            int row2Y = row1Y + cardHeight + rowGap;
+
+            // Row 1: 3 cards (Petani, Penambang, Nelayan)
+            for (int i = 0; i < 3; i++)
+            {
+                int cardX = xPositionOnScreen + paddingSide + i * (cardWidth + gap);
+                var cardRect = new Rectangle(cardX, row1Y, cardWidth, cardHeight);
+                _cardBounds.Add(cardRect);
+
+                int btnH = 34;
+                int btnW = cardWidth - 16;
+                int btnX = cardX + 8;
+                int btnY = cardRect.Bottom - btnH - 8;
+                _buttonBounds.Add(new Rectangle(btnX, btnY, btnW, btnH));
+            }
+
+            // Row 2: 2 cards (Peternak, Penebang) - centered horizontally
+            int row2TotalWidth = (cardWidth * 2) + gap;
+            int row2StartX = xPositionOnScreen + (width - row2TotalWidth) / 2;
+            for (int i = 0; i < 2; i++)
+            {
+                int cardX = row2StartX + i * (cardWidth + gap);
+                var cardRect = new Rectangle(cardX, row2Y, cardWidth, cardHeight);
+                _cardBounds.Add(cardRect);
+
+                int btnH = 34;
+                int btnW = cardWidth - 16;
+                int btnX = cardX + 8;
+                int btnY = cardRect.Bottom - btnH - 8;
+                _buttonBounds.Add(new Rectangle(btnX, btnY, btnW, btnH));
+            }
         }
     }
 
@@ -364,47 +426,59 @@ public class ProfessionSelectionMenu : IClickableMenu
 
             // 1. Category Tag (Short, uppercase, non-overlapping)
             string catText = $"[{opt.Category}]";
-            float catScale = 0.72f;
+            float catScale = _isTwoTier ? 0.68f : 0.72f;
             float catW = Game1.tinyFont.MeasureString(catText).X * catScale;
-            Vector2 catPos = new Vector2(card.X + (card.Width - catW) / 2f, card.Y + 12);
+            Vector2 catPos = new Vector2(card.X + (card.Width - catW) / 2f, card.Y + (_isTwoTier ? 8 : 12));
             DrawScaledText(b, catText, Game1.tinyFont, catPos, accentColor, catScale, shadow: false);
 
             // 2. Profession Title
             string profName = opt.DisplayName;
-            float profScale = 0.85f;
+            float profScale = _isTwoTier ? 0.80f : 0.85f;
             float profW = Game1.smallFont.MeasureString(profName).X * profScale;
-            Vector2 profPos = new Vector2(card.X + (card.Width - profW) / 2f, card.Y + 30);
+            Vector2 profPos = new Vector2(card.X + (card.Width - profW) / 2f, card.Y + (_isTwoTier ? 24 : 30));
             DrawScaledText(b, profName, Game1.smallFont, profPos, Game1.textColor, profScale, shadow: true);
 
             // 3. Top Divider
-            b.Draw(Game1.staminaRect, new Rectangle(card.X + 10, card.Y + 56, card.Width - 20, 1), new Color(226, 232, 240));
+            int topDivY = card.Y + (_isTwoTier ? 46 : 56);
+            b.Draw(Game1.staminaRect, new Rectangle(card.X + 8, topDivY, card.Width - 16, 1), new Color(226, 232, 240));
 
             // 4. Role Summary (1-2 lines, nicely scaled)
-            float descScale = 0.72f;
+            float descScale = _isTwoTier ? 0.66f : 0.72f;
             int maxDescWidth = (int)((card.Width - 16) / descScale);
             string desc = Game1.parseText(opt.Description, Game1.tinyFont, maxDescWidth);
-            Vector2 descPos = new Vector2(card.X + 8, card.Y + 64);
+            Vector2 descPos = new Vector2(card.X + 8, topDivY + (_isTwoTier ? 4 : 8));
             DrawScaledText(b, desc, Game1.tinyFont, descPos, new Color(71, 85, 105), descScale, shadow: false);
+            float descH = Game1.tinyFont.MeasureString(desc).Y * descScale;
 
             // 5. Middle Divider
-            b.Draw(Game1.staminaRect, new Rectangle(card.X + 10, card.Y + 116, card.Width - 20, 1), new Color(226, 232, 240));
+            int midDivY = (int)(descPos.Y + descH + (_isTwoTier ? 4 : 6));
+            b.Draw(Game1.staminaRect, new Rectangle(card.X + 8, midDivY, card.Width - 16, 1), new Color(226, 232, 240));
 
             // 6. Bonus Header Label
-            float bonusHdrScale = 0.72f;
-            Vector2 bonusLabelPos = new Vector2(card.X + 8, card.Y + 124);
+            float bonusHdrScale = _isTwoTier ? 0.66f : 0.72f;
+            Vector2 bonusLabelPos = new Vector2(card.X + 8, midDivY + (_isTwoTier ? 4 : 8));
             DrawScaledText(b, "Paket Hadiah Starter:", Game1.smallFont, bonusLabelPos, new Color(30, 41, 59), bonusHdrScale, shadow: false);
+            float bonusHdrH = Game1.smallFont.MeasureString("Paket").Y * bonusHdrScale;
 
-            // 7. Starter Item List
-            float itemY = card.Y + 148;
-            float itemScale = 0.70f;
+            // 7. Starter Item List (strictly bounded to stop before the button)
+            float itemY = bonusLabelPos.Y + bonusHdrH + (_isTwoTier ? 3 : 6);
+            float itemScale = _isTwoTier ? 0.64f : 0.70f;
             int maxItemWidth = (int)((card.Width - 16) / itemScale);
 
             foreach (var itemText in opt.StarterItems)
             {
                 string bullet = $"• {itemText}";
                 string parsedItem = Game1.parseText(bullet, Game1.tinyFont, maxItemWidth);
+                float itemH = Game1.tinyFont.MeasureString(parsedItem).Y * itemScale;
+
+                // Stop drawing item text if it reaches the button threshold
+                if (itemY + itemH > btn.Y - 4)
+                {
+                    break;
+                }
+
                 DrawScaledText(b, parsedItem, Game1.tinyFont, new Vector2(card.X + 8, itemY), new Color(51, 65, 85), itemScale, shadow: false);
-                itemY += Game1.tinyFont.MeasureString(parsedItem).Y * itemScale + 4f;
+                itemY += itemH + (_isTwoTier ? 2f : 4f);
             }
 
             // 8. Button Box (Fixed at bottom)

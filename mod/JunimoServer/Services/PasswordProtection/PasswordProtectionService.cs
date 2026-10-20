@@ -317,7 +317,7 @@ public class PasswordProtectionService : ModService
 
     private void OnFarmhandRequest(NetFarmerRoot farmer)
     {
-        if (!IsEnabled || farmer?.Value == null)
+        if (farmer?.Value == null)
         {
             return;
         }
@@ -346,6 +346,18 @@ public class PasswordProtectionService : ModService
         }
 
         var isNewPlayer = !farmer.Value.isCustomized.Value;
+
+        // If this is a fresh or uncustomized player slot, purge any stale ghost data in Redis/farm regardless of password protection
+        if (isNewPlayer && _instance?._professionService != null)
+        {
+            _ = _instance._professionService.PurgeStaleFarmerDataAsync(farmerId);
+        }
+
+        if (!IsEnabled)
+        {
+            return;
+        }
+
         var playerType = isNewPlayer ? "new" : "returning";
         _monitor.Log(
             $"[Auth] {ChatRedaction.MaskValue(farmer.Value.Name)} ({playerType}) connecting",
@@ -355,12 +367,6 @@ public class PasswordProtectionService : ModService
         // Create auth tracking
         var authData = new PlayerAuthData(farmerId) { IsNewPlayer = isNewPlayer };
         _playerAuthData[farmerId] = authData;
-
-        // If this is a fresh or uncustomized player slot, purge any stale ghost data in Redis/farm
-        if (isNewPlayer && _instance._professionService != null)
-        {
-            _ = _instance._professionService.PurgeStaleFarmerDataAsync(farmerId);
-        }
 
         // Register with LobbyService to exclude from sleep ready-checks
         _lobbyService.RegisterUnauthenticatedPlayer(farmerId);
