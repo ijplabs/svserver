@@ -170,7 +170,7 @@ public class FarmhandSenderService : ModService
                         LogLevel.Debug
                     );
                 }
-            });
+            }, null);
 
             return false;
         }

@@ -132,6 +132,25 @@ internal class Env
     /// </summary>
     public static readonly bool? VerboseLogging = ParseNullableBool("VERBOSE_LOGGING");
 
+    /// <summary>
+    /// Tile X coordinate for spawning the Rancher's Starter Coop on the farm.
+    /// Default: 44 (open farm pasture south of farmhouse road).
+    /// </summary>
+    public static readonly int RancherCoopTileX = ParseInt("RANCHER_COOP_TILE_X", 44);
+
+    /// <summary>
+    /// Tile Y coordinate for spawning the Rancher's Starter Coop on the farm.
+    /// Default: 24 (open farm pasture south of farmhouse road).
+    /// </summary>
+    public static readonly int RancherCoopTileY = ParseInt("RANCHER_COOP_TILE_Y", 24);
+
+    /// <summary>
+    /// Whether custom coordinates for Rancher's Starter Coop were explicitly supplied in the environment.
+    /// </summary>
+    public static readonly bool HasCustomRancherCoopCoordinates =
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RANCHER_COOP_TILE_X")) ||
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RANCHER_COOP_TILE_Y"));
+
     #region API & Web Authentication
 
     /// <summary>

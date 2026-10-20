@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using JunimoServer.Services.ChatCommands;
 using JunimoServer.Services.Lobby;
 using JunimoServer.Services.Redis;
+using JunimoServer.Services.Roles;
 using JunimoServer.Util;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -29,6 +30,7 @@ public class ProfessionService : ModService
     private readonly IMonitor _monitor;
     private readonly IRedisService _redis;
     private readonly ChatCommandsService _chatCommandsService;
+    private readonly RoleService? _roleService;
     private readonly Auth.AccountLinkingService? _accountLinking;
 
     private const string ProfessionKeyPrefix = "player:profession:";
@@ -45,6 +47,7 @@ public class ProfessionService : ModService
         IMonitor monitor,
         IRedisService redis,
         ChatCommandsService chatCommandsService,
+        RoleService? roleService = null,
         Auth.AccountLinkingService? accountLinking = null
     ) : base(helper, monitor)
     {
@@ -52,6 +55,7 @@ public class ProfessionService : ModService
         _monitor = monitor;
         _redis = redis;
         _chatCommandsService = chatCommandsService;
+        _roleService = roleService;
         _accountLinking = accountLinking;
 
         RegisterCommands();
@@ -87,6 +91,12 @@ public class ProfessionService : ModService
             "claimkit",
             "Ambil starter kit profesi jika belum diterima (!claimkit)",
             HandleClaimKitCommand
+        );
+
+        _chatCommandsService.RegisterCommand(
+            "coop",
+            "Kelola lokasi kandang ayam Starter Coop (!coop move [x y] | !coop info | !coop reset)",
+            HandleCoopCommand
         );
     }
 
@@ -479,6 +489,209 @@ public class ProfessionService : ModService
         });
     }
 
+    private void HandleCoopCommand(string[] args, ReceivedMessage msg)
+    {
+        long farmerId = msg.SourceFarmer;
+        Task.Run(async () =>
+        {
+            var currentProf = await GetPlayerProfessionAsync(farmerId);
+            bool isRancher = currentProf == ProfessionType.Rancher;
+            bool isAdmin = _roleService != null && _roleService.IsPlayerAdmin(farmerId);
+            bool isServerHost = farmerId == 0 || (_roleService != null && _roleService.IsServerHost(farmerId));
+
+            if (!isRancher && !isAdmin && !isServerHost)
+            {
+                _helper.SendPrivateMessage(
+                    farmerId,
+                    "[red][Profesi] Hanya pemain berprofesi Peternak (Rancher) atau Admin yang dapat mengelola lokasi kandang ayam."
+                );
+                return;
+            }
+
+            if (args.Length == 0 || args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
+            {
+                _helper.SendPrivateMessage(farmerId, "[aqua]========================================");
+                _helper.SendPrivateMessage(farmerId, "[yellow]Perintah Pengaturan Kandang Ayam (Starter Coop):");
+                _helper.SendPrivateMessage(farmerId, "  - !coop info         [gray]: Lihat lokasi kandang ayam saat ini");
+                _helper.SendPrivateMessage(farmerId, "  - !coop move         [gray]: Pindahkan kandang tepat di depan posisi berdiri Anda");
+                _helper.SendPrivateMessage(farmerId, "  - !coop move <x> <y> [gray]: Pindahkan kandang ke koordinat tile tertentu (contoh: !coop move 44 24)");
+                _helper.SendPrivateMessage(farmerId, "  - !coop reset        [gray]: Kembalikan ke koordinat default server");
+                _helper.SendPrivateMessage(farmerId, "[aqua]========================================");
+                return;
+            }
+
+            string subCommand = args[0].ToLowerInvariant();
+
+            GameThreadOneShot.Run(_helper, _monitor, "HandleCoopCommand", () =>
+            {
+                var farm = Game1.getFarm();
+                if (farm == null)
+                {
+                    _helper.SendPrivateMessage(farmerId, "[red][Profesi] Lokasi Farm tidak ditemukan.");
+                    return;
+                }
+
+                var coop = farm.buildings.FirstOrDefault(b =>
+                    b.buildingType.Value.Contains("Coop", StringComparison.OrdinalIgnoreCase) ||
+                    b.GetIndoors() is AnimalHouse
+                );
+
+                if (coop == null)
+                {
+                    _helper.SendPrivateMessage(farmerId, "[red][Profesi] Belum ada kandang ayam (Coop) di Farm.");
+                    return;
+                }
+
+                if (subCommand == "info")
+                {
+                    _helper.SendPrivateMessage(
+                        farmerId,
+                        $"[green][Profesi] Lokasi Starter Coop saat ini: X={coop.tileX.Value}, Y={coop.tileY.Value} (Ukuran: 6x3 tile)."
+                    );
+                    return;
+                }
+
+                int targetX = coop.tileX.Value;
+                int targetY = coop.tileY.Value;
+
+                if (subCommand == "reset")
+                {
+                    targetX = Env.RancherCoopTileX;
+                    targetY = Env.RancherCoopTileY;
+                }
+                else if (subCommand == "move")
+                {
+                    if (args.Length >= 3 && int.TryParse(args[1], out int px) && int.TryParse(args[2], out int py))
+                    {
+                        targetX = px;
+                        targetY = py;
+                    }
+                    else
+                    {
+                        var caller = Game1.GetPlayer(farmerId);
+                        if (caller == null || caller.currentLocation is not Farm)
+                        {
+                            _helper.SendPrivateMessage(
+                                farmerId,
+                                "[red][Profesi] Anda harus berada di area Farm untuk memindahkan Coop ke posisi Anda. Atau gunakan: !coop move <x> <y>."
+                            );
+                            return;
+                        }
+
+                        // Align coop human door (X+1, Y+2) right in front of the player's tile (X, Y)
+                        targetX = (int)caller.Tile.X - 1;
+                        targetY = (int)caller.Tile.Y - 3;
+                    }
+                }
+                else
+                {
+                    _helper.SendPrivateMessage(farmerId, "[yellow]Perintah tidak dikenal. Ketik !coop help untuk bantuan.");
+                    return;
+                }
+
+                bool success = RelocateCoopInternal(farm, coop, targetX, targetY, out string error);
+                if (success)
+                {
+                    _helper.SendPublicMessage(
+                        $"[Profesi] Kandang ayam (Coop) berhasil dipindahkan ke koordinat ({targetX}, {targetY})!"
+                    );
+                    _monitor.Log($"[Profession] Coop relocated to ({targetX}, {targetY}) by farmer {farmerId}", LogLevel.Info);
+                }
+                else
+                {
+                    _helper.SendPrivateMessage(farmerId, $"[red][Profesi] Gagal memindahkan Coop: {error}");
+                }
+            });
+        });
+    }
+
+    public bool RelocateCoopInternal(Farm farm, Building coop, int targetX, int targetY, out string error)
+    {
+        error = "";
+        if (farm == null || coop == null)
+        {
+            error = "Farm atau Coop tidak ditemukan.";
+            return false;
+        }
+
+        var map = farm.Map;
+        int mapWidth = map?.Layers[0]?.LayerWidth ?? 80;
+        int mapHeight = map?.Layers[0]?.LayerHeight ?? 65;
+
+        if (targetX < 1 || targetX + 6 >= mapWidth || targetY < 1 || targetY + 4 >= mapHeight)
+        {
+            error = $"Koordinat ({targetX}, {targetY}) berada di luar batas peta Farm.";
+            return false;
+        }
+
+        // Check building and water collisions
+        for (int dx = 0; dx < 6; dx++)
+        {
+            for (int dy = 0; dy < 3; dy++)
+            {
+                var checkPos = new Vector2(targetX + dx, targetY + dy);
+                var existing = farm.getBuildingAt(checkPos);
+                if (existing != null && existing != coop)
+                {
+                    error = $"Bertabrakan dengan bangunan {existing.buildingType.Value} di ({checkPos.X}, {checkPos.Y}).";
+                    return false;
+                }
+                if (farm.isWaterTile((int)checkPos.X, (int)checkPos.Y))
+                {
+                    error = $"Lokasi berada di atas air / sungai di ({checkPos.X}, {checkPos.Y}).";
+                    return false;
+                }
+            }
+        }
+
+        // Clear ground tiles and front entrance apron (2 tiles in front of door)
+        for (int x = targetX - 1; x < targetX + 7; x++)
+        {
+            for (int y = targetY; y < targetY + 5; y++)
+            {
+                var pos = new Vector2(x, y);
+                farm.terrainFeatures.Remove(pos);
+                farm.Objects.Remove(pos);
+                for (int i = farm.resourceClumps.Count - 1; i >= 0; i--)
+                {
+                    if (farm.resourceClumps[i].Tile == pos)
+                    {
+                        farm.resourceClumps.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+        // Relocate building
+        coop.tileX.Value = targetX;
+        coop.tileY.Value = targetY;
+        coop.ClearTerrainBelow();
+        coop.updateInteriorWarps();
+
+        // Safely nudge any standing farmers out of the building footprint
+        var footprintRect = new Rectangle(targetX * 64, targetY * 64, 6 * 64, 3 * 64);
+        foreach (var farmer in farm.farmers)
+        {
+            if (footprintRect.Intersects(farmer.GetBoundingBox()))
+            {
+                farmer.Position = new Vector2((targetX + 1) * 64f, (targetY + 3) * 64f);
+            }
+        }
+
+        // Relocate wandering outside chickens to the new entrance apron
+        var apronPos = new Vector2((targetX + 1) * 64f, (targetY + 3) * 64f);
+        foreach (var animal in farm.animals.Values)
+        {
+            if (animal.home == coop)
+            {
+                animal.Position = apronPos;
+                animal.faceDirection(2);
+            }
+        }
+
+        return true;
+    }
+
     private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
     {
         if (e.Peer == null || e.Peer.PlayerID == 0) return;
@@ -731,6 +944,35 @@ public class ProfessionService : ModService
                         }
                     }
                 }
+
+                // 4. Auto-relocate coop if at legacy collision coordinate (48, 14) or explicitly overridden
+                GameThreadOneShot.Run(_helper, _monitor, "ReconcileStarterCoopPosition", () =>
+                {
+                    var farm = Game1.getFarm();
+                    if (farm == null) return;
+
+                    var existingCoop = farm.buildings.FirstOrDefault(b =>
+                        b.buildingType.Value.Contains("Coop", StringComparison.OrdinalIgnoreCase) ||
+                        b.GetIndoors() is AnimalHouse
+                    );
+
+                    if (existingCoop != null)
+                    {
+                        bool atLegacyCoordinate = (existingCoop.tileX.Value == 48 && existingCoop.tileY.Value == 14);
+                        bool hasCustomConfig = Env.HasCustomRancherCoopCoordinates &&
+                            (existingCoop.tileX.Value != Env.RancherCoopTileX || existingCoop.tileY.Value != Env.RancherCoopTileY);
+
+                        if (atLegacyCoordinate || hasCustomConfig)
+                        {
+                            _monitor.Log($"[Profession] Auto-relocating Coop from ({existingCoop.tileX.Value}, {existingCoop.tileY.Value}) to ({Env.RancherCoopTileX}, {Env.RancherCoopTileY}).", LogLevel.Info);
+                            RelocateCoopInternal(farm, existingCoop, Env.RancherCoopTileX, Env.RancherCoopTileY, out string err);
+                            if (!string.IsNullOrEmpty(err))
+                            {
+                                _monitor.Log($"[Profession] Warning auto-relocating Coop: {err}", LogLevel.Warn);
+                            }
+                        }
+                    }
+                });
 
                 _monitor.Log("[Profession] Completed OnSaveLoaded reconciliation of professions, rancher quota, and farm animals.", LogLevel.Info);
             }
@@ -1476,20 +1718,20 @@ public class ProfessionService : ModService
 
             if (coop == null)
             {
-                Vector2 coopTile = new Vector2(48, 14);
+                Vector2 coopTile = new Vector2(Env.RancherCoopTileX, Env.RancherCoopTileY);
                 if (farm.getBuildingAt(coopTile) != null)
                 {
-                    coopTile = new Vector2(56, 14);
+                    coopTile = new Vector2(coopTile.X - 8, coopTile.Y);
                 }
                 if (farm.getBuildingAt(coopTile) != null)
                 {
-                    coopTile = new Vector2(40, 14);
+                    coopTile = new Vector2(coopTile.X, coopTile.Y + 8);
                 }
 
-                // Clear ground tiles
-                for (int x = (int)coopTile.X; x < (int)coopTile.X + 6; x++)
+                // Clear ground tiles and front entrance apron (footprint + 2 tiles south)
+                for (int x = (int)coopTile.X - 1; x < (int)coopTile.X + 7; x++)
                 {
-                    for (int y = (int)coopTile.Y; y < (int)coopTile.Y + 3; y++)
+                    for (int y = (int)coopTile.Y; y < (int)coopTile.Y + 5; y++)
                     {
                         var pos = new Vector2(x, y);
                         farm.terrainFeatures.Remove(pos);
@@ -1525,6 +1767,12 @@ public class ProfessionService : ModService
             }
             else
             {
+                // Auto-relocate if existing coop is currently sitting at the old collision coordinate (48, 14)
+                if (coop.tileX.Value == 48 && coop.tileY.Value == 14)
+                {
+                    _monitor.Log($"[Profession] Detected existing Coop at legacy collision tile (48, 14). Auto-relocating to ({Env.RancherCoopTileX}, {Env.RancherCoopTileY}).", LogLevel.Info);
+                    RelocateCoopInternal(farm, coop, Env.RancherCoopTileX, Env.RancherCoopTileY, out _);
+                }
                 coop.daysOfConstructionLeft.Value = 0;
                 coop.load();
             }
