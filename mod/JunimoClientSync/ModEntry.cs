@@ -196,8 +196,39 @@ public class ModEntry : Mod
             return false;
         }
 
+        // Never show sync button during character creation or customizer
+        if (menu is CharacterCustomization || TitleMenu.subMenu is CharacterCustomization)
+        {
+            return false;
+        }
+
+        if (menu is TitleMenu tm)
+        {
+            if (tm.isTransitioningButtons)
+            {
+                return false;
+            }
+
+            if (TitleMenu.subMenu != null)
+            {
+                return TitleMenu.subMenu is CoopMenu;
+            }
+
+            return true;
+        }
+
+        if (menu is CoopMenu)
+        {
+            return true;
+        }
+
         string typeName = menu.GetType().Name;
-        return typeName.Contains("Title") || typeName.Contains("Coop") || menu is TitleMenu || menu is CoopMenu;
+        if (typeName.Contains("CharacterCustomization"))
+        {
+            return false;
+        }
+
+        return typeName.Contains("Coop");
     }
 
     private void OnRenderedActiveMenu(object? sender, RenderedActiveMenuEventArgs e)
@@ -830,12 +861,15 @@ public class ModEntry : Mod
     {
         int rancherCount = 0;
         int rancherMax = 2;
-        string currentProf = Game1.player.modData.TryGetValue("svserver/profession", out var p) ? p : "";
+        string currentProf = (Game1.player != null && Game1.player.modData != null && Game1.player.modData.TryGetValue("svserver/profession", out var p)) ? p : "";
 
-        // Also ask server for latest quota
+        // Also ask server for latest quota if connected to multiplayer
         try
         {
-            Helper.Multiplayer.SendMessage("REQ", "RequestProfessionUI", modIDs: new[] { "JunimoHost.Server" });
+            if (Context.IsWorldReady && Context.IsMultiplayer)
+            {
+                Helper.Multiplayer.SendMessage("REQ", "RequestProfessionUI", modIDs: new[] { "JunimoHost.Server" });
+            }
         }
         catch { }
 
