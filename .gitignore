@@ -76,6 +76,8 @@ tests/test-ui/dist/
 /tools/depot-downloader/DepotDownloader.exe
 /tools/depot-downloader/DepotDownloader.xml
 /tools/.playground
+/tools/ilspy/
+/tools/ilspycmd/
 
 # Extra mods
 /mods/*
